@@ -1,0 +1,56 @@
+.text_custom__container{
+    position: absolute;
+    bottom: 0;
+    width: 60%;
+    padding: 1rem;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    .text_custom__container__icons{
+        display: flex;
+        gap: 1rem;
+        .text_custom__container__button{
+            background-color: white;
+            border: none;
+            margin: 1rem 0;
+            .text_custom__container__icon{
+                width: 30px;
+                height: 30px;
+                fill: rgb(75, 75, 75);
+                border-radius: 0.5rem;
+                padding: 0.5rem;
+                cursor: pointer;
+                &:hover{
+                    background-color: rgb(199, 199, 255);
+                }
+            }
+        }
+    }
+}
+
+.text_custom__container__tone_buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 1rem;
+  
+  .text_custom__container__button {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.5rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 0.3rem;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgb(243, 243, 255);
+    }
+
+    span {
+      font-size: 0.8rem;
+      color: rgb(75, 75, 75);
+    }
+  }
+}

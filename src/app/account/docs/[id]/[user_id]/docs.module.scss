@@ -1,0 +1,1495 @@
+$boxShadowColor: rgb(207, 207, 207);
+
+
+
+
+
+
+
+@media print {
+
+
+
+
+
+
+
+    @page {
+
+
+
+
+
+
+
+      size: A4; /* Or any other page size you prefer */
+
+
+
+
+
+
+
+      margin: 1cm; /* Adjust the margin value as needed */
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+  }
+
+
+
+
+
+
+
+@mixin btn($bgColor,$color){
+
+
+
+
+
+
+
+    padding: 0.5rem;
+
+
+
+
+
+
+
+    background-color: $bgColor;
+
+
+
+
+
+
+
+    border: none;
+
+
+
+
+
+
+
+    color: $color;
+
+
+
+
+
+
+
+    border-radius: 0.5rem;
+
+
+
+
+
+
+
+    margin: 0.2rem 0.5rem 0 0;
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+.doc{
+
+
+
+
+
+
+
+    width: 100%;
+
+
+
+
+
+
+
+    display: flex;
+
+
+
+
+
+
+
+    justify-content: center;
+
+
+
+
+
+
+
+    gap: 1rem;
+
+
+
+
+
+
+
+    padding: 3rem;
+
+
+
+
+
+
+
+    .doc__sidebar__nav{
+
+
+
+
+
+
+
+        position: absolute;
+
+
+
+
+
+
+
+        top: 0;
+
+
+
+
+
+
+
+        left: 0;
+
+
+
+
+
+
+
+        margin: 1rem;
+
+
+
+
+
+
+
+        padding: 0.5rem;
+
+
+
+
+
+
+
+        border-radius: 3rem;
+
+
+
+
+
+
+
+        -webkit-box-shadow: 0px 0px 6px 1px $boxShadowColor;
+
+
+
+
+
+
+
+        -moz-box-shadow: 0px 0px 6px 1px $boxShadowColor;
+
+
+
+
+
+
+
+        box-shadow: 0px 0px 6px 1px $boxShadowColor;
+
+
+
+
+
+
+
+        .nav__logo{
+
+
+
+
+
+
+
+            width: 25px;
+
+
+
+
+
+
+
+            height: 25px;
+
+
+
+
+
+
+
+            display: inline;
+
+
+
+
+
+
+
+            border-radius: 10rem;
+
+
+
+
+
+
+
+            background-color: aquamarine;
+
+
+
+
+
+
+
+            fill: white;
+
+
+
+
+
+
+
+            padding: 0.3rem;
+
+
+
+
+
+
+
+            cursor: pointer;
+
+
+
+
+
+
+
+            margin: 0 0.5rem 0 0.5rem;
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+        .nav__bars{
+
+
+
+
+
+
+
+            width: 25px;
+
+
+
+
+
+
+
+            height: 25px;
+
+
+
+
+
+
+
+            cursor: pointer;
+
+
+
+
+
+
+
+            display: inline;
+
+
+
+
+
+
+
+            margin: 0 0.5rem 0 0.5rem;
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+    .doc__document{
+
+
+
+
+
+
+
+        width: 45%;
+
+
+
+
+
+
+
+        display: flex;
+
+
+
+
+
+
+
+        flex-direction: column;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        .doc__document__title{
+
+
+
+
+
+
+
+            border: none;
+
+
+
+
+
+
+
+            border-radius: 0.5rem;
+
+
+
+
+
+
+
+            font-weight: bold;
+
+
+
+
+
+
+
+            width: 50%;
+
+
+
+
+
+
+
+            padding: 0.5rem;
+
+
+
+
+
+
+
+            margin: 0rem 0rem 5rem 0;
+
+
+
+
+
+
+
+            &:focus{
+
+
+
+
+
+
+
+                outline: none;
+
+
+
+
+
+
+
+                background-color: rgb(232, 228, 247);
+
+
+
+
+
+
+
+            }
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        .doc__document__text{
+
+
+
+
+
+
+
+            border: none;
+
+
+
+
+
+
+
+            margin: 1rem 0rem;
+
+
+
+
+
+
+
+            border-radius: 0.5rem;
+
+
+
+
+
+
+
+            font-size: 1.1rem;
+
+
+
+
+
+
+
+            padding: 0.5rem;
+
+
+
+
+
+
+
+            max-height: 60vh;
+
+
+
+
+
+
+
+            min-height: 60vh;
+
+
+
+
+
+
+
+            overflow-y: auto;
+
+
+
+
+
+
+
+            &:focus{
+
+
+
+
+
+
+
+                outline: none;
+
+
+
+
+
+
+
+            }
+
+
+
+
+
+
+
+            &:empty:before {
+
+
+
+
+
+
+
+                content: attr(data-placeholder);
+
+
+
+
+
+
+
+                color: rgb(150, 150, 150);
+
+
+
+
+
+
+
+            }
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+    .doc__suggestions{
+
+
+
+
+
+
+
+        width: 35%;
+
+
+
+
+
+
+
+        padding: 1rem;
+
+
+
+
+
+
+
+        .doc__suggestions__title{
+
+
+
+
+
+
+
+            font-size: 1.2rem;
+
+
+
+
+
+
+
+            font-weight: 600;
+
+
+
+
+
+
+
+            margin-bottom: 1.5rem;
+
+
+
+
+
+
+
+            color: #333;
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+        button {
+
+
+
+
+
+
+
+            padding: 0.7rem 1.2rem;
+
+
+
+
+
+
+
+            border-radius: 8px;
+
+
+
+
+
+
+
+            font-weight: 500;
+
+
+
+
+
+
+
+            font-size: 0.9rem;
+
+
+
+
+
+
+
+            transition: all 0.2s ease;
+
+
+
+
+
+
+
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+
+
+
+
+
+
+            margin: 0 0.8rem 0.8rem 0;
+
+
+
+
+
+
+
+            
+
+
+
+
+
+
+
+            &:hover {
+
+
+
+
+
+
+
+                transform: translateY(-1px);
+
+
+
+
+
+
+
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+
+
+
+
+
+
+            }
+
+
+
+
+
+
+
+            
+
+
+
+
+
+
+
+            &:active {
+
+
+
+
+
+
+
+                transform: translateY(0);
+
+
+
+
+
+
+
+            }
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+        .doc__suggestions__btn {
+
+
+
+
+
+
+
+            background-color: #3b82f6;
+
+
+
+
+
+
+
+            color: white;
+
+
+
+
+
+
+
+            border: none;
+
+
+
+
+
+
+
+            
+
+
+
+
+
+
+
+            &:hover {
+
+
+
+
+
+
+
+                background-color: #2563eb;
+
+
+
+
+
+
+
+            }
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+        .doc__suggestions__btn__red {
+
+
+
+
+
+
+
+            background-color: #ef4444;
+
+
+
+
+
+
+
+            color: white;
+
+
+
+
+
+
+
+            border: none;
+
+
+
+
+
+
+
+            
+
+
+
+
+
+
+
+            &:hover {
+
+
+
+
+
+
+
+                background-color: #dc2626;
+
+
+
+
+
+
+
+            }
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+        .doc__suggestions__btn__green {
+
+
+
+
+
+
+
+            background-color: #22c55e;
+
+
+
+
+
+
+
+            color: white;
+
+
+
+
+
+
+
+            border: none;
+
+
+
+
+
+
+
+            
+
+
+
+
+
+
+
+            &:hover {
+
+
+
+
+
+
+
+                background-color: #16a34a;
+
+
+
+
+
+
+
+            }
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+        > div {
+
+
+
+
+
+
+
+            margin-top: 1rem;
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+        .doc__suggestions__active{
+
+
+
+
+
+
+
+            width: 100%;
+
+
+
+
+
+
+
+            display: flex;
+
+
+
+
+
+
+
+            flex-direction: column;
+
+
+
+
+
+
+
+            align-items: center;
+
+
+
+
+
+
+
+            justify-content: center;
+
+
+
+
+
+
+
+            margin: 1rem 0;
+
+
+
+
+
+
+
+            
+
+
+
+
+
+
+
+            .doc__suggestions__active__icon {
+
+
+
+
+
+
+
+                width: 48px;
+
+
+
+
+
+
+
+                height: 48px;
+
+
+
+
+
+
+
+                fill: rgb(21, 224, 14);
+
+
+
+
+
+
+
+                margin-bottom: 0.5rem;
+
+
+
+
+
+
+
+            }
+
+
+
+
+
+
+
+            
+
+
+
+
+
+
+
+            .doc__suggestions__active__message {
+
+
+
+
+
+
+
+                font-size: 1rem;
+
+
+
+
+
+
+
+                font-weight: bold;
+
+
+
+
+
+
+
+                text-align: center;
+
+
+
+
+
+
+
+                color: #333;
+
+
+
+
+
+
+
+            }
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+}
+
+.doc__header__toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: #64748b;
+  border-radius: 0.375rem;
+  margin-right: 1rem;
+
+  &:hover {
+    background: #f1f5f9;
+  }
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+.doc__content {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 2rem;
+  transition: all 0.3s ease;
+
+  &__compact {
+    grid-template-columns: 1fr;
+
+    .doc__suggestions {
+      position: fixed;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: white;
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      max-height: 80vh;
+      overflow-y: auto;
+      z-index: 100;
+      width: 300px;
+      opacity: 0.9;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+.doc {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: #f9fafb;
+}
+
+.doc__main {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+}
+
+.doc__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 1.5rem;
+  padding-bottom: 0;
+  overflow-y: auto;
+}
+
+.doc__editor {
+  flex: 1;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 3rem;
+}
+
+.format_bar {
+  position: fixed;
+  bottom: 0;
+  left: calc(1.5rem + 8px);
+  right: calc(320px + 1.5rem);
+  height: 48px;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  z-index: 10;
+
+  .format_group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-right: 1rem;
+    margin-left: 0.5rem;
+    border-right: 1px solid #e5e7eb;
+
+    &:first-child {
+      margin-left: 0;
+    }
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: #374151;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background: #f3f4f6;
+    }
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+.doc__suggestions {
+  width: 320px;
+  background: white;
+  border-left: 1px solid #e5e7eb;
+  overflow-y: auto;
+  
+  &__container {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+// Adjust the editor container to work with the new layout
+.editor_container {
+  height: 100%;
+}
+
+
+
+
+
+

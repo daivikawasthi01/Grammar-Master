@@ -1,0 +1,110 @@
+.suggestions_panel {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  h4 {
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    color: #334155;
+  }
+}
+
+.no_suggestions {
+  color: #64748b;
+  text-align: center;
+  padding: 2rem 0;
+  
+  p {
+    margin: 0 0 0.5rem 0;
+    font-weight: 500;
+  }
+  
+  small {
+    color: #94a3b8;
+    display: block;
+  }
+}
+
+.suggestion_card {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.suggestion_header {
+  margin-bottom: 1rem;
+}
+
+.suggestion_type {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.suggestion_content {
+  margin-bottom: 1rem;
+}
+
+.original_text,
+.suggested_text {
+  margin-bottom: 0.5rem;
+  
+  .label {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-right: 0.5rem;
+  }
+  
+  .text {
+    color: #334155;
+  }
+}
+
+.explanation {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+
+.suggestion_actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.apply_button,
+.dismiss_button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s;
+}
+
+.apply_button {
+  background: #15c39a;
+  color: white;
+  
+  &:hover {
+    background: darken(#15c39a, 5%);
+  }
+}
+
+.dismiss_button {
+  background: #f1f5f9;
+  color: #64748b;
+  
+  &:hover {
+    background: #e2e8f0;
+  }
+} 
