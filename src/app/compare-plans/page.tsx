@@ -25,14 +25,34 @@ const section: SectionType= {
 }
 
 const ComparePlans: React.FC=()=>{
-    return <div className={styles.comapre_plans}>
-        <Nav />
-        <GrammarlyStartSection title={section.title} text={section.text} content={section.content} src={section.src} bgColor={section.bgColor} color={section.color}/>
-        <div className={styles.comapre_plans__container}>
-            {PlansList.map(plan=><PlansContainer plan={plan.plan} planSelected='none' header={plan.header} planName={plan.planName} desc={plan.desc} btnName={plan.btnName} planFunctions={plan.planFunctions}/>)}
+    return (
+        <div className={styles.comapre_plans}>
+            <Nav />
+            <GrammarlyStartSection
+                title={section.title}
+                text={section.text}
+                content={section.content}
+                src={section.src}
+                bgColor={section.bgColor}
+                color={section.color}
+            />
+            <div className={styles.comapre_plans__container}>
+                {PlansList.map(plan => (
+                    <PlansContainer
+                        key={plan.planName} // Use a unique property from your plan object
+                        plan={plan.plan}
+                        planSelected='none'
+                        header={plan.header}
+                        planName={plan.planName}
+                        desc={plan.desc}
+                        btnName={plan.btnName}
+                        planFunctions={plan.planFunctions}
+                    />
+                ))}
+            </div>
+            <Footer />
         </div>
-        <Footer />
-    </div>
+    )
 }
 
 export default ComparePlans

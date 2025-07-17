@@ -29,7 +29,7 @@ function Home() {
               <h1 className={styles.home__left__heading}>Great Writing,Simplified</h1>
               <p className={styles.home__left__note}>Compose bold, clear, mistake-free writing with Grammarly’s new AI-powered desktop Windows app.</p>
               <div>
-                <button className={styles.home__left__register}><Link href='/register' style={{textDecoration:'none',color:'white'}}>Get Grammarly it's free</Link></button>
+                <button className={styles.home__left__register}><Link href='/register' style={{textDecoration:'none',color:'white'}}>Get Grammarly it is free</Link></button>
                 <button className={styles.home__left__login}><Link href='/login' style={{textDecoration:'none',color:'black'}}>Log in</Link></button>
               </div>
               <p data-testid='policy' className={styles.home__left__policy}>By signing up, you agree to the <Link href='/'>Terms and Conditions</Link> and <Link href='/'>Privacy Policy</Link>. California residents, see our <Link href='/'>CA Privacy Notice.</Link></p>
@@ -58,7 +58,7 @@ function Home() {
             <div className={styles.home__work__end}>
               <h2 className={styles.home__work__heading}>Brilliant Writing Awaits</h2>
               <p className={styles.home__work__info}>Discover the power of confident communication with Grammarly Free.</p>
-              <p className={styles.home__work__btn}><Link href='/register' style={{textDecoration:'none',color:'white'}}>Get Grammarly it's free</Link></p>
+              <p className={styles.home__work__btn}><Link href='/register' style={{textDecoration:'none',color:'white'}}>Get Grammarly it is free</Link></p>
             </div>
         </div>
       <Footer/>

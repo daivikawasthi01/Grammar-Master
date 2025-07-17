@@ -56,7 +56,7 @@ const Login: React.FC = () => {
         <form onSubmit={handleFormSend}>
           <div className={styles.register__main__form__header}>
             <h2>Sign in</h2>
-            <Link href="/register">I don't have an account</Link>
+            <Link href="/register">I do not have an account</Link>
           </div>
           {errorServer && (
             <div className={styles.register__main__form__error}>

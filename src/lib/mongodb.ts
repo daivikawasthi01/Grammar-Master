@@ -1,40 +1,42 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI!;
+// Ensure the environment variable exists
+const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-    throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
+    throw new Error('⚠️ Please define the MONGODB_URI environment variable in your .env.local file');
 }
 
-let cached = global.mongoose;
+// Define a global cache for the MongoDB connection to prevent reconnecting
+let cached = (global as any).mongoose;
 
 if (!cached) {
-    cached = global.mongoose = { conn: null, promise: null };
+    cached = (global as any).mongoose = { conn: null, promise: null };
 }
 
-async function dbConnect() {
-    if (cached.conn) {
-        return cached.conn;
-    }
+async function dbConnect(): Promise<typeof mongoose> {
+    // Return existing connection if available
+    if (cached.conn) return cached.conn;
 
+    // Otherwise, create a new connection
     if (!cached.promise) {
-        const opts = {
+        const options = {
             bufferCommands: false,
         };
 
-        cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-            return mongoose;
+        cached.promise = mongoose.connect(MONGODB_URI, options).then((mongooseInstance) => {
+            return mongooseInstance;
         });
     }
 
     try {
         cached.conn = await cached.promise;
-    } catch (e) {
+    } catch (error) {
         cached.promise = null;
-        throw e;
+        throw error;
     }
 
     return cached.conn;
 }
 
-export default dbConnect; 
+export default dbConnect;
