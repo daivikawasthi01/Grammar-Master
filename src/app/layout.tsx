@@ -4,7 +4,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import './config.css';
 
 // Import the SessionProviderWrapper client component
-import SessionProviderWrapper from '../components/SessionProviderWrapper'; // adjust path if necessary
+import SessionProviderWrapper from '../components/SessionProviderWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 
