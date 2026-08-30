@@ -1,58 +1,72 @@
-"use client"
-import styles from './compareplans.module.scss'
-import Nav from "../components/Nav"
-import Footer from '../components/Footer'
-import GrammarlyStartSection from '../components/grammarlyStartSection'
-import { PlansList } from '../account/plans/list/PlansList'
-import PlansContainer from '../account/plans/components/PlansContainer'
+"use client";
 
-interface SectionType {
-    text: string
-    title : string
-    content: 'img' | 'vid'
-    src: string
-    color: string
-    bgColor: string
-}
+import React from 'react';
+import Link from 'next/link';
+import { PlansList } from '../account/plans/list/PlansList';
+import PlansContainer from '../account/plans/components/PlansContainer';
 
-const section: SectionType= {
-    text: 'Go beyond grammar. Choose a plan to ensure everything you write is clear, engaging, and polished.',
-    title : 'Elevate Your Writing',
-    content: 'img',
-    src: 'https://static-web.grammarly.com/1e6ajr2k4140/1FvjEQYv147CBdgE2pw1zL/857ace085e67cd1df49c7cc04b17f31f/Group_626009.png?w=1080&fm=webp',
-    color: 'black',
-    bgColor: 'white',
-}
-
-const ComparePlans: React.FC=()=>{
+const ComparePlans: React.FC = () => {
     return (
-        <div className={styles.comapre_plans}>
-            <Nav />
-            <GrammarlyStartSection
-                title={section.title}
-                text={section.text}
-                content={section.content}
-                src={section.src}
-                bgColor={section.bgColor}
-                color={section.color}
-            />
-            <div className={styles.comapre_plans__container}>
-                {PlansList.map(plan => (
-                    <PlansContainer
-                        key={plan.planName} // Use a unique property from your plan object
-                        plan={plan.plan}
-                        planSelected='none'
-                        header={plan.header}
-                        planName={plan.planName}
-                        desc={plan.desc}
-                        btnName={plan.btnName}
-                        planFunctions={plan.planFunctions}
-                    />
-                ))}
+        <div className="bg-surface text-on-surface font-body-md min-h-screen flex flex-col antialiased relative selection:bg-primary-container selection:text-on-primary-container">
+            {/* Background Glow */}
+            <div className="aurora-bg">
+                <div className="aurora-blob-1" />
+                <div className="aurora-blob-2" />
             </div>
-            <Footer />
-        </div>
-    )
-}
 
-export default ComparePlans
+            {/* Top Navigation */}
+            <header className="flex justify-between items-center px-8 w-full fixed top-0 z-50 h-20 bg-surface/50 border-b border-white/5 backdrop-blur-xl">
+                <Link href="/" className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-primary text-[28px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                        auto_awesome
+                    </span>
+                    <span className="font-bold text-xl text-on-surface tracking-wide">writ.ai</span>
+                </Link>
+
+                <div className="flex items-center gap-4">
+                    <Link href="/login" className="text-on-surface-variant hover:text-on-surface text-sm font-medium px-4 py-2">
+                        Sign In
+                    </Link>
+                    <Link href="/register" className="bg-primary text-on-primary font-semibold text-sm px-6 py-2.5 rounded-full hover:bg-primary-fixed transition-transform">
+                        Get Started Free
+                    </Link>
+                </div>
+            </header>
+
+            <main className="flex-grow pt-36 pb-20 px-6 max-w-6xl mx-auto w-full relative z-10">
+                <section className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/10 text-primary text-xs font-mono">
+                        Plans & Pricing Matrix
+                    </div>
+                    <h1 className="text-4xl md:text-6xl font-extrabold text-on-surface tracking-tight">
+                        Elevate Your Writing
+                    </h1>
+                    <p className="text-on-surface-variant text-base font-light leading-relaxed">
+                        Go beyond grammar. Choose a plan to ensure everything you write is clear, engaging, and polished with real-time AI metrics.
+                    </p>
+                </section>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {PlansList.map(plan => (
+                        <PlansContainer
+                            key={plan.planName}
+                            plan={plan.plan}
+                            planSelected='none'
+                            header={plan.header}
+                            planName={plan.planName}
+                            desc={plan.desc}
+                            btnName={plan.btnName}
+                            planFunctions={plan.planFunctions}
+                        />
+                    ))}
+                </div>
+            </main>
+
+            <footer className="border-t border-white/5 py-8 text-center text-on-surface-variant text-xs">
+                <p>© 2026 writ.ai. Designed for cognitive clarity and peak writing performance.</p>
+            </footer>
+        </div>
+    );
+};
+
+export default ComparePlans;

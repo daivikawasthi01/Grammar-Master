@@ -1,11 +1,10 @@
 "use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import styles from "../register/register.module.scss";
 import Link from "next/link";
 import validator from "validator";
 import axios from "axios";
-import Nav from "../components/Nav";
 
 const Login: React.FC = () => {
   const router = useRouter();
@@ -19,12 +18,12 @@ const Login: React.FC = () => {
     setErrorServer("");
 
     if (!validator.isEmail(email)) {
-      setErrorServer("Please enter a valid email address");
+      setErrorServer("Please enter a valid email address.");
       return;
     }
 
     if (validator.isEmpty(password)) {
-      setErrorServer("Password is required");
+      setErrorServer("Password is required.");
       return;
     }
 
@@ -42,7 +41,7 @@ const Login: React.FC = () => {
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.error ||
-        "Authentication failed. Please try again.";
+        "Authentication failed. Please check your credentials.";
       setErrorServer(errorMessage);
     } finally {
       setIsLoading(false);
@@ -50,57 +49,89 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className={styles.register__main}>
-      <Nav />
-      <div className={styles.register__main__form}>
-        <form onSubmit={handleFormSend}>
-          <div className={styles.register__main__form__header}>
-            <h2>Sign in</h2>
-            <Link href="/register">I do not have an account</Link>
+    <div className="bg-surface text-on-surface font-body-md min-h-screen flex flex-col justify-center items-center p-6 relative overflow-hidden antialiased selection:bg-primary-container selection:text-on-primary-container">
+      {/* Background Aurora */}
+      <div className="aurora-bg">
+        <div className="aurora-blob-1" />
+        <div className="aurora-blob-2" />
+      </div>
+
+      {/* Top Header */}
+      <div className="absolute top-8 left-8 flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary text-[28px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+            auto_awesome
+          </span>
+          <span className="font-bold text-xl text-on-surface tracking-wide">writ.ai</span>
+        </Link>
+      </div>
+
+      {/* Main Glass Card */}
+      <div className="w-full max-w-md bg-surface-container-lowest/50 border border-white/10 rounded-3xl p-8 glass-edge shadow-2xl relative z-10 backdrop-blur-2xl">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 text-primary mb-4">
+            <span className="material-symbols-outlined text-[24px]">lock</span>
           </div>
-          {errorServer && (
-            <div className={styles.register__main__form__error}>
-              <svg
-                data-testid="x-mark"
-                className={styles.register__main__form__error__svg}
-                xmlns="http://www.w3.org/2000/svg"
-                height="1em"
-                viewBox="0 0 384 512"
-              >
-                <path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z" />
-              </svg>
-              {errorServer}
-            </div>
-          )}
-          <input
-            type="email"
-            className={styles.register__main__form__input}
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            className={styles.register__main__form__input}
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
-          />
+          <h2 className="text-2xl font-bold text-on-surface tracking-tight mb-1">
+            Welcome back to writ.ai
+          </h2>
+          <p className="text-on-surface-variant text-xs font-medium">
+            Sign in to access your cognitive workspace and AI insights
+          </p>
+        </div>
+
+        {errorServer && (
+          <div className="mb-6 p-3.5 rounded-2xl bg-error/10 border border-error/20 text-error text-xs flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">error</span>
+            <span>{errorServer}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleFormSend} className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-on-surface-variant mb-1.5 ml-1">
+              Email Address
+            </label>
+            <input
+              type="email"
+              placeholder="name@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-surface-container-low/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-primary/50 transition-colors"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-on-surface-variant mb-1.5 ml-1">
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-surface-container-low/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-primary/50 transition-colors"
+              required
+              minLength={8}
+            />
+          </div>
+
           <button
-            className={styles.register__main__form__btn}
             type="submit"
             disabled={isLoading}
+            className="w-full bg-gradient-to-r from-inverse-primary to-primary-container text-white py-3.5 rounded-xl font-bold text-sm shadow-[0_0_20px_rgba(160,120,255,0.3)] hover:opacity-90 transition-all border border-white/10 disabled:opacity-50 mt-2 pulse-glow"
           >
-            {isLoading ? "Signing in..." : "Sign in"}
+            {isLoading ? "Signing in..." : "Sign In to Workspace"}
           </button>
-          <p className={styles.register__main__form__policy}>
-            This site is protected by reCAPTCHA and the Google Privacy Policy
-            and Terms of Service apply.
-          </p>
         </form>
+
+        <div className="mt-6 text-center text-xs text-on-surface-variant">
+          Don&apos;t have an account?{" "}
+          <Link href="/register" className="text-primary font-semibold hover:underline">
+            Create an account free
+          </Link>
+        </div>
       </div>
     </div>
   );

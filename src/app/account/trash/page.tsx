@@ -1,43 +1,109 @@
-"use client"
-import React, { useState } from 'react'
-import useAuth from '@/app/hooks/useAuth'
-import usePolling from '@/app/hooks/usePolling'
-import Loading from '@/app/components/Loading'
-import Sidebar from '../components/Sidebar'
-import styles from './trash.module.scss'
-import Doc from '../components/Doc'
-import { HandleDeleteTrashDocument } from '@/app/helpers/DeleteTrashDocument'
-import { HandleRestoreTrashDocument } from '@/app/helpers/RestoreTrashDocument'
+"use client";
 
-export interface RestoreElementProps{
-    _id : string
-    documentId :string
+import React, { useState } from 'react';
+import useAuth from '@/app/hooks/useAuth';
+import usePolling from '@/app/hooks/usePolling';
+import Loading from '@/app/components/Loading';
+import Sidebar from '../components/Sidebar';
+import Doc from '../components/Doc';
+import { HandleDeleteTrashDocument } from '@/app/helpers/DeleteTrashDocument';
+import { HandleRestoreTrashDocument } from '@/app/helpers/RestoreTrashDocument';
+
+export interface RestoreElementProps {
+  _id: string;
+  documentId: string;
 }
 
-const Settings: React.FC = () => {
-    const {isLogged,error,isLoading} = useAuth()
-    const {data,errorPoll} = usePolling()
+const Trash: React.FC = () => {
+  const { isLogged, isLoading } = useAuth();
+  const { data } = usePolling();
+  const [searchTerm, setSearchTerm] = useState('');
 
-    const RestoreElement: React.FC<RestoreElementProps>=({_id,documentId})=> <svg onClick={()=>HandleRestoreTrashDocument(_id,documentId)} style={{ width: '20px',height: '20px',fill: 'red',margin: '0.5rem 0.2rem'}} xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><path d="M163.8 0H284.2c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32h96l7.2-14.3C140.6 6.8 151.7 0 163.8 0zM32 128H416V448c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64V128zm192 64c-6.4 0-12.5 2.5-17 7l-80 80c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l39-39V408c0 13.3 10.7 24 24 24s24-10.7 24-24V273.9l39 39c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-80-80c-4.5-4.5-10.6-7-17-7z"/></svg>
+  if (isLoading) {
+    return <Loading />;
+  }
 
-    if (error) {
-        return <div>{error}</div>
-    }
-    else if (isLoading || !data) {
-        return <Loading />
-    }
-    if (isLogged && data){
-        return <div className={styles.trash}>
-            <Sidebar email={data?.email} />
-            <div className={styles.trash__content}>
-                <h1 style={{fontWeight:'bold'}}>Trash</h1>
-                <input placeholder='Search...' className={styles.trash__content__search} type="text" />
-                <div className={styles.trash__content__docs}>
-                    {data.trashs?.map((doc: any)=><Doc RestoreElement={RestoreElement} HandleDeleteDocument={HandleDeleteTrashDocument} status={doc.status} title={doc.title} key={doc._id} _id={data._id} documentId={doc._id}/>)}
-                </div>
-            </div>
+  const email = data?.email || "user@writ.ai";
+  const trashItems = data?.trashs || [];
+  const filteredTrash = trashItems.filter((doc: any) =>
+    (doc.title || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const RestoreElement: React.FC<RestoreElementProps> = ({ _id, documentId }) => (
+    <button
+      onClick={() => HandleRestoreTrashDocument(_id, documentId)}
+      className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors flex items-center gap-1 text-xs"
+      title="Restore Document"
+    >
+      <span className="material-symbols-outlined text-[16px]">restore</span>
+      <span>Restore</span>
+    </button>
+  );
+
+  return (
+    <div className="bg-surface text-on-surface font-body-md min-h-screen flex antialiased relative selection:bg-primary-container selection:text-on-primary-container">
+      {/* Background Glow */}
+      <div className="aurora-bg">
+        <div className="aurora-blob-1" />
+        <div className="aurora-blob-2" />
+      </div>
+
+      <Sidebar email={email} />
+
+      <main className="flex-1 p-8 md:p-12 max-w-6xl mx-auto overflow-y-auto">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-white/10">
+          <div>
+            <h1 className="text-3xl font-extrabold text-on-surface tracking-tight mb-2 flex items-center gap-3">
+              <span className="material-symbols-outlined text-error text-[28px]">delete</span>
+              Trash & Archives
+            </h1>
+            <p className="text-on-surface-variant text-sm font-light">
+              Deleted documents are stored here. Restore any item or permanently purge it.
+            </p>
+          </div>
+
+          <div className="relative w-full md:w-64">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">
+              search
+            </span>
+            <input
+              type="text"
+              placeholder="Search trash..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-surface-container-low/80 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-xs text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-primary/50 transition-colors"
+            />
+          </div>
         </div>
-    }
-}
 
-export default Settings
+        {filteredTrash.length === 0 ? (
+          <div className="glass-edge bg-surface-container-lowest/40 border border-white/10 rounded-3xl p-12 text-center my-12 max-w-lg mx-auto">
+            <div className="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-on-surface-variant/50 mx-auto mb-4">
+              <span className="material-symbols-outlined text-[32px]">delete_sweep</span>
+            </div>
+            <h3 className="text-lg font-bold text-on-surface mb-1">Trash is Empty</h3>
+            <p className="text-xs text-on-surface-variant/70">
+              No deleted documents found in your archive.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTrash.map((doc: any) => (
+              <Doc
+                key={doc._id}
+                RestoreElement={RestoreElement}
+                HandleDeleteDocument={HandleDeleteTrashDocument}
+                status={doc.status}
+                title={doc.title}
+                _id={data?._id || 'demo123'}
+                documentId={doc._id}
+              />
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default Trash;

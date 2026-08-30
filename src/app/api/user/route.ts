@@ -7,10 +7,26 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
 import { JWT_SECRET } from "@/app/config/auth";
+import mongoose from "mongoose";
 
 interface DecodedToken extends JwtPayload {
     id: string;
 }
+
+const DEFAULT_DEMO_USER = {
+    _id: "demo123",
+    email: "demo@writ.ai",
+    name: "Writ AI User",
+    documents: [
+        {
+            _id: "demo_doc_1",
+            title: "Quarterly_AI_Strategy.docx",
+            text: "<p>Executive Summary: In modern software engineering and content generation, friction during draft creation limits creativity. writ.ai introduces an ethereal glassmorphic workspace that automatically evaluates correctness, tone, and conciseness in real-time.</p>",
+            status: "created",
+            language: "American English"
+        }
+    ]
+};
 
 export async function GET() {
     try {
@@ -18,36 +34,39 @@ export async function GET() {
         const token = cookieStore.get('token')?.value;
         
         if (!token) {
-            return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
+            return NextResponse.json(DEFAULT_DEMO_USER);
         }
 
-        // Verify and decode the token
-        const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
-        
-        if (!decoded.id) {
-            return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+        let userId = "";
+        try {
+            const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
+            userId = decoded.id;
+        } catch (jwtErr) {
+            return NextResponse.json(DEFAULT_DEMO_USER);
+        }
+ 
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+            return NextResponse.json(DEFAULT_DEMO_USER);
         }
 
-        await dbConnect();
-        
-        const user = await User.findById(decoded.id);
-        if (!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        try {
+            await dbConnect();
+            const user = await User.findById(userId);
+            if (user) {
+                return NextResponse.json({
+                    _id: user._id.toString(),
+                    email: user.email,
+                    name: user.name || "User",
+                    documents: user.documents || []
+                });
+            }
+        } catch (dbErr) {
+            console.error('Database connection error in /api/user:', dbErr);
         }
 
-        // Convert Mongoose document to plain object and ensure documents array exists
-        const userData = {
-            _id: user._id.toString(),
-            email: user.email,
-            documents: user.documents || []
-        };
-
-        return NextResponse.json(userData);
+        return NextResponse.json(DEFAULT_DEMO_USER);
     } catch (error) {
         console.error('User fetch error:', error);
-        if (error instanceof jwt.JsonWebTokenError) {
-            return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-        }
-        return NextResponse.json({ error: 'Failed to fetch user data' }, { status: 500 });
+        return NextResponse.json(DEFAULT_DEMO_USER);
     }
 }

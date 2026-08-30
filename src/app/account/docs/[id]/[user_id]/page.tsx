@@ -1,67 +1,15 @@
 "use client";
 
-import React, { useRef, useEffect, useState, use, useCallback } from "react";
-
-import styles from "./docs.module.scss";
-
+import React, { useEffect, useState, use, useCallback, useRef } from "react";
 import useDocument from "@/app/hooks/useDocument";
-
-import Loading from "@/app/components/Loading";
-
 import { HandleSaveDocument } from "@/app/helpers/SaveDocument";
-
-import ContentEditable from "react-contenteditable";
-
-import TextCustomBar from "./components/TextCustomBar";
-
-import Link from "next/link";
-
-import SidebarDocument from "./components/SidebarDocument";
-
-import { AnimatePresence } from "framer-motion";
-
-import { HandleCheckText } from "@/app/helpers/CheckText";
-
-import CorrectText from "./components/CorrectText";
-
-import CircularProgress from "@mui/material/CircularProgress";
-
-import {
-  HandleCheckWord,
-  replaceSelectedWord,
-} from "@/app/helpers/CheckSynonyms";
-
-import SynonymsWords from "./components/SynonymsWords";
-
-import { DocumentContext } from "./context/DocumentContext";
-
-import { HandleTranslateText } from "@/app/helpers/TranslateText";
-
-import TranslateText from "./components/TranslateText";
-
 import useAuth from "@/app/hooks/useAuth";
+import axios from "axios";
 
-import { HandleCheckTone } from "@/app/helpers/CheckTone";
-
-import ToneCorrection from "./components/ToneCorrection";
-
-import SelectionMenu from "./components/SelectionMenu";
-
-import AIAssistant from "./components/AIAssistant";
-
-import { HandleAITextModify } from "@/app/helpers/AITextModify";
-
-import TextProgress from "./components/TextProgress";
-
-import { calculateTextMetrics } from "@/app/helpers/CalculateTextMetrics";
-
-import TextEditor from "./components/TextEditor";
-
-import WritingGoals from "./components/WritingGoals";
-
-import BestVersion from "./components/BestVersion";
-
-import SuggestionPanel from "./components/SuggestionPanel";
+import { GrammarlyHeader } from "./components/GrammarlyHeader";
+import { GrammarlyInspector } from "./components/GrammarlyInspector";
+import { AIAssistantDrawer } from "./components/AIAssistantDrawer";
+import { SuggestionItem, ToneItem } from "@/app/api/analyze-document/route";
 
 interface DocsProps {
   params: Promise<{
@@ -70,201 +18,109 @@ interface DocsProps {
   }>;
 }
 
-export interface SuggestionItem {
-  type: "grammar" | "clarity" | "engagement" | "delivery";
-  text: string;
-  suggestion: string;
-  explanation: string;
-  start: number;
-  end: number;
-}
-
 const stripHtml = (html: string) => {
-  const tmp = document.createElement('div');
+  if (typeof window === "undefined") return html;
+  const tmp = window.document.createElement("div");
   tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || '';
+  return tmp.textContent || tmp.innerText || "";
 };
+
+const DEFAULT_SUGGESTIONS: SuggestionItem[] = [
+  {
+    id: "sug-1",
+    originalText: "teh",
+    replacementText: "the",
+    category: "correctness",
+    title: "Spelling",
+    description: "Change teh to the.",
+    explanation: "'teh' is a common typo for 'the'.",
+  },
+  {
+    id: "sug-2",
+    originalText: "due to the fact that",
+    replacementText: "because",
+    category: "clarity",
+    title: "Wordiness",
+    description: "Simplify due to the fact that to because.",
+    explanation: "'because' is more concise.",
+  },
+];
 
 const Doc: React.FC<DocsProps> = ({ params }) => {
   const { id, user_id } = use(params);
   const { isLogged } = useAuth();
+  const { document: docData, error, isLoading } = useDocument(user_id, id);
 
-  const { document, error, isLoading, setDocument } = useDocument(
-    user_id,
-    id
+  const [text, setText] = useState<string>(
+    "The integration of generative models into the core workflow has yielded significant productivity gains. However, teh initial rollout faced some resistance due to the fact that comprehensive training materials were delayed.\n\nMoving forward, our strategy relies on leveraging these tools not just for efficiency, but for enhancing creative output. We must ensure that the human element remains central to our operations."
   );
-
-  const [text, setText] = useState<string>("");
-
-  const [textSuggest, setTextSuggest] = useState<string | undefined>();
-
-  const [wordSuggest, setWordSuggest]: [
-    undefined | string,
-    React.Dispatch<React.SetStateAction<undefined | string>>
-  ] = useState();
-
-  const [wordToCheck, setWordToCheck]: [
-    undefined | string,
-    React.Dispatch<React.SetStateAction<undefined | string>>
-  ] = useState();
-
-  const [translateLoading, setTranslateLoading] = useState<boolean>(false);
-
-  const [translateText, setTranslateText] = useState<string | undefined>();
-
-  const [originalText, setOriginalText] = useState<string>("");
-
-  const [correct, setCorrect]: [
-    boolean,
-    React.Dispatch<React.SetStateAction<boolean>>
-  ] = useState(true);
-
-  const [correctLoading, setCorrectLoading]: [
-    boolean,
-    React.Dispatch<React.SetStateAction<boolean>>
-  ] = useState(false);
-
-  const [synonymsLoading, setSynonymsLoading]: [
-    boolean,
-    React.Dispatch<React.SetStateAction<boolean>>
-  ] = useState(false);
-
-  const [title, setTitle] = useState<string>("");
-
-  const textRef = useRef<HTMLDivElement>(null);
-
-  const [isSidebar, setIsSidebar] = useState(false);
-
+  const [title, setTitle] = useState<string>("Quarterly_AI_Report.docx");
   const [isSaving, setIsSaving] = useState(false);
-
-  const [saveError, setSaveError] = useState<string | null>(null);
-
-  const [toneSuggest, setToneSuggest] = useState<string | undefined>();
-
-  const [toneCorrection, setToneCorrection] = useState<boolean>(true);
-
-  const [toneLoading, setToneLoading] = useState<boolean>(false);
-
-  const [mistakeToneText, setMistakeToneText] = useState<string | undefined>();
-
-  const [mistakeText, setMistakeText] = useState<string | undefined>();
-
-  const [selectionPosition, setSelectionPosition] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
-
-  const [selectedText, setSelectedText] = useState<string>("");
-
-  const [showToneModal, setShowToneModal] = useState<boolean>(false);
+  const [lastSaved, setLastSaved] = useState<string>("");
 
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
-  const [aiModifiedText, setAiModifiedText] = useState<string | undefined>();
-  const [aiLoading, setAiLoading] = useState<boolean>(false);
-
-  const [textMetrics, setTextMetrics] = useState({
-    correctness: 0,
-    clarity: 0,
+  // Analysis State
+  const [overallScore, setOverallScore] = useState<number>(85);
+  const [suggestions, setSuggestions] = useState<SuggestionItem[]>(DEFAULT_SUGGESTIONS);
+  const [metrics, setMetrics] = useState({
+    wordCount: 452,
+    charCount: 2840,
+    sentenceCount: 24,
+    readingTimeMin: 2,
+    speakingTimeMin: 3,
+    readabilityScore: 88,
+    readabilityGrade: "Grade 10",
+  });
+  const [tones, setTones] = useState<ToneItem[]>([
+    { name: "Professional", score: 85, color: "#d0bcff" },
+    { name: "Direct", score: 75, color: "#adc6ff" },
+  ]);
+  const [categories, setCategories] = useState({
+    correctness: 1,
+    clarity: 1,
     engagement: 0,
     delivery: 0,
   });
 
-  const [isCompactMode, setIsCompactMode] = useState(false);
+  // Track applied/dismissed items to prevent re-suggesting or looping AI calls
+  const handledItemsRef = useRef<Set<string>>(new Set());
+  const isAcceptingRef = useRef<boolean>(false);
 
-  const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
+const cleanHtmlTags = (raw: string): string => {
+  if (!raw) return "";
+  if (!raw.includes("<") || !raw.includes(">")) return raw;
+  return raw
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/li>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+};
 
-  const [writingGoals, setWritingGoals] = useState([
-    {
-      id: "intent",
-      label: "Intent",
-      options: ["Inform", "Describe", "Convince", "Tell a Story"],
-      selected: "Inform",
-    },
-    {
-      id: "audience",
-      label: "Audience",
-      options: ["General", "Expert", "Student", "Professional"],
-      selected: "General",
-    },
-    {
-      id: "style",
-      label: "Style",
-      options: ["Formal", "Casual", "Neutral", "Confident"],
-      selected: "Neutral",
-    },
-    {
-      id: "emotion",
-      label: "Emotion",
-      options: ["Mild", "Strong", "Neutral", "Optimistic"],
-      selected: "Neutral",
-    },
-  ]);
-
-  const [bestVersionSuggestions, setBestVersionSuggestions] = useState<
-    Array<{
-      text: string;
-      improvement: string;
-      score: number;
-    }>
-  >([]);
-
-  const [detailedSuggestions, setDetailedSuggestions] = useState<SuggestionItem[]>([]);
-
+  // Load document
   useEffect(() => {
-    if (text) {
-      const newSuggestions = detailedSuggestions.map((suggestion, index) => ({
-        ...suggestion,
-        start: text.indexOf(suggestion.text),
-        end: text.indexOf(suggestion.text) + suggestion.text.length,
-      }));
-      setSuggestions(newSuggestions);
+    if (docData) {
+      if (docData.text) setText(cleanHtmlTags(docData.text));
+      if (docData.title) setTitle(docData.title);
     }
-  }, [text, detailedSuggestions]);
+  }, [docData]);
 
-  const handleGoalChange = (goalId: string, value: string) => {
-    setWritingGoals((goals) =>
-      goals.map((goal) =>
-        goal.id === goalId ? { ...goal, selected: value } : goal
-      )
-    );
-  };
-
-  useEffect(() => {
-    if (document) {
-      setText(document.text || "");
-
-      setTitle(document.title || "");
-    }
-  }, [document]);
-
+  // Auto-save logic
   useEffect(() => {
     const saveTimeout = setTimeout(async () => {
-      if (!document || (!text && !title)) return;
-
-      if (text !== document.text || title !== document.title) {
+      if (!docData || (!text && !title)) return;
+      if (text !== docData.text || title !== docData.title) {
         setIsSaving(true);
-
-        setSaveError(null);
-
         try {
-          const success = await HandleSaveDocument(
-            user_id,
-
-            id,
-
-            title || document.title,
-
-            text || document.text
-          );
-
-          if (!success) {
-            setSaveError("Failed to save changes");
+          const success = await HandleSaveDocument(user_id, id, title, text);
+          if (success) {
+            setLastSaved(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
           }
         } catch (err) {
-          setSaveError("Error saving document");
-
-          console.error("Save error:", err);
+          console.error("Save document error:", err);
         } finally {
           setIsSaving(false);
         }
@@ -272,464 +128,316 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
     }, 1000);
 
     return () => clearTimeout(saveTimeout);
-  }, [text, title, document, user_id, id]);
+  }, [text, title, docData, user_id, id]);
 
-  const handleCorrection = (): void => {
-    if (text) {
-      setMistakeText(text);
-
-      HandleCheckText(
-        text,
-
-        document?.language as string,
-
-        setTextSuggest,
-
-        setCorrect,
-
-        setCorrectLoading,
-
-        user_id
-      );
-    }
-  };
-
-  const handleSynonyms = (): void => {
-    HandleCheckWord(
-      wordToCheck as string,
-      document?.language as string,
-      setWordSuggest,
-      setSynonymsLoading,
-      user_id
-    );
-  };
-
-  const handleTranslate = (): void => {
-    const selection = window.getSelection();
-
-    const selectedText = selection?.toString().trim();
-
-    const textToTranslate = selectedText || text;
-
-    if (textToTranslate) {
-      setOriginalText(textToTranslate);
-
-      HandleTranslateText(
-        textToTranslate,
-
-        document?.language || "English",
-
-        setTranslateLoading,
-
-        setText,
-
-        setTranslateText,
-
-        user_id
-      );
-    }
-  };
-
-  const handleChange = useCallback(async (newText: string) => {
-    setText(newText);
-    
-    // Only calculate metrics if there's actual text
-    if (newText && newText.trim().length > 0) {
-      try {
-        const metrics = await calculateTextMetrics(newText);
-        setTextMetrics(metrics);
-      } catch (error) {
-        console.error('Error calculating metrics:', error);
-      }
-    } else {
-      // Reset metrics if text is empty
-      setTextMetrics({
-        correctness: 0,
-        clarity: 0,
-        engagement: 0,
-        delivery: 0
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (document?.text) {
-      handleChange(document.text);
-    }
-  }, [document, handleChange]);
-
-  const handleDoubleClick = (): void => {
-    const selection = window.getSelection();
-
-    const selectedText = selection?.toString().trim();
-
-    if (selectedText) {
-      setWordToCheck(selectedText);
-
-      HandleCheckWord(
-        selectedText,
-        document?.language || "English",
-        setWordSuggest,
-        setSynonymsLoading,
-        user_id
-      );
-    }
-  };
-
-  const handleToneCorrection = (targetTone: string): void => {
-    const selection = window.getSelection();
-
-    const selectedText = selection?.toString();
-
-    if (!selectedText) {
+  // Document Analysis Engine trigger
+  const runAnalysis = useCallback(async (currentText: string) => {
+    // If we just accepted a suggestion, skip full AI re-trigger to prevent score drop reset
+    if (isAcceptingRef.current) {
+      isAcceptingRef.current = false;
       return;
     }
 
-    setMistakeToneText(selectedText);
-
-    HandleCheckTone(
-      selectedText,
-
-      targetTone,
-
-      setToneSuggest,
-
-      setToneLoading,
-
-      user_id
-    );
-
-    setToneCorrection(false);
-  };
-
-  const handleSynonymReplace = (newWord: string) => {
-    if (textRef.current && wordToCheck) {
-      const currentHtml = textRef.current.innerHTML;
-
-      const updatedHtml = currentHtml.replace(wordToCheck, newWord);
-
-      setText(updatedHtml);
-
-      setWordSuggest(undefined);
-    }
-  };
-
-  const handleTextSelection = () => {
-    if (typeof window === "undefined") return;
-
-    const selection = window.getSelection();
-
-    if (selection && selection.toString().trim().length > 0) {
-      const range = selection.getRangeAt(0);
-
-      const rect = range.getBoundingClientRect();
-
-      setSelectionPosition({
-        x: rect.left + rect.width / 2,
-
-        y: rect.top,
+    try {
+      const cleanText = stripHtml(currentText);
+      const res = await axios.post("/api/analyze-document", {
+        text: cleanText,
+        language: docData?.language || "American English",
+        _id: id,
       });
 
-      setSelectedText(selection.toString());
-    } else {
-      setSelectionPosition(null);
+      if (res.data) {
+        // Filter out any suggestions the user already fixed or dismissed
+        const rawSuggestions: SuggestionItem[] = res.data.suggestions || [];
+        const filtered = rawSuggestions.filter(
+          (s) =>
+            s.originalText &&
+            cleanText.includes(s.originalText) &&
+            !handledItemsRef.current.has(s.originalText.toLowerCase()) &&
+            !handledItemsRef.current.has(s.id)
+        );
 
-      setSelectedText("");
-    }
-  };
+        setSuggestions(filtered);
 
-  const handleImprove = () => {
-    if (selectedText) {
-      HandleCheckText(
-        selectedText,
-
-        document?.language as string,
-
-        setTextSuggest,
-
-        setCorrect,
-
-        setCorrectLoading,
-
-        user_id
-      );
-
-      setSelectionPosition(null);
-    }
-  };
-
-  const handleToneSelect = () => {
-    setShowToneModal(true);
-
-    setSelectionPosition(null);
-  };
-
-  useEffect(() => {
-    let mounted = true;
-
-    const handleMouseUp = () => {
-      if (mounted) {
-        handleTextSelection();
-      }
-    };
-
-    if (typeof window !== "undefined") {
-      window.document.addEventListener("mouseup", handleMouseUp);
-    }
-
-    return () => {
-      mounted = false;
-      if (typeof window !== "undefined") {
-        window.document.removeEventListener("mouseup", handleMouseUp);
-      }
-    };
-  }, []);
-
-  const handleAIAction = async (
-    type: string,
-    text: string,
-    prompt?: string
-  ) => {
-    try {
-      const goals = writingGoals
-        .map((g) => `${g.label}: ${g.selected}`)
-        .join(", ");
-      const enhancedPrompt =
-        prompt ||
-        `Modify the text to be ${type}, considering these goals: ${goals}`;
-
-      await HandleAITextModify(
-        text,
-        type,
-        enhancedPrompt,
-        setAiLoading,
-        setAiModifiedText,
-        user_id
-      );
-    } catch (error) {
-      console.error("AI modification error:", error);
-    }
-  };
-
-  const handleBestVersion = async () => {
-    if (!selectedText) return;
-
-    try {
-      // You'll need to implement this API endpoint
-      const response = await fetch("/api/best-version", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: selectedText,
-          goals: writingGoals,
-        }),
-      });
-
-      const suggestions = await response.json();
-      setBestVersionSuggestions(suggestions);
-    } catch (error) {
-      console.error("Error getting best versions:", error);
-    }
-  };
-
-  const handleAcceptBestVersion = (newText: string) => {
-    const updatedText = text.replace(selectedText, newText);
-    setText(updatedText);
-    setBestVersionSuggestions([]);
-  };
-
-  const handleDismissBestVersion = () => {
-    setBestVersionSuggestions([]);
-  };
-
-  const handleApplySuggestion = async (newText: string) => {
-    const updatedText = text.replace(selectedText, newText);
-    setText(updatedText);
-
-    try {
-      const newMetrics = await calculateTextMetrics(updatedText);
-      setTextMetrics(newMetrics);
-    } catch (error) {
-      console.error("Error calculating metrics:", error);
-    }
-  };
-
-  const handleDismissSuggestion = (index: number) => {
-    setDetailedSuggestions((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  useEffect(() => {
-    if (text) {
-      // Clear existing suggestions when text changes
-      setDetailedSuggestions([]);
-      setSuggestions([]);
-      
-      const calculateMetrics = async () => {
-        try {
-          const cleanText = stripHtml(text);
-          const newMetrics = await calculateTextMetrics(cleanText);
-          setTextMetrics(newMetrics);
-          
-          // Generate suggestions based on metrics
-          const newSuggestions: SuggestionItem[] = [];
-          
-          // Split text into sentences for better suggestions
-          const sentences = cleanText.split(/(?<=[.!?])\s+/);
-          
-          if (newMetrics.correctness < 70) {
-            // Find problematic sentences for grammar
-            sentences.forEach(sentence => {
-              if (sentence.trim()) {
-                newSuggestions.push({
-                  type: 'grammar',
-                  text: sentence.trim(),
-                  suggestion: 'Review and correct the grammar in this sentence.',
-                  explanation: 'This sentence might have grammatical or spelling issues.',
-                  start: cleanText.indexOf(sentence),
-                  end: cleanText.indexOf(sentence) + sentence.length
-                });
-              }
-            });
-          }
-          
-          if (newMetrics.clarity < 70) {
-            // Find complex sentences for clarity
-            sentences.forEach(sentence => {
-              if (sentence.split(' ').length > 20) { // Long sentences
-                newSuggestions.push({
-                  type: 'clarity',
-                  text: sentence.trim(),
-                  suggestion: 'Consider breaking this into shorter sentences.',
-                  explanation: 'Long sentences can be harder to understand.',
-                  start: cleanText.indexOf(sentence),
-                  end: cleanText.indexOf(sentence) + sentence.length
-                });
-              }
-            });
-          }
-          
-          setSuggestions(newSuggestions);
-          setDetailedSuggestions(newSuggestions);
-        } catch (error) {
-          console.error('Error calculating metrics:', error);
+        if (filtered.length === 0) {
+          setOverallScore(100);
+        } else {
+          setOverallScore(res.data.overallScore || Math.max(60, 100 - filtered.length * 8));
         }
-      };
 
-      calculateMetrics();
+        if (res.data.metrics) setMetrics(res.data.metrics);
+        if (res.data.tones) setTones(res.data.tones);
+        if (res.data.categories) setCategories(res.data.categories);
+      }
+    } catch (err) {
+      console.error("Analysis route error:", err);
     }
-  }, [text]);
+  }, [docData, id]);
 
-  if (isLoading && !document) return <Loading />;
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      runAnalysis(text);
+    }, 600);
 
-  if (error) return <div className={styles.error}>{error}</div>;
+    return () => clearTimeout(timeout);
+  }, [text, runAnalysis]);
 
-  if (!isLogged)
-    return <div className={styles.error}>You are not authorized</div>;
+  // Handle Suggestion Actions (Accept / Dismiss)
+  const handleApplySuggestion = (sug: SuggestionItem) => {
+    if (!sug.originalText) return;
+    isAcceptingRef.current = true;
+    handledItemsRef.current.add(sug.originalText.toLowerCase());
+    handledItemsRef.current.add(sug.replacementText.toLowerCase());
+    handledItemsRef.current.add(sug.id);
 
-  if (document)
-    return (
-      <div className={styles.doc}>
-        <DocumentContext.Provider
-          value={{ document: document, setDocument: setDocument }}
-        >
-          <div className={styles.doc__main}>
-            <div className={styles.doc__content}>
-              <div className={styles.doc__editor}>
-                <TextEditor
-                  text={text}
-                  onChange={handleChange}
-                  onSelect={handleTextSelection}
-                  suggestions={suggestions}
-                />
-              </div>
+    const cleanText = stripHtml(text);
+    const newText = cleanText.replace(sug.originalText, sug.replacementText);
+    setText(newText);
 
-              <div className={styles.format_bar}>
-                <div className={styles.format_group}>
-                  <button title="Bold">B</button>
-                  <button title="Italic"><i>I</i></button>
-                  <button title="Underline"><u>U</u></button>
-                </div>
-                
-                <div className={styles.format_group}>
-                  <button title="Heading">H</button>
-                  <button title="Link">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                </div>
-                
-                <div className={styles.format_group}>
-                  <button title="Bullet List">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                  <button title="Numbered List">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M10 6h11M10 12h11M10 18h11M4 6h1v4M4 10h1M4 16h1v4M4 20h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
+    setSuggestions((prev) => {
+      const updated = prev.filter((item) => item.id !== sug.id && item.originalText !== sug.originalText);
+      const remainingCount = updated.length;
+      setOverallScore(remainingCount === 0 ? 100 : Math.max(50, Math.min(99, 100 - remainingCount * 8)));
+      return updated;
+    });
+  };
+
+  const handleDismissSuggestion = (sugId: string) => {
+    isAcceptingRef.current = true;
+    handledItemsRef.current.add(sugId);
+
+    setSuggestions((prev) => {
+      const sug = prev.find((s) => s.id === sugId);
+      if (sug?.originalText) {
+        handledItemsRef.current.add(sug.originalText.toLowerCase());
+      }
+      const updated = prev.filter((item) => item.id !== sugId);
+      const remainingCount = updated.length;
+      setOverallScore(remainingCount === 0 ? 100 : Math.max(50, Math.min(99, 100 - remainingCount * 8)));
+      return updated;
+    });
+  };
+
+  // AI Drawer Action handler
+  const handleAIAction = async (action: string, customPrompt?: string) => {
+    setAiLoading(true);
+    try {
+      const cleanText = stripHtml(text);
+      const res = await axios.post("/api/ai-text-modify", {
+        text: cleanText,
+        action,
+        customPrompt,
+        _id: user_id,
+      });
+
+      if (res.data?.success?.text) {
+        setText(res.data.success.text);
+      }
+    } catch (err) {
+      console.error("AI action error:", err);
+    } finally {
+      setAiLoading(false);
+      setShowAIAssistant(false);
+    }
+  };
+
+  // Export Document Handler
+  const handleExport = (format: "docx" | "pdf" | "txt") => {
+    const cleanText = stripHtml(text);
+    const filename = `${title || "document"}.${format === "docx" ? "docx" : format === "pdf" ? "pdf" : "txt"}`;
+
+    if (format === "pdf") {
+      window.print();
+      return;
+    }
+
+    const mime = format === "docx" ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document" : "text/plain";
+    const blob = new Blob([cleanText], { type: `${mime};charset=utf-8` });
+    const link = window.document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Split paragraphs and render with interactive highlights
+  const paragraphs = text.split("\n\n");
+
+  return (
+    <div className="bg-background text-on-surface h-screen overflow-hidden flex flex-col font-body-md selection:bg-primary-container selection:text-on-primary-container relative">
+      {/* TopAppBar */}
+      <GrammarlyHeader
+        title={title}
+        onTitleChange={setTitle}
+        isSaving={isSaving}
+        lastSaved={lastSaved}
+        overallScore={overallScore}
+        onToggleAIAssistant={() => setShowAIAssistant(true)}
+        onExport={handleExport}
+        userId={user_id}
+      />
+
+      {/* Main Workspace */}
+      <main className="flex-1 flex mt-16 h-[calc(100vh-64px)] relative">
+        {/* Spatially Layered Background Glows */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+          <div className="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-primary-container/10 rounded-full blur-[140px]" />
+          <div className="absolute bottom-[20%] right-[30%] w-[40%] h-[40%] bg-secondary/5 rounded-full blur-[120px]" />
+        </div>
+
+        {/* Left Canvas (Editor) */}
+        <section className="flex-1 flex justify-center overflow-y-auto relative p-12 z-10">
+          <div className="w-full max-w-[800px] text-body-lg text-on-surface-variant leading-[1.8] relative pb-32 mt-8">
+            {/* Title Editable */}
+            <h1
+              className="text-4xl md:text-5xl font-bold font-headline mb-10 outline-none text-on-surface tracking-tight"
+              contentEditable
+              suppressContentEditableWarning
+              onBlur={(e) => setTitle(e.currentTarget.innerText)}
+            >
+              {title.replace(/\.[^/.]+$/, "") || "Quarterly AI Impact Assessment"}
+            </h1>
+
+            {/* Paragraphs with live interactive suggestion pills */}
+            <div className="space-y-8 min-h-[400px]">
+              {paragraphs.map((para, pIdx) => {
+                // Find applicable suggestions in this paragraph
+                let elements: React.ReactNode[] = [para];
+
+                suggestions.forEach((sug) => {
+                  if (!sug.originalText || !para.includes(sug.originalText)) return;
+                  const newElements: React.ReactNode[] = [];
+                  elements.forEach((el) => {
+                    if (typeof el === "string") {
+                      const parts = el.split(sug.originalText);
+                      parts.forEach((part, i) => {
+                        newElements.push(part);
+                        if (i < parts.length - 1) {
+                          const isError = sug.category === "correctness";
+                          newElements.push(
+                            <span
+                              key={`${sug.id}-${i}`}
+                              onClick={() => handleApplySuggestion(sug)}
+                              className={`px-1.5 py-0.5 rounded cursor-pointer relative group transition-colors inline-block font-medium ${
+                                isError
+                                  ? "bg-error/10 text-error hover:bg-error/20"
+                                  : "bg-secondary/10 text-secondary hover:bg-secondary/20"
+                              }`}
+                            >
+                              {sug.originalText}
+                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-surface-container-high border border-white/10 p-3 rounded-xl text-sm whitespace-nowrap shadow-2xl z-20 text-on-surface pointer-events-none">
+                                {isError ? "Change to: " : "Simplify to: "}
+                                <strong className={isError ? "text-error font-bold" : "text-secondary font-bold"}>
+                                  {sug.replacementText}
+                                </strong>
+                              </span>
+                            </span>
+                          );
+                        }
+                      });
+                    } else {
+                      newElements.push(el);
+                    }
+                  });
+                  elements = newElements;
+                });
+
+                return (
+                  <p
+                    key={pIdx}
+                    contentEditable
+                    suppressContentEditableWarning
+                    onInput={(e) => {
+                      // User actively typing: clear handled items ref for fresh analysis
+                      handledItemsRef.current.clear();
+                      const newParas = [...paragraphs];
+                      newParas[pIdx] = e.currentTarget.innerText;
+                      setText(newParas.join("\n\n"));
+                    }}
+                    className="outline-none text-lg text-on-surface-variant leading-[1.8]"
+                  >
+                    {elements}
+                  </p>
+                );
+              })}
             </div>
 
-            <div className={styles.doc__suggestions}>
-              <div className={styles.doc__suggestions__container}>
-                <TextProgress
-                  correctness={textMetrics.correctness}
-                  clarity={textMetrics.clarity}
-                  engagement={textMetrics.engagement}
-                  delivery={textMetrics.delivery}
-                  suggestionCount={detailedSuggestions.length}
-                />
-                <WritingGoals
-                  goals={writingGoals}
-                  onGoalChange={handleGoalChange}
-                />
-                <SuggestionPanel
-                  suggestions={suggestions}
-                  onApply={handleApplySuggestion}
-                  onDismiss={handleDismissSuggestion}
-                />
-                {bestVersionSuggestions.length > 0 && (
-                  <BestVersion
-                    originalText={selectedText}
-                    suggestions={bestVersionSuggestions}
-                    onAccept={handleAcceptBestVersion}
-                    onDismiss={handleDismissBestVersion}
-                  />
-                )}
-                <button
-                  title="Get Best Version Suggestions"
-                  onClick={handleBestVersion}
-                  className={styles.doc__suggestions__btn__blue}
-                  disabled={!selectedText}
-                >
-                  Get Best Version
-                </button>
-              </div>
+            {/* Floating Rich Formatting Toolbar */}
+            <div className="fixed bottom-10 left-[32.5%] -translate-x-1/2 bg-gradient-to-b from-white/[0.08] to-transparent backdrop-blur-3xl border border-white/10 p-2 rounded-full flex items-center gap-2 shadow-[0_16px_40px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)] z-40">
+              <button
+                className="p-2 rounded-full hover:bg-white/10 text-on-surface transition-colors"
+                title="Bold"
+                onClick={() => document.execCommand("bold")}
+              >
+                <span className="material-symbols-outlined text-[20px]">format_bold</span>
+              </button>
+              <button
+                className="p-2 rounded-full hover:bg-white/10 text-on-surface transition-colors"
+                title="Italic"
+                onClick={() => document.execCommand("italic")}
+              >
+                <span className="material-symbols-outlined text-[20px]">format_italic</span>
+              </button>
+              <button
+                className="p-2 rounded-full hover:bg-white/10 text-on-surface transition-colors"
+                title="Underline"
+                onClick={() => document.execCommand("underline")}
+              >
+                <span className="material-symbols-outlined text-[20px]">format_underlined</span>
+              </button>
+
+              <div className="w-px h-6 bg-white/10 self-center mx-1" />
+
+              <button
+                className="p-2 rounded-full hover:bg-white/10 text-on-surface transition-colors"
+                title="Bullet List"
+                onClick={() => document.execCommand("insertUnorderedList")}
+              >
+                <span className="material-symbols-outlined text-[20px]">format_list_bulleted</span>
+              </button>
+              <button
+                className="p-2 rounded-full hover:bg-white/10 text-on-surface transition-colors"
+                title="Numbered List"
+                onClick={() => document.execCommand("insertOrderedList")}
+              >
+                <span className="material-symbols-outlined text-[20px]">format_list_numbered</span>
+              </button>
+
+              <div className="w-px h-6 bg-white/10 self-center mx-1" />
+
+              <button
+                onClick={() => setShowAIAssistant(true)}
+                className="p-2 rounded-full hover:bg-white/10 text-primary transition-colors pulse-glow flex items-center justify-center"
+                title="Ask writ.ai Copilot"
+              >
+                <span className="material-symbols-outlined text-[20px]">auto_awesome</span>
+              </button>
             </div>
           </div>
+        </section>
 
-          <SelectionMenu
-            position={selectionPosition}
-            onImprove={() => setShowAIAssistant(true)}
-          />
+        {/* Right Inspector Panel */}
+        <GrammarlyInspector
+          overallScore={overallScore}
+          suggestions={suggestions}
+          metrics={metrics}
+          tones={tones}
+          categories={categories}
+          onApplySuggestion={handleApplySuggestion}
+          onDismissSuggestion={handleDismissSuggestion}
+        />
+      </main>
 
-          <AIAssistant
-            isOpen={showAIAssistant}
-            onClose={() => setShowAIAssistant(false)}
-            selectedText={selectedText}
-            onAction={handleAIAction}
-            writingGoals={writingGoals}
-          />
-        </DocumentContext.Provider>
-      </div>
-    );
+      {/* Slide-out AI Assistant Drawer */}
+      <AIAssistantDrawer
+        isOpen={showAIAssistant}
+        onClose={() => setShowAIAssistant(false)}
+        onApplyAction={handleAIAction}
+        isLoading={aiLoading}
+      />
+    </div>
+  );
 };
 
 export default Doc;

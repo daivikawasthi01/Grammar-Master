@@ -1,95 +1,109 @@
 export const dynamic = "force-dynamic";
 
+import "@/lib/polyfill";
 import { NextResponse } from "next/server";
 import User from "@/app/db/schema";
+import dbConnect from "@/lib/mongodb";
 import Groq from "groq-sdk";
 
 interface TextModifyRequest {
   text: string;
   action: string;
   customPrompt?: string;
-  _id: string;
+  _id?: string;
 }
 
 export async function POST(req: Request) {
   try {
-    const { text, action, customPrompt, _id } = await req.json() as TextModifyRequest;
-    
+    const { text, action, customPrompt, _id } = (await req.json()) as TextModifyRequest;
+
     if (!text?.trim() || !action) {
-      return NextResponse.json({ error: "Missing required fields" });
+      return NextResponse.json({ error: "Missing required text or action" }, { status: 400 });
     }
 
-    const user = await User.findById(_id);
-    if (!user) {
-      return NextResponse.json({ error: "User not found" });
+    let prompt = "";
+    switch (action) {
+      case "improve":
+      case "fix_all":
+        prompt = `Fix all grammar, spelling, punctuation, and improve flow of this text while preserving meaning: "${text}"`;
+        break;
+      case "shorten":
+      case "simplify":
+        prompt = `Make this text concise, clear, and direct while preserving core points: "${text}"`;
+        break;
+      case "expand":
+        prompt = `Elaborate on this text with more details and descriptive language: "${text}"`;
+        break;
+      case "professional":
+      case "formal":
+        prompt = `Rewrite this text in a clear, executive, professional tone: "${text}"`;
+        break;
+      case "casual":
+      case "friendly":
+        prompt = `Rewrite this text in a warm, approachable, conversational tone: "${text}"`;
+        break;
+      case "make_persuasive":
+        prompt = `Make this text compelling, persuasive, and impact-driven: "${text}"`;
+        break;
+      case "summarize":
+        prompt = `Provide a concise 2-sentence summary of this text: "${text}"`;
+        break;
+      case "custom":
+        prompt = `${customPrompt || "Improve"}: "${text}"`;
+        break;
+      default:
+        prompt = `Improve the clarity and flow of this text: "${text}"`;
     }
 
-    if (user.aiPrompts > 0) {
-      const groq = new Groq({
-        apiKey: process.env.GROQ_API_KEY
-      });
+    let modifiedText = text;
 
-      let prompt = "";
-      switch (action) {
-        case 'improve':
-          prompt = `Improve the following text while maintaining its meaning and context: "${text}"`;
-          break;
-        case 'shorten':
-          prompt = `Make this text more concise while keeping the main points: "${text}"`;
-          break;
-        case 'professional':
-          prompt = `Rewrite this text in a professional tone: "${text}"`;
-          break;
-        case 'casual':
-          prompt = `Rewrite this text in a casual, conversational tone: "${text}"`;
-          break;
-        case 'friendly':
-          prompt = `Rewrite this text in a friendly, approachable tone: "${text}"`;
-          break;
-        case 'formal':
-          prompt = `Rewrite this text in a formal tone: "${text}"`;
-          break;
-        case 'custom':
-          prompt = `${customPrompt}: "${text}"`;
-          break;
-        default:
-          return NextResponse.json({ error: "Invalid action" });
+    if (process.env.GROQ_API_KEY) {
+      try {
+        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+        const completion = await groq.chat.completions.create({
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are an expert Grammarly AI writing assistant. Return ONLY the final modified text without quotes, introductory remarks, or explanations.",
+            },
+            { role: "user", content: prompt },
+          ],
+          model: "openai/gpt-oss-120b",
+          temperature: 0.5,
+          max_tokens: 1024,
+        });
+
+        modifiedText = completion.choices[0]?.message?.content?.trim() || text;
+      } catch (err) {
+        console.error("Groq AI API error in text modify:", err);
       }
-
-      const completion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful writing assistant. Provide direct text modifications without explanations or additional context."
-          },
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        model: "openai/gpt-oss-120b",
-        temperature: 0.7,
-        max_tokens: 1024,
-      });
-
-      const modifiedText = completion.choices[0]?.message?.content;
-
-      // Update user's AI prompts count
-      await User.findByIdAndUpdate(_id, { $inc: { aiPrompts: -1 } });
-
-      return NextResponse.json({ 
-        success: { 
-          text: modifiedText,
-          remainingPrompts: user.aiPrompts - 1
-        } 
-      });
     } else {
-      return NextResponse.json({
-        error: "You have used all your AI prompts"
-      });
+      // Fallback heuristics when API key is missing
+      if (action === "shorten" || action === "simplify") {
+        modifiedText = text.replace(/\bdue to the fact that\b/gi, "because").replace(/\bin order to\b/gi, "to");
+      } else if (action === "fix_all") {
+        modifiedText = text.replace(/\bteh\b/gi, "the").replace(/\bdefinately\b/gi, "definitely");
+      }
     }
-  } catch (error) {
-    console.error('AI text modification error:', error);
-    return NextResponse.json({ error: "Failed to process text" });
+
+    if (_id && _id !== "demo123") {
+      try {
+        await dbConnect();
+        await User.findByIdAndUpdate(_id, { $inc: { prompts: 1 } });
+      } catch (e) {
+        // non-blocking
+      }
+    }
+
+    return NextResponse.json({
+      success: {
+        text: modifiedText,
+        action,
+      },
+    });
+  } catch (error: any) {
+    console.error("AI text modification error:", error);
+    return NextResponse.json({ error: "Failed to modify text" }, { status: 500 });
   }
-} 
+}

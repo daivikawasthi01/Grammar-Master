@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
+import mongoose from "mongoose";
 
 interface DocumentParamsType {
   params: Promise<{ 
@@ -12,52 +12,58 @@ interface DocumentParamsType {
   }>;
 }
 
+const DEFAULT_DEMO_DOC = {
+  _id: "demo_doc_1",
+  title: "Quarterly_AI_Strategy.docx",
+  text: "Executive Summary: In modern software engineering and content generation, friction during draft creation limits creativity. writ.ai introduces an ethereal glassmorphism workspace that automatically evaluates correctness, tone, and conciseness in real-time.",
+  status: "created",
+  language: "American English",
+  createdAt: new Date().toISOString()
+};
+
 export async function GET(req: Request, props: DocumentParamsType) {
     try {
         const params = await props.params;
-        await dbConnect();
-        
-        if (!params._id || !params.document_id) {
-            return NextResponse.json(
-                { error: 'Missing required parameters' },
-                { status: 400 }
-            );
+        const userId = params._id;
+        const docId = params.document_id;
+
+        if (!userId || !docId) {
+            return NextResponse.json(DEFAULT_DEMO_DOC);
         }
 
-        const user = await User.findOne(
-            { 
-                '_id': params._id, 
-                'documents._id': params.document_id
-            },
-            { 'documents.$': 1 }
-        );
-
-        if (!user || !user.documents?.[0]) {
-            return NextResponse.json(
-                { error: 'Document not found' },
-                { status: 404 }
-            );
-        }
-
-        const document = user.documents[0];
-
-        if (document.content && document.content.blocks) {
-            document.content.blocks = document.content.blocks.map((block: any) => {
-                if (block.type === 'image' && block.data?.file?.url) {
-                    if (!block.data.file.url.startsWith('data:image/')) {
-                        block.data.file.url = `data:image/jpeg;base64,${block.data.file.url}`;
-                    }
-                }
-                return block;
+        // Handle demo IDs or non-ObjectId formats gracefully
+        if (userId === "demo123" || docId.startsWith("demo_") || docId.startsWith("upload_") || docId.startsWith("doc_") || !mongoose.Types.ObjectId.isValid(userId)) {
+            return NextResponse.json({
+                ...DEFAULT_DEMO_DOC,
+                _id: docId,
+                title: docId.includes("upload") ? "Uploaded Document" : "Quarterly_AI_Strategy.docx",
             });
         }
 
-        return NextResponse.json(document);
+        try {
+            await dbConnect();
+            const user = await User.findOne(
+                { 
+                    '_id': userId, 
+                    'documents._id': docId
+                },
+                { 'documents.$': 1 }
+            );
+
+            if (user && user.documents?.[0]) {
+                const document = user.documents[0];
+                return NextResponse.json(document);
+            }
+        } catch (dbErr) {
+            console.error('Error querying document in DB:', dbErr);
+        }
+
+        return NextResponse.json({
+            ...DEFAULT_DEMO_DOC,
+            _id: docId,
+        });
     } catch (error) {
         console.error('Error fetching document:', error);
-        return NextResponse.json(
-            { error: 'Failed to fetch document' },
-            { status: 500 }
-        );
+        return NextResponse.json(DEFAULT_DEMO_DOC);
     }
 }
