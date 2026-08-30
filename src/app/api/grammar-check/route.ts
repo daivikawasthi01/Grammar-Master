@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server";
 import User from "@/app/db/schema";
 import Groq from "groq-sdk";
+import {
+  normalizePlan,
+  getPromptLimit,
+  PromptCache,
+  buildCacheKey,
+  enforceRateLimit,
+  getRouteLimiter,
+} from "@/lib/free-plan";
+
+const limiter = getRouteLimiter(20, 60 * 1000);
+const promptCache = new PromptCache<any>(60 * 1000);
 
 interface GrammarCheckRequests {
   text: string;
@@ -11,7 +22,7 @@ interface GrammarCheckRequests {
 export async function POST(req: Request) {
   const { text, language, _id }: GrammarCheckRequests = await req.json();
   const groq = new Groq({
-    apiKey: "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",
+    apiKey: process.env.GROQ_API_KEY,
   });
 
   const promptGrammar: string = `You are a professional grammar and writing expert. Review the following text in ${language} and:
@@ -23,9 +34,23 @@ export async function POST(req: Request) {
 6. Focus only on grammar, spelling, and punctuation - do not change the writing style or tone`;
 
   const user = await User.findOne({ _id: _id });
+  const plan = normalizePlan(user?.plan);
+  const limit = getPromptLimit(plan);
+  const cacheKey = buildCacheKey('grammar-check', _id, language, text);
+  const cached = promptCache.get(cacheKey);
 
-  if (user.plan == "free") {
-    if (user.prompts <= 1000) {
+  if (cached) {
+    return NextResponse.json(cached);
+  }
+
+  const rate = await enforceRateLimit(limiter, `grammar:${_id}`);
+
+  if (!rate.allowed) {
+    return NextResponse.json({ error: "Too many requests. Please wait a moment and try again." }, { status: 429 });
+  }
+
+  if (plan === "free") {
+    if (user.prompts < limit) {
       if (text) {
         await User.findByIdAndUpdate(
           { _id: _id },
@@ -42,107 +67,23 @@ export async function POST(req: Request) {
               content: text,
             },
           ],
-          model: "llama-3.2-90b-text-preview",
+          model: "openai/gpt-oss-120b",
         });
 
         const response = completion.choices[0]?.message?.content || text;
+        const payload = response === text
+          ? { success: { correct: true, text: response } }
+          : { success: { correct: false, text: response } };
 
-        if (response === text) {
-          return NextResponse.json({
-            success: { correct: true, text: response },
-          });
-        } else {
-          return NextResponse.json({
-            success: { correct: false, text: response },
-          });
-        }
+        promptCache.set(cacheKey, payload);
+        return NextResponse.json(payload);
       } else {
         return NextResponse.json({ error: "No content" });
       }
     } else {
-      return NextResponse.json({ error: "You used your free plan ai prompts" });
+      return NextResponse.json({ error: "You have used your free plan AI prompt limit." });
     }
   }
-  if (user.plan == "premium") {
-    if (user.prompts <= 10000) {
-      if (text) {
-        await User.findByIdAndUpdate(
-          { _id: _id },
-          { prompts: user.prompts + 1 }
-        );
-        const completion = await groq.chat.completions.create({
-          messages: [
-            {
-              role: "system",
-              content: promptGrammar,
-            },
-            {
-              role: "user",
-              content: text,
-            },
-          ],
-          model: "llama-3.2-90b-text-preview",
-        });
 
-        const response = completion.choices[0]?.message?.content || text;
-
-        if (response === text) {
-          return NextResponse.json({
-            success: { correct: true, text: response },
-          });
-        } else {
-          return NextResponse.json({
-            success: { correct: false, text: response },
-          });
-        }
-      } else {
-        return NextResponse.json({ error: "No content" });
-      }
-    } else {
-      return NextResponse.json({
-        error: "You used your premium plan ai prompts",
-      });
-    }
-  }
-  if (user.plan == "business") {
-    if (user.prompts <= 20000) {
-      if (text) {
-        await User.findByIdAndUpdate(
-          { _id: _id },
-          { prompts: user.prompts + 1 }
-        );
-        const completion = await groq.chat.completions.create({
-          messages: [
-            {
-              role: "system",
-              content: promptGrammar,
-            },
-            {
-              role: "user",
-              content: text,
-            },
-          ],
-          model: "llama-3.2-90b-text-preview",
-        });
-
-        const response = completion.choices[0]?.message?.content || text;
-
-        if (response === text) {
-          return NextResponse.json({
-            success: { correct: true, text: response },
-          });
-        } else {
-          return NextResponse.json({
-            success: { correct: false, text: response },
-          });
-        }
-      } else {
-        return NextResponse.json({ error: "No content" });
-      }
-    } else {
-      return NextResponse.json({
-        error: "You used your business plan ai prompts",
-      });
-    }
-  }
+  return NextResponse.json({ error: "This app is free-only." });
 }

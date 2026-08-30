@@ -65,7 +65,7 @@ export async function POST(req: Request) {
             content: prompt
           }
         ],
-        model: "mixtral-8x7b-32768",
+        model: "openai/gpt-oss-120b",
         temperature: 0.7,
         max_tokens: 1024,
       });

@@ -58,7 +58,7 @@ const userSchema = new mongoose.Schema({
     },
     plan: {
         type: String,
-        enum: ['free', 'premium', 'business'],
+        enum: ['free'],
         default: 'free'
     },
     prompts: {

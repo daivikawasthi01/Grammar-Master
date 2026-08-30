@@ -31,7 +31,7 @@ const SynonymsWords: React.FC<SynonymsWordsProps> = ({
         return (
             <div className={styles.correct_text__container}>
                 <div className={styles.correct_text__container__header}>
-                    <p>No synonyms found for "{originalWord}"</p>
+                    <p>No synonyms found for &quot;{originalWord}&quot;</p>
                 </div>
                 <div className={styles.correct_text__container__footer}>
                     <button className={styles.correct_text__container__btn} onClick={handleCloseSynonyms}>
@@ -48,7 +48,7 @@ const SynonymsWords: React.FC<SynonymsWordsProps> = ({
                 <svg className={styles.correct_text__container__header__icon__blue} xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512">
                     <path d="M0 192c0-35.3 28.7-64 64-64h1.6C73 91.5 105.3 64 144 64c35.3 0 64 28.7 64 64s-28.7 64-64 64H64c-35.3 0-64-28.7-64-64zm384 0c0-35.3 28.7-64 64-64h1.6c7.4-36.5 39.7-64 78.4-64 35.3 0 64 28.7 64 64s-28.7 64-64 64h-80c-35.3 0-64-28.7-64-64zM192 288c0-35.3 28.7-64 64-64h1.6c7.4-36.5 39.7-64 78.4-64 35.3 0 64 28.7 64 64s-28.7 64-64 64h-80c-35.3 0-64-28.7-64-64z"/>
                 </svg>
-                <p>Synonyms for "{originalWord}"</p>
+                <p>Synonyms for &quot;{originalWord}&quot;</p>
             </div>
             <div className={styles.synonyms_list}>
                 {synonyms.map((synonym, index) => (

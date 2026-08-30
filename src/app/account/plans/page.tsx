@@ -25,7 +25,18 @@ const Plans: React.FC = () => {
                 <h1 style={{fontWeight:'bold'}}>Subscription</h1>
                 <p>See your current plan details. Choose a plan to ensure that everything you write is clear, engaging, and polished.</p>
                 <div className={styles.plans__container}>
-                    {PlansList.map(plan=><PlansContainer plan={plan.plan} planSelected={data.plan} header={plan.header} planName={plan.planName} desc={plan.desc} btnName={plan.btnName} planFunctions={plan.planFunctions}/>)}
+                    {PlansList.map((plan) => (
+                        <PlansContainer
+                            key={plan.plan}
+                            plan={plan.plan}
+                            planSelected={data.plan}
+                            header={plan.header}
+                            planName={plan.planName}
+                            desc={plan.desc}
+                            btnName={plan.btnName}
+                            planFunctions={plan.planFunctions}
+                        />
+                    ))}
                 </div>
             </div>
         </div>
