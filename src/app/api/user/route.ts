@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+
+import "@/lib/polyfill";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt, { JwtPayload } from "jsonwebtoken";

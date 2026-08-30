@@ -13,6 +13,9 @@ export interface User {
 
 export interface PollingData {
   _id: string;
+  name?: string;
   email: string;
+  plan?: string;
+  trashs?: Document[];
   documents: Document[];
 } 

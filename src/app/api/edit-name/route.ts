@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import * as jose from 'jose';
 import { NextResponse } from "next/server";
 import User from "@/app/db/schema";

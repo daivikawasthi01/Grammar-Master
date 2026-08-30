@@ -26,7 +26,7 @@ const useDocument = (_id:string, document_id: string)=>{
                 setIsLoading(false)
             }
         }).catch(err=>setError(err))
-    },[])
+    }, [_id, document_id]);
 
     return {document,error,isLoading,setDocument}
 }

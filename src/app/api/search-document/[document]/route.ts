@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
@@ -7,13 +9,14 @@ interface RequestBodyType {
 }
 
 interface documentParamsType {
-  params: { 
-    document: string, 
-  } 
+  params: Promise<{ 
+    document: string; 
+  }>;
 }
 
-export async function POST(req : Request,{ params } : documentParamsType) {
+export async function POST(req: Request, props: documentParamsType) {
     try {
+        const params = await props.params;
         const {_id}:RequestBodyType = await req.json()
         await dbConnect();
         

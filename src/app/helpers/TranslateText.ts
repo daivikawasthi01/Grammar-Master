@@ -30,7 +30,7 @@ export const HandleTranslateText = async (
                 if (node.nodeType === Node.TEXT_NODE) {
                     return data.success.text;
                 }
-                return node.outerHTML;
+                return (node as Element).outerHTML || node.textContent || '';
             });
             setTranslateText(translatedNodes.join(''));
         }

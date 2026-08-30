@@ -23,7 +23,7 @@ const SideBarDocumentSection:React.FC<SideBarDocumentSectionProps>=({text,icon,t
     };
     useEffect(()=>{
         if (selectedFile){
-            handleUpload()
+            handleFileUpload(selectedFile)
         }
     },[selectedFile])
   

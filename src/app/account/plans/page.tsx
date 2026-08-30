@@ -29,7 +29,7 @@ const Plans: React.FC = () => {
                         <PlansContainer
                             key={plan.plan}
                             plan={plan.plan}
-                            planSelected={data.plan}
+                            planSelected={data.plan || 'free'}
                             header={plan.header}
                             planName={plan.planName}
                             desc={plan.desc}

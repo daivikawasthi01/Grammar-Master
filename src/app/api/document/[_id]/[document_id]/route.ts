@@ -1,17 +1,20 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 
 interface DocumentParamsType {
-  params: { 
-    _id: string, 
-    document_id: string
-  } 
+  params: Promise<{ 
+    _id: string; 
+    document_id: string;
+  }>;
 }
 
-export async function GET(req: Request, { params }: DocumentParamsType) {
+export async function GET(req: Request, props: DocumentParamsType) {
     try {
+        const params = await props.params;
         await dbConnect();
         
         if (!params._id || !params.document_id) {

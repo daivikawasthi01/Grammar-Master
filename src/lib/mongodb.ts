@@ -1,13 +1,5 @@
 import mongoose from 'mongoose';
 
-// Ensure the environment variable exists
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-    throw new Error('⚠️ Please define the MONGODB_URI environment variable in your .env.local file');
-}
-
-// Define a global cache for the MongoDB connection to prevent reconnecting
 let cached = (global as any).mongoose;
 
 if (!cached) {
@@ -15,6 +7,11 @@ if (!cached) {
 }
 
 async function dbConnect(): Promise<typeof mongoose> {
+    const MONGODB_URI = process.env.MONGODB_URI;
+
+    if (!MONGODB_URI) {
+        throw new Error('⚠️ Please define the MONGODB_URI environment variable in your .env.local file');
+    }
     // Return existing connection if available
     if (cached.conn) return cached.conn;
 

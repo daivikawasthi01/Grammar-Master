@@ -33,7 +33,7 @@ const Settings: React.FC = () => {
                 <h1 style={{fontWeight:'bold'}}>Trash</h1>
                 <input placeholder='Search...' className={styles.trash__content__search} type="text" />
                 <div className={styles.trash__content__docs}>
-                    {data.trashs.map(doc=><Doc RestoreElement={RestoreElement} HandleDeleteDocument={HandleDeleteTrashDocument} status={doc.status} title={doc.title} key={doc._id} _id={data._id} documentId={doc._id}/>)}
+                    {data.trashs?.map((doc: any)=><Doc RestoreElement={RestoreElement} HandleDeleteDocument={HandleDeleteTrashDocument} status={doc.status} title={doc.title} key={doc._id} _id={data._id} documentId={doc._id}/>)}
                 </div>
             </div>
         </div>

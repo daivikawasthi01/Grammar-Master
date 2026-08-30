@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, use, useCallback } from "react";
 
 import styles from "./docs.module.scss";
 
@@ -64,10 +64,19 @@ import BestVersion from "./components/BestVersion";
 import SuggestionPanel from "./components/SuggestionPanel";
 
 interface DocsProps {
-  params: {
+  params: Promise<{
     id: string;
     user_id: string;
-  };
+  }>;
+}
+
+export interface SuggestionItem {
+  type: "grammar" | "clarity" | "engagement" | "delivery";
+  text: string;
+  suggestion: string;
+  explanation: string;
+  start: number;
+  end: number;
 }
 
 const stripHtml = (html: string) => {
@@ -77,11 +86,12 @@ const stripHtml = (html: string) => {
 };
 
 const Doc: React.FC<DocsProps> = ({ params }) => {
+  const { id, user_id } = use(params);
   const { isLogged } = useAuth();
 
   const { document, error, isLoading, setDocument } = useDocument(
-    params.user_id,
-    params.id
+    user_id,
+    id
   );
 
   const [text, setText] = useState<string>("");
@@ -162,14 +172,7 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
 
   const [isCompactMode, setIsCompactMode] = useState(false);
 
-  const [suggestions, setSuggestions] = useState<
-    Array<{
-      type: "grammar" | "clarity" | "engagement" | "delivery";
-      start: number;
-      end: number;
-      suggestion: string;
-    }>
-  >([]);
+  const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
 
   const [writingGoals, setWritingGoals] = useState([
     {
@@ -206,14 +209,7 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
     }>
   >([]);
 
-  const [detailedSuggestions, setDetailedSuggestions] = useState<
-    Array<{
-      type: "grammar" | "clarity" | "engagement" | "delivery";
-      text: string;
-      suggestion: string;
-      explanation: string;
-    }>
-  >([]);
+  const [detailedSuggestions, setDetailedSuggestions] = useState<SuggestionItem[]>([]);
 
   useEffect(() => {
     if (text) {
@@ -253,9 +249,9 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
 
         try {
           const success = await HandleSaveDocument(
-            params.user_id,
+            user_id,
 
-            params.id,
+            id,
 
             title || document.title,
 
@@ -276,7 +272,7 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
     }, 1000);
 
     return () => clearTimeout(saveTimeout);
-  }, [text, title, document, params.user_id, params.id]);
+  }, [text, title, document, user_id, id]);
 
   const handleCorrection = (): void => {
     if (text) {
@@ -293,7 +289,7 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
 
         setCorrectLoading,
 
-        params.user_id
+        user_id
       );
     }
   };
@@ -304,7 +300,7 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
       document?.language as string,
       setWordSuggest,
       setSynonymsLoading,
-      params.user_id
+      user_id
     );
   };
 
@@ -329,12 +325,12 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
 
         setTranslateText,
 
-        params.user_id
+        user_id
       );
     }
   };
 
-  const handleChange = async (newText: string) => {
+  const handleChange = useCallback(async (newText: string) => {
     setText(newText);
     
     // Only calculate metrics if there's actual text
@@ -354,26 +350,13 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
         delivery: 0
       });
     }
-
-    if (document) {
-      const timeoutId = setTimeout(() => {
-        HandleSaveDocument(
-          document._id,
-          newText,
-          title,
-          setIsSaving,
-          setSaveError
-        );
-      }, 1000);
-      return () => clearTimeout(timeoutId);
-    }
-  };
+  }, []);
 
   useEffect(() => {
     if (document?.text) {
       handleChange(document.text);
     }
-  }, [document]);
+  }, [document, handleChange]);
 
   const handleDoubleClick = (): void => {
     const selection = window.getSelection();
@@ -388,7 +371,7 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
         document?.language || "English",
         setWordSuggest,
         setSynonymsLoading,
-        params.user_id
+        user_id
       );
     }
   };
@@ -413,7 +396,7 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
 
       setToneLoading,
 
-      params.user_id
+      user_id
     );
 
     setToneCorrection(false);
@@ -468,7 +451,7 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
 
         setCorrectLoading,
 
-        params.user_id
+        user_id
       );
 
       setSelectionPosition(null);
@@ -507,7 +490,6 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
     text: string,
     prompt?: string
   ) => {
-    setAiLoading(true);
     try {
       const goals = writingGoals
         .map((g) => `${g.label}: ${g.selected}`)
@@ -516,17 +498,16 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
         prompt ||
         `Modify the text to be ${type}, considering these goals: ${goals}`;
 
-      const modifiedText = await HandleAITextModify(
+      await HandleAITextModify(
         text,
+        type,
         enhancedPrompt,
-        params.user_id
+        setAiLoading,
+        setAiModifiedText,
+        user_id
       );
-
-      setAiModifiedText(modifiedText);
     } catch (error) {
       console.error("AI modification error:", error);
-    } finally {
-      setAiLoading(false);
     }
   };
 
@@ -592,7 +573,7 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
           setTextMetrics(newMetrics);
           
           // Generate suggestions based on metrics
-          const newSuggestions = [];
+          const newSuggestions: SuggestionItem[] = [];
           
           // Split text into sentences for better suggestions
           const sentences = cleanText.split(/(?<=[.!?])\s+/);

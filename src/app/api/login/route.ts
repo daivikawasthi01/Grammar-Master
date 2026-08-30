@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+
+import "@/lib/polyfill";
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -57,7 +60,7 @@ export async function POST(req: Request) {
       { expiresIn: "7d" }
     );
 
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     cookieStore.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

@@ -1,3 +1,5 @@
+import type { Redis } from '@upstash/redis';
+
 export type AppPlan = 'free' | 'premium' | 'business' | string;
 
 function getUpstashRedisClass(): any {
