@@ -16,10 +16,19 @@ const SideBarDocumentSection:React.FC<SideBarDocumentSectionProps>=({text,icon,t
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const handleFileUpload = async (file: File) => {
       const formData = new FormData();
-      console.log(file)
       formData.append('file', file);
-  
-      axios.post('/api/upload',formData,{headers:{'Content-Type': 'multipart/form-data'}}).then((res)=>console.log(res))
+      if (_id) formData.append('_id', _id);
+
+      try {
+        const res = await axios.post('/api/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        if (res.data.documentId && res.data._id) {
+          window.location.href = `/account/docs/${res.data.documentId}/${res.data._id}`;
+        }
+      } catch (err) {
+        console.error('Upload failed:', err);
+      }
     };
     useEffect(()=>{
         if (selectedFile){
