@@ -10,11 +10,21 @@ const useAuth = () => {
         const checkAuth = async () => {
             try {
                 const response = await axios.get('/api/auth/check');
-                setIsLogged(response.data.isAuthenticated);
-                setError('');
+                if (response.data?.isAuthenticated) {
+                    setIsLogged(true);
+                    setError('');
+                } else {
+                    setIsLogged(false);
+                    setError('');
+                }
             } catch (err: any) {
                 setIsLogged(false);
-                setError(err.response?.data?.error || 'Authentication failed');
+                if (err.response?.status === 401) {
+                    // 401 means not logged in, not a system failure
+                    setError('');
+                } else {
+                    setError(err.response?.data?.error || 'Authentication failed');
+                }
             } finally {
                 setIsLoading(false);
             }
