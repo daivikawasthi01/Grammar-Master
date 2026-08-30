@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
+import { JWT_SECRET } from "@/app/config/auth";
 
 interface DecodedToken extends JwtPayload {
     id: string;
@@ -21,7 +22,7 @@ export async function GET() {
         }
 
         // Verify and decode the token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as DecodedToken;
+        const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
         
         if (!decoded.id) {
             return NextResponse.json({ error: 'Invalid token' }, { status: 401 });

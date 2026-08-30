@@ -6,6 +6,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
+import { JWT_SECRET } from "@/app/config/auth";
 import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
         name: user.name,
         plan: user.plan,
       },
-      process.env.JWT_SECRET as string,
+      JWT_SECRET,
       { expiresIn: "7d" }
     );
 
