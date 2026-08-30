@@ -1,0 +1,231 @@
+.header {
+  height: 64px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  &__backBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    color: #64748b;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+  }
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__appName {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #00875a;
+    letter-spacing: -0.3px;
+  }
+
+  &__divider {
+    width: 1px;
+    height: 24px;
+    background: #e2e8f0;
+  }
+
+  &__titleContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  &__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    margin: 0;
+
+    &:hover {
+      color: #00875a;
+
+      .header__editIcon {
+        opacity: 1;
+      }
+    }
+  }
+
+  &__titleInput {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0f172a;
+    border: 1px solid #00875a;
+    border-radius: 4px;
+    padding: 2px 6px;
+    outline: none;
+  }
+
+  &__editIcon {
+    opacity: 0.4;
+    transition: opacity 0.2s;
+  }
+
+  &__status {
+    font-size: 0.75rem;
+    color: #64748b;
+  }
+
+  &__saving {
+    color: #d97706;
+    font-weight: 500;
+  }
+
+  &__saved {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #64748b;
+  }
+
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  &__scorePill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 12px 4px 6px;
+    border: 1.5px solid #00875a;
+    border-radius: 20px;
+    background: #f0fdf4;
+  }
+
+  &__scoreBadge {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__scoreText {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+
+  &__scoreLabel {
+    font-size: 0.68rem;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  &__scoreVal {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  &__aiBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #00875a 0%, #047857 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 135, 90, 0.25);
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 135, 90, 0.35);
+    }
+  }
+
+  &__exportWrapper {
+    position: relative;
+  }
+
+  &__exportBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    color: #334155;
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+  }
+
+  &__exportMenu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    width: 220px;
+    z-index: 100;
+    overflow: hidden;
+
+    button {
+      width: 100%;
+      text-align: left;
+      padding: 10px 14px;
+      background: none;
+      border: none;
+      font-size: 0.88rem;
+      color: #1e293b;
+      cursor: pointer;
+      transition: background 0.2s;
+
+      &:hover {
+        background: #f0fdf4;
+        color: #00875a;
+      }
+    }
+  }
+}

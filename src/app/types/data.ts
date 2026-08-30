@@ -3,6 +3,7 @@ export interface Document {
   title: string;
   status: string;
   text?: string;
+  language?: string;
 }
 
 export interface User {
@@ -16,6 +17,7 @@ export interface PollingData {
   name?: string;
   email: string;
   plan?: string;
+  prompts?: number;
   trashs?: Document[];
   documents: Document[];
-} 
+}
