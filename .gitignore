@@ -34,3 +34,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# evals & python
+__pycache__/
+*.pyc
+evals/conll14st-test-data/
+evals/*.tar.gz

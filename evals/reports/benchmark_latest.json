@@ -1,0 +1,2547 @@
+{
+  "mode": "Primary [Live App Route: http://localhost:3000/api/grammar-check]",
+  "is_diagnostic": false,
+  "timestamp": "2026-09-08T12:08:04.525550",
+  "dataset": "conll2014_subset.jsonl",
+  "sample_count": 150,
+  "random_seed": 42,
+  "metrics": {
+    "gleu": 0.7648,
+    "semantic_similarity": 0.9795,
+    "f0_5": 0.5157,
+    "precision": 0.5179,
+    "recall": 0.5671
+  },
+  "latency_ms": {
+    "min": 668.2,
+    "mean": 2499.0,
+    "p50": 2810.7,
+    "p95": 4011.9,
+    "max": 4187.3
+  },
+  "tokens": {
+    "prompt_tokens": 15786,
+    "completion_tokens": 3730,
+    "total_tokens": 19516
+  },
+  "economics": {
+    "total_cost_usd": 0.01226,
+    "cost_per_1k_sentences_usd": 0.0817
+  },
+  "results": [
+    {
+      "id": 3,
+      "source": "People get certain disease because of genetic changes.",
+      "hypothesis": "People get certain diseases because of genetic changes.",
+      "references": [
+        "People get certain diseases because of genetic changes."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 668.2065000059083,
+      "prompt_tokens": 93,
+      "completion_tokens": 13
+    },
+    {
+      "id": 12,
+      "source": "When people around us know that we got certain disease, their altitudes will be easily changed, whether caring us too much or keeping away from us.",
+      "hypothesis": "When people around us know that we have a certain disease, their attitudes can change easily, whether they care for us too much or keep away from us.",
+      "references": [
+        "When people around us know that we have certain diseases, their attitude will easily change, whether caring for us too much or keeping away from us.",
+        "When people around us know that we have got a certain disease, their attitudes will easily be changed, whether it be caring about us too much or keeping away from us."
+      ],
+      "gleu": 0.5310327635327635,
+      "semantic_similarity": 0.964130163192749,
+      "f0_5": 0.2380952380952381,
+      "precision": 0.2222222222222222,
+      "recall": 0.3333333333333333,
+      "latency_ms": 969.9150000087684,
+      "prompt_tokens": 111,
+      "completion_tokens": 33
+    },
+    {
+      "id": 19,
+      "source": "At the same time, we are prepared to know when there are other members got this disease.",
+      "hypothesis": "At the same time, we are prepared to know when other members have this disease.",
+      "references": [
+        "At the same time, we are prepared to know when there are other members who have got this disease.",
+        "At the same time, we are prepared to know when there are other members have who got this disease."
+      ],
+      "gleu": 0.7831959706959707,
+      "semantic_similarity": 0.973630428314209,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 891.0272920038551,
+      "prompt_tokens": 102,
+      "completion_tokens": 20
+    },
+    {
+      "id": 31,
+      "source": "This also means that as soon a person is made aware of his or her genetic profile, he or she concurently has a knowledge about others.",
+      "hypothesis": "This also means that as soon as a person is made aware of his or her genetic profile, he or she concurrently has knowledge about others.",
+      "references": [
+        "This also means that as soon as a person is made aware of his or her genetic profile, he or she concurrently has knowledge about others."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 932.6974160067039,
+      "prompt_tokens": 111,
+      "completion_tokens": 31
+    },
+    {
+      "id": 51,
+      "source": "Focus on the negative side of the annouance of genetic risk first.",
+      "hypothesis": "Focus on the negative side of the announcement of genetic risk first.",
+      "references": [
+        "I begin by focusing on the negative side of genetic risk first.",
+        "I will focus on the negative side of the disclosure of genetic risk first."
+      ],
+      "gleu": 0.5549242424242424,
+      "semantic_similarity": 0.9165919423103333,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 775.7457919942681,
+      "prompt_tokens": 97,
+      "completion_tokens": 17
+    },
+    {
+      "id": 64,
+      "source": "Otherwise, if the other parties did not know, they may end up with to have diabete in the future without any prevention.",
+      "hypothesis": "Otherwise, if the other parties did not know, they may end up having diabetes in the future without any prevention.",
+      "references": [
+        "Otherwise, if the other parties did not know, they may end up with diabetes in the future without any prevention.",
+        "Otherwise, if the other parties do not know, they may end up with diabetes in the future without any prevention."
+      ],
+      "gleu": 0.8606940144478844,
+      "semantic_similarity": 0.9979511499404907,
+      "f0_5": 0.3571428571428571,
+      "precision": 0.3333333333333333,
+      "recall": 0.5,
+      "latency_ms": 1028.0400839983486,
+      "prompt_tokens": 107,
+      "completion_tokens": 25
+    },
+    {
+      "id": 67,
+      "source": "Among all kinds of different diseases, a large amount of different kinds of disorders are caused by genetic reasons.",
+      "hypothesis": "Among all diseases, a large number of disorders are caused by genetic reasons.",
+      "references": [
+        "Among all kinds of different diseases, a large amount of different kinds of disorders are caused by genetic reasons.",
+        "A large number of different kinds of disorders are caused by genetic factors."
+      ],
+      "gleu": 0.6546328671328671,
+      "semantic_similarity": 0.9783119559288025,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 1055.0482920079958,
+      "prompt_tokens": 104,
+      "completion_tokens": 18
+    },
+    {
+      "id": 75,
+      "source": "If a law requires someone to tell others' his or her privacy especially when the one is not willing to do so.",
+      "hypothesis": "If a law requires someone to tell others his or her privacy, especially when that person is not willing to do so.",
+      "references": [
+        "If a law requires someone to tell others his or her privacy especially when one is not willing to do so.",
+        "If a law requires someone to tell others their private details, especially when they are not willing to do so."
+      ],
+      "gleu": 0.7136221234905445,
+      "semantic_similarity": 0.9957563281059265,
+      "f0_5": 0.2777777777777778,
+      "precision": 0.25,
+      "recall": 0.5,
+      "latency_ms": 1081.6460420028307,
+      "prompt_tokens": 107,
+      "completion_tokens": 27
+    },
+    {
+      "id": 79,
+      "source": "It is unfair to release a law only point to the genetic disorder.",
+      "hypothesis": "It is unfair to release a law that only points to the genetic disorder.",
+      "references": [
+        "It is unfair to release a law which only points to genetic disorder.",
+        "It is unfair to pass a law only pertaining to genetic disorders."
+      ],
+      "gleu": 0.4825591075591075,
+      "semantic_similarity": 0.9942817091941833,
+      "f0_5": 0.45454545454545453,
+      "precision": 0.5,
+      "recall": 0.3333333333333333,
+      "latency_ms": 824.8737079993589,
+      "prompt_tokens": 98,
+      "completion_tokens": 19
+    },
+    {
+      "id": 102,
+      "source": "However, it will become a controversial issue as it becomes a dilemma for a carrier of a known genetic risk to inform his or her relatives.",
+      "hypothesis": "However, it will become a controversial issue, as it poses a dilemma for a carrier of a known genetic risk to inform his or her relatives.",
+      "references": [
+        "However, it might become a controversial issue or a dilemma for a carrier of a known genetic risk to inform his or her relatives.",
+        "However, it will become a controversial issue as it becomes a dilemma for a carrier of a known genetic risk whether to inform his or her relatives."
+      ],
+      "gleu": 0.6752982162764772,
+      "semantic_similarity": 0.9924347996711731,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 1100.0032909942092,
+      "prompt_tokens": 111,
+      "completion_tokens": 31
+    },
+    {
+      "id": 107,
+      "source": "Some said that the genetic risk that is found in a person should be kept secret because it is considered as a personal information which should be kept confidential.",
+      "hypothesis": "Some say that the genetic risk found in a person should be kept secret because it is considered personal information that should be kept confidential.",
+      "references": [
+        "Some say that the genetic risk that is found in a person should be kept secret because it is considered as personal personal information which should be kept confidential.",
+        "Some say that the genetic risk that is found in a person should be kept secret because it is considered as personal information which should be kept confidential."
+      ],
+      "gleu": 0.7799736495388669,
+      "semantic_similarity": 0.9976433515548706,
+      "f0_5": 0.2777777777777778,
+      "precision": 0.25,
+      "recall": 0.5,
+      "latency_ms": 894.6136669983389,
+      "prompt_tokens": 114,
+      "completion_tokens": 30
+    },
+    {
+      "id": 110,
+      "source": "Some will wish to keep it to themselves and hope to ensure that they will not bring in any pessimism into their family.",
+      "hypothesis": "Some will wish to keep it to themselves and hope to ensure that they will not bring any pessimism into their family.",
+      "references": [
+        "Some will wish to keep it to themselves and hope to ensure that they will not bring in any pessimism into their family.",
+        "Some will wish to keep it to themselves and hope to ensure that they will not bring any pessimism into their family."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 940.0475829897914,
+      "prompt_tokens": 108,
+      "completion_tokens": 27
+    },
+    {
+      "id": 128,
+      "source": "With regard to this choice given, there must be some rules to regulate and exercise personal freedom of decision making.",
+      "hypothesis": "With regard to this given choice, there must be some rules to regulate and exercise personal freedom of decision\u2011making.",
+      "references": [
+        "With regard to this choice given, there must be some rules to regulate and exercise personal freedom of decision making.",
+        "With regard to this choice, there must be some rules to regulate and exercise personal freedom of choice."
+      ],
+      "gleu": 0.7950690144478845,
+      "semantic_similarity": 0.9896242022514343,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 891.2249160057399,
+      "prompt_tokens": 105,
+      "completion_tokens": 24
+    },
+    {
+      "id": 144,
+      "source": "When things come to genetic issues, it is not that simple anymore.",
+      "hypothesis": "When it comes to genetic issues, it is not that simple anymore.",
+      "references": [
+        "When things come to genetic issues, it is not that simple anymore.",
+        "When it comes to genetic issues, it is not that simple anymore."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 734.1392500093207,
+      "prompt_tokens": 97,
+      "completion_tokens": 17
+    },
+    {
+      "id": 149,
+      "source": "If the disorder symptoms reflect on a kid, the parent will be informed by the medics for sure, then the whole family will stay alert to their bodies' condition.",
+      "hypothesis": "If the disorder symptoms reflect in a child, the parent will be informed by the medics for sure, then the whole family will stay alert to their bodies' condition.",
+      "references": [
+        "If the disorder symptoms are discovered on a child, the parent will be informed by the medics, then the whole family will stay alert to their body's condition.",
+        "If the disorder symptoms are displayed by a child, the parent will be informed by the medics, then the whole family will be alert to their bodies' condition."
+      ],
+      "gleu": 0.37485088347157314,
+      "semantic_similarity": 0.9613474607467651,
+      "f0_5": 0.3846153846153846,
+      "precision": 0.5,
+      "recall": 0.2,
+      "latency_ms": 1407.5294159993064,
+      "prompt_tokens": 114,
+      "completion_tokens": 34
+    },
+    {
+      "id": 156,
+      "source": "In China, the older generation with traditional culture background, will always think of having more children as well as grandchildren, to make the family liven up and stronger.",
+      "hypothesis": "In China, the older generation with a traditional cultural background will always think that having more children and grandchildren will make the family livelier and stronger.",
+      "references": [
+        "In China, the older generation with traditional cultural backgrounds, will always think of having more children as well as grandchildren, to make the family increase and grow stronger.",
+        "In China, the older generation with a traditional cultural background will always think of having more children as well as grandchildren, to make the family more lively and stronger."
+      ],
+      "gleu": 0.6160353957636566,
+      "semantic_similarity": 0.9498529434204102,
+      "f0_5": 0.4166666666666667,
+      "precision": 0.375,
+      "recall": 0.75,
+      "latency_ms": 1046.5830839966657,
+      "prompt_tokens": 113,
+      "completion_tokens": 31
+    },
+    {
+      "id": 160,
+      "source": "He has to choose whether to protect his family or make his family more prosperity with a potential generic risk.",
+      "hypothesis": "He has to choose whether to protect his family or make his family more prosperous, with a potential generic risk.",
+      "references": [
+        "He had to choose to protect his family and make his family more prosperous despite a potential genetic risk.",
+        "He had to choose whether to protect his family or make his family more prosperous with a potential genetic risk."
+      ],
+      "gleu": 0.47667268661850704,
+      "semantic_similarity": 0.8259302377700806,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 1028.2007080095354,
+      "prompt_tokens": 105,
+      "completion_tokens": 25
+    },
+    {
+      "id": 176,
+      "source": "Furthermore, as it could incur spending a lots of money for the treatment, the carrier might not want to be the burden in her family.",
+      "hypothesis": "Furthermore, as it could incur spending a lot of money on the treatment, the carrier might not want to be a burden to her family.",
+      "references": [
+        "Furthermore, as it could incur spending a lot of money for the treatment, the carrier might not want to be a burden in her family.",
+        "Furthermore, as it could involve spending lots of money on the treatment, the carrier might not want to be a burden to their family."
+      ],
+      "gleu": 0.793570487483531,
+      "semantic_similarity": 0.9970687627792358,
+      "f0_5": 0.6818181818181818,
+      "precision": 0.75,
+      "recall": 0.5,
+      "latency_ms": 913.7012919964036,
+      "prompt_tokens": 110,
+      "completion_tokens": 30
+    },
+    {
+      "id": 178,
+      "source": "She or he does not want to be the source of unhappiness in thefamily.",
+      "hypothesis": "She or he does not want to be the source of unhappiness in the family.",
+      "references": [
+        "She or he does not want to be the source of unhappiness in the family."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 1168.5058750008466,
+      "prompt_tokens": 99,
+      "completion_tokens": 20
+    },
+    {
+      "id": 191,
+      "source": "Firstly, genetic testing is not something that is compulsory.",
+      "hypothesis": "Firstly, genetic testing is not something that is compulsory.",
+      "references": [
+        "Firstly, genetic testing is not something that is compulsory."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 744.8851669905707,
+      "prompt_tokens": 94,
+      "completion_tokens": 14
+    },
+    {
+      "id": 194,
+      "source": "It could rather be better for him or her this way.",
+      "hypothesis": "It could be better for him or her this way.",
+      "references": [
+        "It could rather be better for him or her this way.",
+        "It could even be better for him or her that way."
+      ],
+      "gleu": 0.8382936507936508,
+      "semantic_similarity": 0.9386723637580872,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 827.9624169954332,
+      "prompt_tokens": 96,
+      "completion_tokens": 15
+    },
+    {
+      "id": 202,
+      "source": "Overall, I belive that it entirely depends on the carrier to share the hard facts and face it with relatives but he has no obligation to tell still.",
+      "hypothesis": "Overall, I believe that it entirely depends on the carrier to share the hard facts and face it with relatives, but he has no obligation to tell, still.",
+      "references": [
+        "Overall, I believe that it is entirely up to the carrier to share the hard facts and face it with relatives but he still has no obligation to tell.",
+        "Overall, I believe that it entirely depends on the carrier whether to share the hard facts and face it with relatives, but he has no obligation to tell."
+      ],
+      "gleu": 0.798484940984941,
+      "semantic_similarity": 0.9935349225997925,
+      "f0_5": 0.5882352941176471,
+      "precision": 0.6666666666666666,
+      "recall": 0.4,
+      "latency_ms": 1206.531375006307,
+      "prompt_tokens": 113,
+      "completion_tokens": 33
+    },
+    {
+      "id": 205,
+      "source": "On the other hand, without knowing any genetic disorder and accepting the fact, the family will stay positive and work together to overcome the diability.",
+      "hypothesis": "On the other hand, without knowing any genetic disorder and accepting the fact, the family will stay positive and work together to overcome the disability.",
+      "references": [
+        "On the other hand, without knowing of any genetic disorder and having to accept the fact, the family will stay positive and work together to overcome any difficulty.",
+        "On the other hand, without knowing about any genetic disorder and accepting the fact, the family will stay positive and work together to overcome the disability."
+      ],
+      "gleu": 0.8675065876152832,
+      "semantic_similarity": 0.9980549216270447,
+      "f0_5": 0.8333333333333334,
+      "precision": 1.0,
+      "recall": 0.5,
+      "latency_ms": 911.6220839932794,
+      "prompt_tokens": 110,
+      "completion_tokens": 30
+    },
+    {
+      "id": 207,
+      "source": "Debates have been around for years, that should a carrier for a known genetic risk be obligated to inform his or her relatives.",
+      "hypothesis": "Debates have been around for years about whether a carrier of a known genetic risk should be obligated to inform his or her relatives.",
+      "references": [
+        "Debates have been around for years: should a carrier of a known genetic risk be obligated to inform his or her relatives?",
+        "Debates have been around for years, as to whether a carrier of a known genetic risk should be obligated to inform his or her relatives."
+      ],
+      "gleu": 0.8415796160361377,
+      "semantic_similarity": 0.9958455562591553,
+      "f0_5": 0.4166666666666667,
+      "precision": 0.4,
+      "recall": 0.5,
+      "latency_ms": 938.142125000013,
+      "prompt_tokens": 108,
+      "completion_tokens": 29
+    },
+    {
+      "id": 214,
+      "source": "However, in the case pertaining to any health issue or to the extent of serious disorder, it may seems no point of sharing but this involves more than just sharing of bad news.",
+      "hypothesis": "However, in the case pertaining to any health issue or to the extent of a serious disorder, it may seem pointless to share, but this involves more than just sharing bad news.",
+      "references": [
+        "However, in the case pertaining to any health issue or to the extent of serious disorder, there may seem no point in sharing but this involves more than just the sharing of bad news.",
+        "However, in the case of any health issue or to the extent of a serious disorder, there may seem to be no point in sharing, but this involves more than just sharing of bad news."
+      ],
+      "gleu": 0.560067899517983,
+      "semantic_similarity": 0.9440432190895081,
+      "f0_5": 0.17857142857142855,
+      "precision": 0.16666666666666666,
+      "recall": 0.25,
+      "latency_ms": 930.1608749956358,
+      "prompt_tokens": 118,
+      "completion_tokens": 37
+    },
+    {
+      "id": 222,
+      "source": "On top of that, as the genetic risk may pass down to next generation, thus it will involve more than just one family.",
+      "hypothesis": "On top of that, since the genetic risk may pass down to the next generation, it will involve more than just one family.",
+      "references": [
+        "On top of that, as the genetic risk may pass down to the next generation, it will involve more than just one family."
+      ],
+      "gleu": 0.8806888763410503,
+      "semantic_similarity": 0.9982039928436279,
+      "f0_5": 0.7142857142857142,
+      "precision": 0.6666666666666666,
+      "recall": 1.0,
+      "latency_ms": 988.5405829991214,
+      "prompt_tokens": 108,
+      "completion_tokens": 28
+    },
+    {
+      "id": 225,
+      "source": "There are more intangible advantages that could support the stand of informing the relatives once the results are known after the test conducted.",
+      "hypothesis": "There are more intangible advantages that could support the stance of informing the relatives once the results are known after the test is conducted.",
+      "references": [
+        "There are more intangible advantages that could support the stand of informing the relatives once the results are known after the test is conducted.",
+        "There are more intangible advantages that could support informing the relatives once the results are known after the test has been conducted."
+      ],
+      "gleu": 0.8861342461885939,
+      "semantic_similarity": 0.982872486114502,
+      "f0_5": 0.5555555555555556,
+      "precision": 0.5,
+      "recall": 1.0,
+      "latency_ms": 1352.7720410056645,
+      "prompt_tokens": 108,
+      "completion_tokens": 29
+    },
+    {
+      "id": 234,
+      "source": "Thus, we are going to identify the advantages and disadvantages of the issue which is\" should or should not\".",
+      "hypothesis": "Thus, we are going to identify the advantages and disadvantages of the issue, which is \u201cshould or should not.\u201d",
+      "references": [
+        "Thus, we are going to identify the advantages and disadvantages of the issue."
+      ],
+      "gleu": 0.5449937650498796,
+      "semantic_similarity": 0.7471901774406433,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 738.1614170008106,
+      "prompt_tokens": 104,
+      "completion_tokens": 24
+    },
+    {
+      "id": 241,
+      "source": "Families give you the courage and support which you can not retrieve by yourself.",
+      "hypothesis": "Families give you the courage and support that you cannot retrieve by yourself.",
+      "references": [
+        "Families give you the courage and support which you can not retrieve by yourself.",
+        "Families give you the courage and support which you can not find by yourself."
+      ],
+      "gleu": 0.6145687645687645,
+      "semantic_similarity": 0.9905738234519958,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 978.9500830083853,
+      "prompt_tokens": 99,
+      "completion_tokens": 18
+    },
+    {
+      "id": 245,
+      "source": "Lying on the bed for the remaining life, and even die immediately, these are the consequences which we can not imagine.",
+      "hypothesis": "Lying on the bed for the rest of one\u2019s life, or even dying immediately, are consequences we cannot imagine.",
+      "references": [
+        "Lying on the bed for our remaining days, or even dying quickly: these are the consequences which we can not imagine.",
+        "Lying on a bed for the rest of your life, and even dying immediately, these are consequences which we can not imagine."
+      ],
+      "gleu": 0.282249742002064,
+      "semantic_similarity": 0.9493262767791748,
+      "f0_5": 0.3125,
+      "precision": 0.2857142857142857,
+      "recall": 0.5,
+      "latency_ms": 1012.1755410073092,
+      "prompt_tokens": 106,
+      "completion_tokens": 24
+    },
+    {
+      "id": 246,
+      "source": "Families are our dearest in our life.",
+      "hypothesis": "Families are the dearest in our lives.",
+      "references": [
+        "Families are the dearest in our life.",
+        "Families are the dearest people in our life."
+      ],
+      "gleu": 0.8101190476190476,
+      "semantic_similarity": 0.9953831434249878,
+      "f0_5": 0.5555555555555556,
+      "precision": 0.5,
+      "recall": 1.0,
+      "latency_ms": 1555.320749990642,
+      "prompt_tokens": 92,
+      "completion_tokens": 12
+    },
+    {
+      "id": 251,
+      "source": "Generally, the clinic or hospital will not tell the carrier's families without the agreement of carrier.",
+      "hypothesis": "Generally, the clinic or hospital will not inform the carrier\u2019s family without the carrier\u2019s agreement.",
+      "references": [
+        "Generally, the clinic or hospital will not tell the carrier's family without the agreement of the carrier."
+      ],
+      "gleu": 0.5249084249084249,
+      "semantic_similarity": 0.9646821022033691,
+      "f0_5": 0.2777777777777778,
+      "precision": 0.25,
+      "recall": 0.5,
+      "latency_ms": 2811.35066699062,
+      "prompt_tokens": 101,
+      "completion_tokens": 20
+    },
+    {
+      "id": 257,
+      "source": "In conclusion, a carrier of a known genetic risk is encouraged to tell his or her relatives about the known genetic risk.",
+      "hypothesis": "In conclusion, a carrier of a known genetic risk is encouraged to tell his or her relatives about the known genetic risk.",
+      "references": [
+        "In conclusion, a carrier of a known genetic risk is encouraged to tell his or her relatives about the known genetic risk."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2796.1442500090925,
+      "prompt_tokens": 107,
+      "completion_tokens": 27
+    },
+    {
+      "id": 273,
+      "source": "However, if a dignosed carrier is obligated to tell his or her relatives, the relatives will be forced to know their higher chance of being genetic risk carriers.",
+      "hypothesis": "However, if a diagnosed carrier is obligated to tell his or her relatives, the relatives will be forced to know their higher chance of being genetic risk carriers.",
+      "references": [
+        "However, if a dignosed carrier is obligated to tell his or her relatives, the relatives will be forced to know their higher risk of being genetic risk carriers.",
+        "However, if a diagnosed carrier is obligated to tell his or her relatives, the relatives will be forced to know their higher chance of being genetic risk carriers."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2024.3202909914544,
+      "prompt_tokens": 113,
+      "completion_tokens": 33
+    },
+    {
+      "id": 283,
+      "source": "I agree that a carrier of a known genetic risk is obligated to tell his or her relatives.",
+      "hypothesis": "I agree that a carrier of a known genetic risk is obligated to tell his or her relatives.",
+      "references": [
+        "I agree that a carrier of a known genetic risk is obligated to tell his or her relatives."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 3804.986707997159,
+      "prompt_tokens": 103,
+      "completion_tokens": 23
+    },
+    {
+      "id": 303,
+      "source": "If the parents know that one of them is a carrier and disclose the information to their relatives then they can bring their children to undergo genetic testing and don't need to be shy of it because it is for the sake of their children's health.",
+      "hypothesis": "If the parents know that one of them is a carrier and disclose the information to their relatives, then they can bring their children to undergo genetic testing and don\u2019t need to be shy about it, because it is for the sake of their children\u2019s health.",
+      "references": [
+        "If the parents know that one of them is a carrier and discloses the information to their relatives, they can bring their children to undergo genetic testing and need not be scared because it is for the sake of their children's health.",
+        "If the parents know that one of them is a carrier and disclose the information to their relatives, then they can take their children to undergo genetic testing and don't need to be shy about it because it is for the sake of their children's health."
+      ],
+      "gleu": 0.7330739140648139,
+      "semantic_similarity": 0.9951978325843811,
+      "f0_5": 0.43478260869565216,
+      "precision": 0.4,
+      "recall": 0.6666666666666666,
+      "latency_ms": 2030.533415992977,
+      "prompt_tokens": 131,
+      "completion_tokens": 51
+    },
+    {
+      "id": 306,
+      "source": "People and friends often mock of your conditions.",
+      "hypothesis": "People and friends often mock your conditions.",
+      "references": [
+        "People and friends often mock their conditions.",
+        "Strangers and friends often mock your condition."
+      ],
+      "gleu": 0.5785714285714286,
+      "semantic_similarity": 0.9061229825019836,
+      "f0_5": 0.8333333333333334,
+      "precision": 1.0,
+      "recall": 0.5,
+      "latency_ms": 3691.9424590014387,
+      "prompt_tokens": 93,
+      "completion_tokens": 12
+    },
+    {
+      "id": 313,
+      "source": "However, once a test has been conducted and the results are known, a family-related ethical dilemma is born.",
+      "hypothesis": "However, once a test has been conducted and the results are known, a family-related ethical dilemma is born.",
+      "references": [
+        "However, once a test has been conducted and the results are known, a family-related ethical dilemma is born."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 1821.9041250122245,
+      "prompt_tokens": 103,
+      "completion_tokens": 23
+    },
+    {
+      "id": 314,
+      "source": "The question is whether a carrier of a known genetic risk should tell his or her relatives.",
+      "hypothesis": "The question is whether a carrier of a known genetic risk should tell his or her relatives.",
+      "references": [
+        "The question is whether a carrier of a known genetic risk should tell his or her relatives."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2650.562416994944,
+      "prompt_tokens": 102,
+      "completion_tokens": 22
+    },
+    {
+      "id": 316,
+      "source": "This is because his or her relatives have the right to know about this.",
+      "hypothesis": "This is because his or her relatives have the right to know about this.",
+      "references": [
+        "This is because his or her relatives have the right to know.",
+        "This is because his or her relatives have the right to know about this."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 1769.221499998821,
+      "prompt_tokens": 99,
+      "completion_tokens": 19
+    },
+    {
+      "id": 339,
+      "source": "In my opinion, the patients, which are carriers of some known genetic risk are supposed to share the truth with their family members.",
+      "hypothesis": "In my opinion, patients who are carriers of some known genetic risk are supposed to share the truth with their family members.",
+      "references": [
+        "In my opinion, the patients, who are carriers of some known genetic risk are obliged to share the truth with their family members.",
+        "In my opinion, the patients who are carriers of some known genetic risk should share the truth with their family members."
+      ],
+      "gleu": 0.6240857826384142,
+      "semantic_similarity": 0.9843763709068298,
+      "f0_5": 0.6666666666666666,
+      "precision": 0.6666666666666666,
+      "recall": 0.6666666666666666,
+      "latency_ms": 2903.176792009617,
+      "prompt_tokens": 108,
+      "completion_tokens": 27
+    },
+    {
+      "id": 344,
+      "source": "How can they not tell their loved ones who they really are and get their loved ones in danger?",
+      "hypothesis": "How can they not tell their loved ones who they really are and put their loved ones in danger?",
+      "references": [
+        "How can they not tell their loved ones who they really are and put their loved ones in danger?"
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2976.648750001914,
+      "prompt_tokens": 104,
+      "completion_tokens": 24
+    },
+    {
+      "id": 350,
+      "source": "Family members, as one the closest group of people from whom they can get comfort, is a crucial factor for them to successfully get over any possible troubles as a result of genetic disorder.",
+      "hypothesis": "Family members, as one of the closest groups of people from whom they can get comfort, are a crucial factor for them to successfully get over any possible troubles as a result of a genetic disorder.",
+      "references": [
+        "Family members are one of the closest groups of people from whom patients can get comfort and help them to successfully get over any possible troubles as a result of genetic disorder.",
+        "Family members, as one of the closest groups of people from whom patients can get comfort, are a crucial factor for them to successfully get over any possible problems as a result of genetic disorder."
+      ],
+      "gleu": 0.6396156947627537,
+      "semantic_similarity": 0.9689591526985168,
+      "f0_5": 0.7142857142857143,
+      "precision": 0.75,
+      "recall": 0.6,
+      "latency_ms": 3326.0489999956917,
+      "prompt_tokens": 119,
+      "completion_tokens": 41
+    },
+    {
+      "id": 353,
+      "source": "Some people may say that telling the truth may arise some unnecessary doubts and panics which will endanger the family harmony.",
+      "hypothesis": "Some people may say that telling the truth may give rise to some unnecessary doubts and panic, which will endanger the family harmony.",
+      "references": [
+        "Some people may say that telling the truth may create some unnecessary doubts and panic which will endanger family harmony.",
+        "Some people may say that telling the truth may give rise to some unnecessary doubts and panics which will endanger family harmony."
+      ],
+      "gleu": 0.6670666290231508,
+      "semantic_similarity": 0.9922950863838196,
+      "f0_5": 0.75,
+      "precision": 0.75,
+      "recall": 0.75,
+      "latency_ms": 3231.6445000033127,
+      "prompt_tokens": 106,
+      "completion_tokens": 28
+    },
+    {
+      "id": 354,
+      "source": "While every family need to go through this or that kind of troublesome situations, the more troubles that a family has gone through together, the greater bond will be established between the family members as well as the greater amount of trust, love and understanding.",
+      "hypothesis": "While every family needs to go through this or that kind of troublesome situation, the more troubles a family has gone through together, the greater the bond that will be established between the family members, as well as the greater amount of trust, love, and understanding.",
+      "references": [
+        "However, every family can go through this kind of troublesome situation. The more troubles that a family has gone through together, the greater the bond that will be established between the family members as well as the greater the amount of trust, love and understanding.",
+        "While every family needs to go through this or that kind of troublesome situation, the more problems a family has gone through together, the greater the bond will be between the family members as well as the greater amount of trust, love and understanding."
+      ],
+      "gleu": 0.6542519481978532,
+      "semantic_similarity": 0.9869970083236694,
+      "f0_5": 0.45454545454545453,
+      "precision": 0.42857142857142855,
+      "recall": 0.6,
+      "latency_ms": 3251.129167008912,
+      "prompt_tokens": 130,
+      "completion_tokens": 51
+    },
+    {
+      "id": 357,
+      "source": "Being in Asian society where genetic testing is not a common practice, I do think that it is the choice of the patient whether he or she wants to tell his or her relatives about his or her disease.",
+      "hypothesis": "In Asian societies where genetic testing is not a common practice, I do think that it is the patient's choice whether he or she wants to tell his or her relatives about his or her disease.",
+      "references": [
+        "Being in an Asian society where genetic testing is not a common practice, I do think that it is the choice of the patient whether he or she wants to tell his or her relatives about his or her disease.",
+        "Being in Asian society, where genetic testing is not a common practice, I do think that it is the choice of the patient whether he or she wants to tell his or her relatives about his or her disease."
+      ],
+      "gleu": 0.8242328749681691,
+      "semantic_similarity": 0.9850506782531738,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 4111.051041996689,
+      "prompt_tokens": 124,
+      "completion_tokens": 41
+    },
+    {
+      "id": 360,
+      "source": "Nevertheless, while I fell that a carrier should not be obligated to tell his or her relatives about the genetic risk, I would like to suggest the person to at least share the information with her or his potential partner (husband or wife) since the individual's genetic risk may affect their future children.",
+      "hypothesis": "Nevertheless, while I feel that a carrier should not be obligated to tell his or her relatives about the genetic risk, I would suggest that the person at least share the information with his or her potential partner (husband or wife), since the individual's genetic risk may affect their future children.",
+      "references": [
+        "Nevertheless, while I feel that a carrier should not be obligated to tell his or her relatives about the genetic risk, I would like to suggest to the person to at least share the information with her or his potential partner (husband or wife) since the individual's genetic risk may affect their future children.",
+        "Nevertheless, while I feel that a carrier should not be obligated to tell his or her relatives about the genetic risk. I would like to suggest the person at least shares the information with her or his potential partner (husband or wife), since the individual's genetic risk may affect their future children."
+      ],
+      "gleu": 0.7802258403361345,
+      "semantic_similarity": 0.9815748929977417,
+      "f0_5": 0.45454545454545453,
+      "precision": 0.42857142857142855,
+      "recall": 0.6,
+      "latency_ms": 4106.379208009457,
+      "prompt_tokens": 138,
+      "completion_tokens": 56
+    },
+    {
+      "id": 361,
+      "source": "Many people in our society are not well informed about many genetic diseases and many of them will most likely to judge or at least differentiate those who have genetic diseases since they feel that the patients are abnormal or'weird'.",
+      "hypothesis": "Many people in our society are not well informed about genetic diseases, and many of them will most likely judge or at least differentiate those who have genetic diseases, since they feel that the patients are abnormal or \u2018weird\u2019.",
+      "references": [
+        "Many people in our society are not well informed about many genetic diseases and many of them will most likely judge or at least distinguish those who have genetic diseases since they feel that the patients are abnormal or'weird'.",
+        "Many people in our society are not well informed about many genetic diseases and many of them will be most likely to judge or at least discriminate against those who have genetic diseases, since they feel that the patients are abnormal or'weird'."
+      ],
+      "gleu": 0.6558742446900342,
+      "semantic_similarity": 0.9944570660591125,
+      "f0_5": 0.1923076923076923,
+      "precision": 0.16666666666666666,
+      "recall": 0.5,
+      "latency_ms": 2984.4152919977205,
+      "prompt_tokens": 125,
+      "completion_tokens": 44
+    },
+    {
+      "id": 381,
+      "source": "Genetic refers the chance of inheriting a disorder or disease.",
+      "hypothesis": "Genetics refers to the chance of inheriting a disorder or disease.",
+      "references": [
+        "Genetic risk refers to the chance of inheriting a disorder or disease."
+      ],
+      "gleu": 0.8932449494949495,
+      "semantic_similarity": 0.8692091703414917,
+      "f0_5": 0.5,
+      "precision": 0.5,
+      "recall": 0.5,
+      "latency_ms": 2797.7325420069974,
+      "prompt_tokens": 95,
+      "completion_tokens": 16
+    },
+    {
+      "id": 397,
+      "source": "As citizens of a nation, they have the responsibility to support their country in many ways.",
+      "hypothesis": "As citizens of a nation, they have the responsibility to support their country in many ways.",
+      "references": [
+        "As citizens of a nation, they have the responsibility to support their country in many ways.",
+        "As citizens of a nation, they have a responsibility to support their country in many ways."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2932.607624999946,
+      "prompt_tokens": 101,
+      "completion_tokens": 21
+    },
+    {
+      "id": 406,
+      "source": "Genetic testing is a personal choice.",
+      "hypothesis": "Genetic testing is a personal choice.",
+      "references": [
+        "Genetic testing is a personal choice."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2532.9469579883153,
+      "prompt_tokens": 91,
+      "completion_tokens": 11
+    },
+    {
+      "id": 432,
+      "source": "If that is a big family, is he obliged to tell everyone?",
+      "hypothesis": "If that is a big family, is he obliged to tell everyone?",
+      "references": [
+        "If that is a big family, is he obliged to tell everyone?",
+        "If it is a big family, is he obliged to tell everyone?"
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2082.5245000014547,
+      "prompt_tokens": 97,
+      "completion_tokens": 17
+    },
+    {
+      "id": 451,
+      "source": "However, if you have undergone and known that you are a carrier, you are responsible for your whole family.",
+      "hypothesis": "However, if you have undergone testing and know that you are a carrier, you are responsible for your whole family.",
+      "references": [
+        "However, if you have undergone a test and know that you are a carrier, you are responsible for your whole family.",
+        "However, if you have undergone tests and found out that you are a carrier, you are responsible for your whole family."
+      ],
+      "gleu": 0.8606940144478844,
+      "semantic_similarity": 0.9900951385498047,
+      "f0_5": 0.5,
+      "precision": 0.5,
+      "recall": 0.5,
+      "latency_ms": 2819.437457990716,
+      "prompt_tokens": 104,
+      "completion_tokens": 25
+    },
+    {
+      "id": 478,
+      "source": "However, some people may argue that why we want to interfere with their lives?",
+      "hypothesis": "However, some people may argue why we want to interfere with their lives.",
+      "references": [
+        "However, some people may argue why should we want to interfere with their lives?",
+        "However, some people may ask why we want to interfere with their lives?"
+      ],
+      "gleu": 0.7023601398601399,
+      "semantic_similarity": 0.9696521162986755,
+      "f0_5": 0.5,
+      "precision": 0.5,
+      "recall": 0.5,
+      "latency_ms": 2966.6040419979254,
+      "prompt_tokens": 99,
+      "completion_tokens": 18
+    },
+    {
+      "id": 482,
+      "source": "We become so anxious that we can not focus on everything.",
+      "hypothesis": "We become so anxious that we cannot focus on everything.",
+      "references": [
+        "We become so anxious that we can not focus on anything."
+      ],
+      "gleu": 0.514781746031746,
+      "semantic_similarity": 0.9717951416969299,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 2760.3307079989463,
+      "prompt_tokens": 96,
+      "completion_tokens": 15
+    },
+    {
+      "id": 485,
+      "source": "Since this will really affect their lives, what we should do is to try to make it in a positive way.",
+      "hypothesis": "Since this will really affect their lives, what we should do is try to make it in a positive way.",
+      "references": [
+        "Since this will really affect their lives, what we should do is to try to treat it in a positive way.",
+        "Since this will really affect their lives, what we should do is to try to do it in a positive way."
+      ],
+      "gleu": 0.6657464740282077,
+      "semantic_similarity": 0.9778211116790771,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 1791.9898749969434,
+      "prompt_tokens": 106,
+      "completion_tokens": 25
+    },
+    {
+      "id": 494,
+      "source": "Genetic testing will be conducted when the individual is at risk of some possible disease.",
+      "hypothesis": "Genetic testing will be conducted when the individual is at risk of some possible disease.",
+      "references": [
+        "Genetic testing is conducted when the individual is at risk of some possible disease.",
+        "Genetic testing will be conducted when the individual is at risk of some possible disease."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 3067.284082993865,
+      "prompt_tokens": 100,
+      "completion_tokens": 20
+    },
+    {
+      "id": 504,
+      "source": "Therefore, telling the relatives about the situation may avoid a lot of trouble in this way and save much time for proper treatment.",
+      "hypothesis": "Therefore, telling the relatives about the situation may avoid a lot of trouble and save much time for proper treatment.",
+      "references": [
+        "Therefore, telling the relatives about the situation may avoid a lot of trouble in this way and save much time for proper treatment.",
+        "Therefore, telling the relatives about the situation may avoid a lot of trouble and save a lot of time for proper treatment."
+      ],
+      "gleu": 0.9149466804265565,
+      "semantic_similarity": 0.9978508949279785,
+      "f0_5": 0.8333333333333334,
+      "precision": 1.0,
+      "recall": 0.5,
+      "latency_ms": 2809.0622079907916,
+      "prompt_tokens": 108,
+      "completion_tokens": 25
+    },
+    {
+      "id": 506,
+      "source": "So for the consideration for the other family members, the relatives should be informed.",
+      "hypothesis": "So, for the consideration of the other family members, the relatives should be informed.",
+      "references": [
+        "So for the consideration of the other family members, the relatives should be informed.",
+        "So, for the sake of the other family members, the relatives should be informed."
+      ],
+      "gleu": 0.9193514818514819,
+      "semantic_similarity": 0.9983267784118652,
+      "f0_5": 0.9090909090909091,
+      "precision": 1.0,
+      "recall": 0.6666666666666666,
+      "latency_ms": 2745.9124170127325,
+      "prompt_tokens": 99,
+      "completion_tokens": 19
+    },
+    {
+      "id": 508,
+      "source": "They should let their spouse know about his or her situation before marriage.",
+      "hypothesis": "They should let their spouse know about their situation before marriage.",
+      "references": [
+        "They should let their spouse know about his or her situation before marriage.",
+        "They should let their spouse know about their situation before marriage."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2911.322750005638,
+      "prompt_tokens": 98,
+      "completion_tokens": 16
+    },
+    {
+      "id": 514,
+      "source": "Their son unfortunately fell ill and he was diagnosis a kind of genetic disease which is very serious.",
+      "hypothesis": "Their son, unfortunately, fell ill, and he was diagnosed with a kind of genetic disease that is very serious.",
+      "references": [
+        "Their son unfortunately fell ill and he was diagnosed a kind of genetic disease which is very serious.",
+        "Their son unfortunately fell ill and he was diagnosed with a kind of genetic disease which is very serious."
+      ],
+      "gleu": 0.59187414000688,
+      "semantic_similarity": 0.9589531421661377,
+      "f0_5": 0.3846153846153846,
+      "precision": 0.3333333333333333,
+      "recall": 1.0,
+      "latency_ms": 2891.479458005051,
+      "prompt_tokens": 103,
+      "completion_tokens": 24
+    },
+    {
+      "id": 523,
+      "source": "Nowadays, with the advancement of technology, it is easy to do a genetic testing.",
+      "hypothesis": "Nowadays, with the advancement of technology, it is easy to do genetic testing.",
+      "references": [
+        "Nowadays, with the advancement of technology, it is easy to do genetic testing."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 1837.6743330009049,
+      "prompt_tokens": 99,
+      "completion_tokens": 18
+    },
+    {
+      "id": 526,
+      "source": "Therefore, I thought a known genetic risk should not be obligated to tell his or her family or relatives.",
+      "hypothesis": "Therefore, I thought that a known genetic risk should not be obligated to tell his or her family or relatives.",
+      "references": [
+        "Therefore, I think a known genetic risk should not be obligated to tell his or her family or relatives.",
+        "Therefore, I think a person with a known genetic risk should not be obligated to tell his or her family or relatives."
+      ],
+      "gleu": 0.7816004471964224,
+      "semantic_similarity": 0.9922643899917603,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 3190.305541997077,
+      "prompt_tokens": 104,
+      "completion_tokens": 25
+    },
+    {
+      "id": 533,
+      "source": "They may set a bias on this person even abandon his or her.",
+      "hypothesis": "They may set a bias on this person, even abandon him or her.",
+      "references": [
+        "They may set a bias on this person even abandon him or her.",
+        "They may discriminate against this person or even abandon him or her."
+      ],
+      "gleu": 0.770920745920746,
+      "semantic_similarity": 0.9942634701728821,
+      "f0_5": 0.5555555555555556,
+      "precision": 0.5,
+      "recall": 1.0,
+      "latency_ms": 4178.195832995698,
+      "prompt_tokens": 98,
+      "completion_tokens": 18
+    },
+    {
+      "id": 560,
+      "source": "If the person tell their relatives that he or she carries a disease gene, his or her relatives can go to hospital to check whether they also get a disease gene.",
+      "hypothesis": "If a person tells his or her relatives that he or she carries a disease gene, those relatives can go to a hospital to check whether they also carry the disease gene.",
+      "references": [
+        "If a person tells his or her relatives that he or she carries a diseased gene, his or her relatives can go to hospital to check whether they also have a diseased gene.",
+        "If the person tells their relatives that they are carrying a disease gene, their relatives can go to hospital to check whether they have also got a disease gene."
+      ],
+      "gleu": 0.5780635891731554,
+      "semantic_similarity": 0.9774343967437744,
+      "f0_5": 0.5208333333333334,
+      "precision": 0.5,
+      "recall": 0.625,
+      "latency_ms": 4039.532833005069,
+      "prompt_tokens": 116,
+      "completion_tokens": 37
+    },
+    {
+      "id": 564,
+      "source": "If he or her not get married, he or she must tell his or her partner that he carries disease gene.",
+      "hypothesis": "If he or she does not get married, he or she must tell his or her partner that he carries a disease gene.",
+      "references": [
+        "If he or she is married, he or she must tell his or her partner that he/she carries a diseased gene.",
+        "If he or she is married, he or she must tell his or her partner that he is carrying a disease gene."
+      ],
+      "gleu": 0.5281879352531527,
+      "semantic_similarity": 0.9315314292907715,
+      "f0_5": 0.4166666666666667,
+      "precision": 0.5,
+      "recall": 0.25,
+      "latency_ms": 1964.6659579884727,
+      "prompt_tokens": 106,
+      "completion_tokens": 28
+    },
+    {
+      "id": 575,
+      "source": "However, they can avoid the disease genes being inhered to their children.",
+      "hypothesis": "However, they can avoid the disease genes being inherited by their children.",
+      "references": [
+        "However, they can avoid the diseased genes being passed on to their children.",
+        "However, they can avoid the disease genes being inherited by their children."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 3865.2393750089686,
+      "prompt_tokens": 97,
+      "completion_tokens": 17
+    },
+    {
+      "id": 580,
+      "source": "The answer is simply that everyone, especially our family, has the right to know the truth.",
+      "hypothesis": "The answer is simply that everyone, especially our family, has the right to know the truth.",
+      "references": [
+        "The answer is simply that everyone, especially our family, has the right to know the truth."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 1454.9969159998,
+      "prompt_tokens": 101,
+      "completion_tokens": 21
+    },
+    {
+      "id": 585,
+      "source": "People may feel angry, depressed, or even guilty about their results.",
+      "hypothesis": "People may feel angry, depressed, or even guilty about their results.",
+      "references": [
+        "People may feel angry, depressed, or even guilty about their results."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2823.2093330007046,
+      "prompt_tokens": 96,
+      "completion_tokens": 16
+    },
+    {
+      "id": 602,
+      "source": "I started invoving into Facebook one years ago,when I just arrived singapore.",
+      "hypothesis": "I started getting involved with Facebook one year ago, when I just arrived in Singapore.",
+      "references": [
+        "I started becoming involved in Facebook one year ago,when I just arrived in Singapore",
+        "I started using Facebook one year ago,when I had just arrived in Singapore."
+      ],
+      "gleu": 0.3523351648351648,
+      "semantic_similarity": 0.9813113808631897,
+      "f0_5": 0.5172413793103449,
+      "precision": 0.5,
+      "recall": 0.6,
+      "latency_ms": 1843.17458300211,
+      "prompt_tokens": 97,
+      "completion_tokens": 20
+    },
+    {
+      "id": 603,
+      "source": "And now I got over 500 friends on Facebook and buried myself with hundrends of seeds every day.",
+      "hypothesis": "And now I have over 500 friends on Facebook and have buried myself with hundreds of seeds every day.",
+      "references": [
+        "and now I got over 500 friends on Facebook and bury myself with hundreds of seeds every day.",
+        "And now I have over 500 friends on Facebook."
+      ],
+      "gleu": 0.5222576969384245,
+      "semantic_similarity": 0.9784350395202637,
+      "f0_5": 0.3333333333333333,
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "latency_ms": 2908.83329200733,
+      "prompt_tokens": 103,
+      "completion_tokens": 24
+    },
+    {
+      "id": 605,
+      "source": "For an example, if we change our contact numbers, we will not send SMS to each of individual any longer.",
+      "hypothesis": "For example, if we change our contact numbers, we will not send SMS to each individual any longer.",
+      "references": [
+        "For example, if we change our contact numbers, we will not send SMS to each individual any longer.",
+        "For example, if we change our contact numbers, we will not send an SMS to each other individually any more."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2949.7205000079703,
+      "prompt_tokens": 105,
+      "completion_tokens": 23
+    },
+    {
+      "id": 606,
+      "source": "Instead, we will post a seed and tag our friends to inform this kind of changments.",
+      "hypothesis": "Instead, we will post a seed and tag our friends to inform them of these kinds of changes.",
+      "references": [
+        "Instead, we will post a seed and tag our friends to make it known.",
+        "Instead, we will post a and tag our friends to inform of them this kind of change."
+      ],
+      "gleu": 0.4851307189542484,
+      "semantic_similarity": 0.8218520879745483,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 3100.8579170011217,
+      "prompt_tokens": 101,
+      "completion_tokens": 23
+    },
+    {
+      "id": 611,
+      "source": "And also, we get a chance to talk to public people like popular stars and know their life better.",
+      "hypothesis": "And also, we get a chance to talk to public people, like popular stars, and know their lives better.",
+      "references": [
+        "And also, we get a chance to talk to public people like popular stars and know their life better.",
+        "And also, we get a chance to talk to public figures like celebrities and know their life better."
+      ],
+      "gleu": 0.6189209236326109,
+      "semantic_similarity": 0.9811524152755737,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 3096.819124999456,
+      "prompt_tokens": 104,
+      "completion_tokens": 24
+    },
+    {
+      "id": 614,
+      "source": "And actually lots of rescuing jobs are done with the help of social media like looking for people get lost and so on.",
+      "hypothesis": "And actually, lots of rescue jobs are done with the help of social media, such as looking for people who get lost, and so on.",
+      "references": [
+        "And actually lots of rescue jobs are done with the help of social media like looking for people who get lost and so on.",
+        "And, actually, lots of rescue jobs are done with the help of social media, like looking for people who are lost and so on."
+      ],
+      "gleu": 0.6342572463768116,
+      "semantic_similarity": 0.9949980974197388,
+      "f0_5": 0.5172413793103449,
+      "precision": 0.5,
+      "recall": 0.6,
+      "latency_ms": 3983.691417000955,
+      "prompt_tokens": 108,
+      "completion_tokens": 30
+    },
+    {
+      "id": 618,
+      "source": "From this scope, social media has shorten our distance.",
+      "hypothesis": "From this scope, social media has shortened our distance.",
+      "references": [
+        "From this scope, social media has shortened our distance.",
+        ", social media have shortened the distance between us."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2727.105166995898,
+      "prompt_tokens": 94,
+      "completion_tokens": 14
+    },
+    {
+      "id": 629,
+      "source": "Interpersonal skills, like any other skills requires practice.",
+      "hypothesis": "Interpersonal skills, like any other skills, require practice.",
+      "references": [
+        "Interpersonal skills, like any other skills require practice.",
+        "Interpersonal skills, like any other skills, require practice."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 1782.0075420022476,
+      "prompt_tokens": 93,
+      "completion_tokens": 13
+    },
+    {
+      "id": 636,
+      "source": "The receipent,will then receive the information almost immediately depending on the quality of the network.",
+      "hypothesis": "The recipient will then receive the information almost immediately, depending on the quality of the network.",
+      "references": [
+        "The recipient,will then receive the information almost immediately depending on the quality of the network.",
+        "The recipient will then receive the information almost immediately, depending on the quality of the network."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 1852.580416991259,
+      "prompt_tokens": 100,
+      "completion_tokens": 21
+    },
+    {
+      "id": 660,
+      "source": "Recently, the rise of social media helped people to have more closer connection with each other, it is a more convenient and cheaper way to have online contact compared with face to face meetings.",
+      "hypothesis": "Recently, the rise of social media helped people have closer connections with each other. It is a more convenient and cheaper way to have online contact compared with face-to-face meetings.",
+      "references": [
+        "Recently, the rise of social media has helped people to have more closer connection with each other. It is a more convenient and cheaper way to have online contact compared with face to face meetings.",
+        "Recently, the rise of social media has helped people to have a closer connection with each other. It is a more convenient and cheaper way to have online contact compared with face-to-face meetings."
+      ],
+      "gleu": 0.7669927932858969,
+      "semantic_similarity": 0.9921995997428894,
+      "f0_5": 0.5172413793103449,
+      "precision": 0.5,
+      "recall": 0.6,
+      "latency_ms": 4187.349832995096,
+      "prompt_tokens": 119,
+      "completion_tokens": 35
+    },
+    {
+      "id": 668,
+      "source": "In this case, the social network helps people to increase the frequency of talk.",
+      "hypothesis": "In this case, the social network helps people increase the frequency of talk.",
+      "references": [
+        "In this case, the social network helps people to increase the frequency of talk."
+      ],
+      "gleu": 0.8587121212121211,
+      "semantic_similarity": 0.9956847429275513,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 2831.100166993565,
+      "prompt_tokens": 99,
+      "completion_tokens": 18
+    },
+    {
+      "id": 669,
+      "source": "For example, if social network does not exist, the business people need to meet each other face to face and it is other time consuming, even sometimes with business that is not so important, it still takes a lot time on travel which is a wastage.",
+      "hypothesis": "For example, if a social network does not exist, businesspeople need to meet each other face-to-face, which is also time\u2011consuming; even with business that is not very important, it still takes a lot of time traveling, which is wasteful.",
+      "references": [
+        "For example, if social network did not exist, business people would need to meet each other face to face and it is time consuming, even sometimes with business that is not so important, it still takes a lot time to travel, which is wastage.",
+        "For example, if a social network does not exist, business people need to meet each other face to face and it is time consuming. Even sometimes with business that is not so important, it still requires a lot of time for travel, which is a waste."
+      ],
+      "gleu": 0.44804926383873755,
+      "semantic_similarity": 0.9709165692329407,
+      "f0_5": 0.2777777777777778,
+      "precision": 0.2727272727272727,
+      "recall": 0.3,
+      "latency_ms": 3160.1528340106597,
+      "prompt_tokens": 131,
+      "completion_tokens": 44
+    },
+    {
+      "id": 670,
+      "source": "However, social network helps people to meet and chat much more easier, they can even use video chat and create group chat to chat with multiple parties at the same time.",
+      "hypothesis": "However, social networks help people meet and chat much more easily; they can even use video chat and create group chats to converse with multiple parties at the same time.",
+      "references": [
+        "However, social network helps people to meet and chat much more easily. They can even use video chat and create group chat to chat with multiple parties at the same time.",
+        "However, social networks help people to meet and chat much more easily. They can even use video chat and create a group chat to chat with multiple parties at the same time."
+      ],
+      "gleu": 0.5810983397190294,
+      "semantic_similarity": 0.9859424829483032,
+      "f0_5": 0.3448275862068965,
+      "precision": 0.3333333333333333,
+      "recall": 0.4,
+      "latency_ms": 2692.76095899113,
+      "prompt_tokens": 116,
+      "completion_tokens": 35
+    },
+    {
+      "id": 680,
+      "source": "Overall, there are more benefits than the costs.",
+      "hypothesis": "Overall, there are more benefits than the costs.",
+      "references": [
+        "Overall, there are more benefits than costs.",
+        "Overall, there are more benefits than disadvantages."
+      ],
+      "gleu": 0.42797619047619045,
+      "semantic_similarity": 0.9925952553749084,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 2512.504334008554,
+      "prompt_tokens": 93,
+      "completion_tokens": 13
+    },
+    {
+      "id": 710,
+      "source": "The modes of communication have been changing over the years, from letter writing to social networking.",
+      "hypothesis": "The modes of communication have been changing over the years, from letter writing to social networking.",
+      "references": [
+        "The modes of communication have been changing over the years, from letter writing to social networking."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2521.8365409964463,
+      "prompt_tokens": 101,
+      "completion_tokens": 21
+    },
+    {
+      "id": 714,
+      "source": "However, critics may argue that with the existence of social media sites have reduced physical human interactions among people as they will prefer sitting in front of a computer to going out and meeting new friends.",
+      "hypothesis": "However, critics may argue that the existence of social media sites has reduced physical human interactions among people, as they will prefer sitting in front of a computer to going out and meeting new friends.",
+      "references": [
+        "However, critics may argue that the existence of social media sites have reduced physical human interactions among people as they prefer sitting in front of a computer to going out and meeting new friends.",
+        "However, critics may argue that the existence of social media sites has reduced physical human interactions between people as they prefer sitting in front of a computer to going out and meeting new friends."
+      ],
+      "gleu": 0.7283788515406162,
+      "semantic_similarity": 0.996004581451416,
+      "f0_5": 0.625,
+      "precision": 0.6666666666666666,
+      "recall": 0.5,
+      "latency_ms": 2994.218291991274,
+      "prompt_tokens": 121,
+      "completion_tokens": 40
+    },
+    {
+      "id": 717,
+      "source": "There are about 50 % of the people who have learnt about breaking news from social media.",
+      "hypothesis": "About 50% of the people have learned about breaking news from social media.",
+      "references": [
+        "There is about 50 % of the world's people who learn about breaking news from social media.",
+        "About 50 % of people learn about breaking news from social media."
+      ],
+      "gleu": 0.4011946386946387,
+      "semantic_similarity": 0.9779399633407593,
+      "f0_5": 0.5,
+      "precision": 0.5,
+      "recall": 0.5,
+      "latency_ms": 2898.221665993333,
+      "prompt_tokens": 102,
+      "completion_tokens": 18
+    },
+    {
+      "id": 722,
+      "source": "There might be false information or hoaxes spreading around on social media.",
+      "hypothesis": "There may be false information or hoaxes spreading on social media.",
+      "references": [
+        "There might be false information or hoaxes spreading around on social media."
+      ],
+      "gleu": 0.6349116161616162,
+      "semantic_similarity": 0.9799036979675293,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 2862.6586250029504,
+      "prompt_tokens": 97,
+      "completion_tokens": 16
+    },
+    {
+      "id": 735,
+      "source": "In addition, there are also chances for people to miscommunicate with each other as they can not sense the tone of the other party over social media platforms.",
+      "hypothesis": "In addition, there are also chances for people to miscommunicate with each other, as they cannot sense the tone of the other party over social media platforms.",
+      "references": [
+        "In addition, there are also chances for people to miscommunicate with each other as they can not sense the tone of the other party over social media platforms.",
+        "In addition, there are also chances for people to miscommunicate with each other as they can not sense the tone of the other party on social media platforms."
+      ],
+      "gleu": 0.8101032763532764,
+      "semantic_similarity": 0.9935581684112549,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 3080.019499990158,
+      "prompt_tokens": 113,
+      "completion_tokens": 32
+    },
+    {
+      "id": 737,
+      "source": "But, if there is trust and mutual understand on social media, it will be ideal for people to improve relationship and make new friends.",
+      "hypothesis": "But if there is trust and mutual understanding on social media, it will be ideal for people to improve relationships and make new friends.",
+      "references": [
+        "But, if there is trust and mutual understand on social media, it will be ideal for people to improve relationships and make new friends.",
+        "But, if there is trust and mutual understanding on social media, it will be ideal for people to improve relationships and make new friends."
+      ],
+      "gleu": 0.9554453698475438,
+      "semantic_similarity": 0.9986257553100586,
+      "f0_5": 0.7142857142857142,
+      "precision": 0.6666666666666666,
+      "recall": 1.0,
+      "latency_ms": 3060.040750002372,
+      "prompt_tokens": 109,
+      "completion_tokens": 29
+    },
+    {
+      "id": 765,
+      "source": "People use Twitter to follow the artiste or celebrity they love and Facebook to see what is their friends' recent activity.",
+      "hypothesis": "People use Twitter to follow the artist or celebrity they love, and Facebook to see what their friends' recent activity is.",
+      "references": [
+        "People use Twitter to follow the artiste or celebrity they love and Facebook to see what their friends' recent activity is..",
+        "People use Twitter to follow the artiste or celebrity they love and Facebook to see what their friends' recent activity is."
+      ],
+      "gleu": 0.7361319966583124,
+      "semantic_similarity": 0.9906409978866577,
+      "f0_5": 0.6521739130434783,
+      "precision": 0.6,
+      "recall": 1.0,
+      "latency_ms": 2962.8815420001047,
+      "prompt_tokens": 106,
+      "completion_tokens": 26
+    },
+    {
+      "id": 772,
+      "source": "Generally people need they eyes to look at the display screen of their phone or computer and fingers to manipulate the corresponding device.",
+      "hypothesis": "Generally, people need their eyes to look at the display screen of their phone or computer, and fingers to manipulate the corresponding device.",
+      "references": [
+        "Generally people need their eyes to look at the display screen of their phone or computer and fingers to manipulate the corresponding device.",
+        "Generally, people need their eyes to look at the screen of their phone or computer and fingers to manipulate the relevant device."
+      ],
+      "gleu": 0.8340509128552607,
+      "semantic_similarity": 0.996839165687561,
+      "f0_5": 0.625,
+      "precision": 0.6666666666666666,
+      "recall": 0.5,
+      "latency_ms": 2885.6288749957457,
+      "prompt_tokens": 108,
+      "completion_tokens": 28
+    },
+    {
+      "id": 781,
+      "source": "Also, they will not have enough experience to communicate with people in face and not be trained in their conversation skills.",
+      "hypothesis": "Also, they will not have enough experience to communicate with people face\u2011to\u2011face and will not be trained in conversation skills.",
+      "references": [
+        "Also, they will not have enough experience to communicate with people in the face and not be trained in their conversation skills.",
+        "Also, they will not have enough experience to communicate with people face to face and will not be trained in conversation skills."
+      ],
+      "gleu": 0.8606940144478844,
+      "semantic_similarity": 0.9898115396499634,
+      "f0_5": 0.6666666666666666,
+      "precision": 0.6666666666666666,
+      "recall": 0.6666666666666666,
+      "latency_ms": 3153.0264590110164,
+      "prompt_tokens": 106,
+      "completion_tokens": 25
+    },
+    {
+      "id": 805,
+      "source": "With the help of social media tools, we can stay in contact and keep ourselves up to date with our family and friends even though we are away from them.",
+      "hypothesis": "With the help of social media tools, we can stay in contact with and keep ourselves up to date with our family and friends, even though we are away from them.",
+      "references": [
+        "With the help of social media tools, we can stay in contact and keep ourselves up to date with our family and friends even though we are away from them."
+      ],
+      "gleu": 0.8273849250489963,
+      "semantic_similarity": 0.9957346320152283,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 3073.1945000006817,
+      "prompt_tokens": 115,
+      "completion_tokens": 36
+    },
+    {
+      "id": 807,
+      "source": "This approaches help the parents to communicate with their children and know what kind of activities that their children have when they are overseas.",
+      "hypothesis": "These approaches help parents communicate with their children and know what kinds of activities their children have when they are overseas.",
+      "references": [
+        "These approaches help the parents to communicate with their children and know what kind of activities that their children have when they are overseas.",
+        "This approach helps parents to communicate with their children and know what kind of activities their children do when they are overseas."
+      ],
+      "gleu": 0.6814431913116124,
+      "semantic_similarity": 0.9876525402069092,
+      "f0_5": 0.4,
+      "precision": 0.4,
+      "recall": 0.4,
+      "latency_ms": 2858.8115830061724,
+      "prompt_tokens": 109,
+      "completion_tokens": 26
+    },
+    {
+      "id": 816,
+      "source": "This will then could lead to stress as these students are not able to cope with their studies because they were distracted.",
+      "hypothesis": "This could then lead to stress, as these students are not able to cope with their studies because they are distracted.",
+      "references": [
+        "This then could lead to stress as these students are not able to cope with their studies because they are distracted.",
+        "This then could lead to stress, as these students are not able to cope with their studies because they were distracted."
+      ],
+      "gleu": 0.7903613199665831,
+      "semantic_similarity": 0.9933454990386963,
+      "f0_5": 0.5555555555555556,
+      "precision": 0.5,
+      "recall": 1.0,
+      "latency_ms": 2945.6263329921057,
+      "prompt_tokens": 107,
+      "completion_tokens": 26
+    },
+    {
+      "id": 821,
+      "source": "Thanks to them, people can get to know one another online, without having to travel to meet up for business purposes for companies or personal reasons.",
+      "hypothesis": "Thanks to them, people can get to know one another online, without having to travel to meet up for business or personal reasons.",
+      "references": [
+        "Thanks to them, people can get to know one another online, without having to travel to meet up for business purposes for companies or personal reasons.",
+        "Thanks to them, people can get to know one another online, without having to travel to meet up for business purposes or personal reasons."
+      ],
+      "gleu": 0.9273268398268398,
+      "semantic_similarity": 0.9974418878555298,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 2957.7332499902695,
+      "prompt_tokens": 111,
+      "completion_tokens": 28
+    },
+    {
+      "id": 822,
+      "source": "However, it is also bringing some social changes whereby such virtual worlds are overtaking the real-life world, resulting in some negative impacts in individuaul's daily lives and therefore becoming a large problem in societies as a whole.",
+      "hypothesis": "However, it is also bringing some social changes whereby such virtual worlds are overtaking the real\u2011life world, resulting in some negative impacts on individuals' daily lives, and therefore becoming a large problem in societies as a whole.",
+      "references": [
+        "However, it is also bringing some social changes whereby such virtual worlds are overtaking the real-life world, resulting in some negative impacts in individuals' daily lives and therefore becoming a large problem in societies as a whole.",
+        "However, it is also bringing about some social changes whereby such virtual worlds are overtaking the real-life world, resulting in some negative impacts on individuals' daily lives and, therefore, becoming a big problem in society as a whole."
+      ],
+      "gleu": 0.7928949958361724,
+      "semantic_similarity": 0.9990806579589844,
+      "f0_5": 0.4347826086956521,
+      "precision": 0.5,
+      "recall": 0.2857142857142857,
+      "latency_ms": 3226.0703339998145,
+      "prompt_tokens": 122,
+      "completion_tokens": 42
+    },
+    {
+      "id": 828,
+      "source": "Another problem with social media is that, the benefits from investing such enormous time and energy is not relfected as something positive to the users.",
+      "hypothesis": "Another problem with social media is that the benefits of investing such enormous time and energy are not reflected as something positive for the users.",
+      "references": [
+        "Another problem with social media is that, the benefits from investing such enormous time and energy is not reflected as something positive to the users.",
+        "Another problem with social media is that the benefits of investing such enormous amounts of time and energy is not reflected as something positive to the users."
+      ],
+      "gleu": 0.6610770750988142,
+      "semantic_similarity": 0.9957331418991089,
+      "f0_5": 0.625,
+      "precision": 0.6,
+      "recall": 0.75,
+      "latency_ms": 2852.8237499995157,
+      "prompt_tokens": 110,
+      "completion_tokens": 30
+    },
+    {
+      "id": 839,
+      "source": "Social media sites are at their peaks at the moment, however, I believe that when people realize that such sites are not making them better persons in real-life, they will not be indulged in it as much as they are now.",
+      "hypothesis": "Social media sites are at their peak at the moment; however, I believe that when people realize that such sites are not making them better people in real life, they will not indulge in them as much as they do now.",
+      "references": [
+        "Social media sites are at their peaks at the moment, however, I believe that when people realize that such sites are not making them better persons in real-life, they will not be indulged in them as much as they are now.",
+        "Social media sites are at their peak at the moment. However, I believe that when people realize that such sites are not making them better people in real life, they will not indulge in it as much as they do now."
+      ],
+      "gleu": 0.8210382311312991,
+      "semantic_similarity": 0.9971299171447754,
+      "f0_5": 0.7142857142857143,
+      "precision": 0.7142857142857143,
+      "recall": 0.7142857142857143,
+      "latency_ms": 3365.6112079916056,
+      "prompt_tokens": 126,
+      "completion_tokens": 46
+    },
+    {
+      "id": 846,
+      "source": "However, as we then tend to spend too much time on this and have significantly reduced in face-to-face human contact, that eventually affects our interpersonal skills.",
+      "hypothesis": "However, as we then tend to spend too much time on this and have significantly reduced face-to-face human contact, which eventually affects our interpersonal skills.",
+      "references": [
+        "However, as we then tend to spend too much time on this and have significantly reduced our face-to-face human contact, that eventually affects our interpersonal skills.",
+        "However, as we then tend to spend too much time on this and have significantly reduced face-to-face human contact, that eventually affects our interpersonal skills."
+      ],
+      "gleu": 0.8911034255599473,
+      "semantic_similarity": 0.9973152875900269,
+      "f0_5": 0.5555555555555556,
+      "precision": 0.5,
+      "recall": 1.0,
+      "latency_ms": 2809.970832997351,
+      "prompt_tokens": 111,
+      "completion_tokens": 30
+    },
+    {
+      "id": 857,
+      "source": "The obvious disadvantage of using social media is that the time reduction on face-to-face contact.",
+      "hypothesis": "The obvious disadvantage of using social media is the reduction in face\u2011to\u2011face contact.",
+      "references": [
+        "The obvious disadvantage of using social media is the time reduction on face-to-face contact."
+      ],
+      "gleu": 0.6872960372960373,
+      "semantic_similarity": 0.9488130211830139,
+      "f0_5": 0.29411764705882354,
+      "precision": 0.25,
+      "recall": 1.0,
+      "latency_ms": 2765.9578750026412,
+      "prompt_tokens": 100,
+      "completion_tokens": 18
+    },
+    {
+      "id": 859,
+      "source": "For example, we tend send a birthday wishes when Facebook promts us\" Today is someone's birthday\".",
+      "hypothesis": "For example, we tend to send birthday wishes when Facebook prompts us, \u201cToday is someone's birthday.\u201d",
+      "references": [
+        "For example, we tend to send birthday wishes when Facebook prompts us\" Today is someone's birthday\"."
+      ],
+      "gleu": 0.7010187728937729,
+      "semantic_similarity": 0.9879700541496277,
+      "f0_5": 0.5555555555555556,
+      "precision": 0.5,
+      "recall": 1.0,
+      "latency_ms": 3095.5060410051374,
+      "prompt_tokens": 101,
+      "completion_tokens": 21
+    },
+    {
+      "id": 861,
+      "source": "We used to send wishes cards during festive season like Chinese New Year, and we feel so good to write one and of course to receive one with stamps on it.",
+      "hypothesis": "We used to send wish cards during the festive season, such as Chinese New Year, and we feel so good writing one, and of course receiving one with stamps on it.",
+      "references": [
+        "We used to send wishes cards during festive season like Chinese New Year, and we feel so good to write one and of course to receive one with stamps on it.",
+        "We used to send greetings cards during festive seasons like Chinese New Year, and we felt so good to write one and of course to receive one with stamps on it."
+      ],
+      "gleu": 0.502027384925049,
+      "semantic_similarity": 0.9551956057548523,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 3134.381832991494,
+      "prompt_tokens": 116,
+      "completion_tokens": 36
+    },
+    {
+      "id": 864,
+      "source": "In a nutshell, every sword has two edges.",
+      "hypothesis": "In a nutshell, every sword has two edges.",
+      "references": [
+        "In a nutshell, every sword has two edges.",
+        "In summary, there are two sides to every coin."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2580.5432079941966,
+      "prompt_tokens": 93,
+      "completion_tokens": 13
+    },
+    {
+      "id": 872,
+      "source": "However, there are also some disadvantages occur due to the social media which are concerned in the society.",
+      "hypothesis": "However, there are also some disadvantages that occur due to social media, which are of concern in society.",
+      "references": [
+        "However, there are also some disadvantages that occur due to the social media which are of concern in society.",
+        "However, there are also some disadvantages due to the social media which are a cause for concern in society."
+      ],
+      "gleu": 0.7961601307189542,
+      "semantic_similarity": 0.997433602809906,
+      "f0_5": 0.7142857142857142,
+      "precision": 0.6666666666666666,
+      "recall": 1.0,
+      "latency_ms": 2798.144542000955,
+      "prompt_tokens": 103,
+      "completion_tokens": 23
+    },
+    {
+      "id": 895,
+      "source": "However, there is news about the social media sites leaks users' information to companies with cash reimbursement.",
+      "hypothesis": "However, there is news that social media sites leak users' information to companies in exchange for cash reimbursement.",
+      "references": [
+        "However, there is news about social media sites which leak users' information to companies for cash reimbursement.",
+        "However, there is news about the social media sites leaking users' information to companies for cash reimbursement."
+      ],
+      "gleu": 0.5294730392156863,
+      "semantic_similarity": 0.9861127138137817,
+      "f0_5": 0.25,
+      "precision": 0.25,
+      "recall": 0.25,
+      "latency_ms": 2945.9877500048606,
+      "prompt_tokens": 102,
+      "completion_tokens": 23
+    },
+    {
+      "id": 900,
+      "source": "It is our responsibility to identify the advantages and disadvantages of social media sites.",
+      "hypothesis": "It is our responsibility to identify the advantages and disadvantages of social media sites.",
+      "references": [
+        "It is our responsibility to identify the advantages and disadvantages of social media sites."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2746.497375002946,
+      "prompt_tokens": 99,
+      "completion_tokens": 19
+    },
+    {
+      "id": 903,
+      "source": "With the wide spread of advanced technology, social media sites are becoming more and more popular.",
+      "hypothesis": "With the widespread adoption of advanced technology, social media sites are becoming more and more popular.",
+      "references": [
+        "With the wide spread of advanced technology, social media sites are becoming more and more popular.",
+        "With the widespread advanced technology, social media sites are becoming more and more popular."
+      ],
+      "gleu": 0.7703983516483517,
+      "semantic_similarity": 0.9778996706008911,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 3629.4872919970658,
+      "prompt_tokens": 101,
+      "completion_tokens": 21
+    },
+    {
+      "id": 908,
+      "source": "Whether we are at home or at school, at work or on a holiday, we are able to communicate and interact with our friends.",
+      "hypothesis": "Whether we are at home or at school, at work or on a holiday, we are able to communicate and interact with our friends.",
+      "references": [
+        "Whether we are at home or at school, at work or on holiday, we are able to communicate and interact with our friends."
+      ],
+      "gleu": 0.772268492377188,
+      "semantic_similarity": 0.9972613453865051,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 3092.8043330059154,
+      "prompt_tokens": 109,
+      "completion_tokens": 29
+    },
+    {
+      "id": 948,
+      "source": "These social media serves a purpose to bind people in spite of their geographical boundaries but it doesn't mean that surrounding people are neglected as the payoff.",
+      "hypothesis": "These social media serve a purpose to bind people in spite of their geographical boundaries, but it doesn't mean that surrounding people are neglected as a payoff.",
+      "references": [
+        "These social media serve a purpose: to bind people in spite of their geographical boundaries. But this should nott mean that surrounding people are neglected as the payoff.",
+        "These social media serve the purpose of connecting people in spite of their geographical boundaries, but that shouldn't mean that people around us are neglected as a payoff."
+      ],
+      "gleu": 0.42529202279202283,
+      "semantic_similarity": 0.9579236507415771,
+      "f0_5": 0.6818181818181818,
+      "precision": 1.0,
+      "recall": 0.3,
+      "latency_ms": 3216.156874987064,
+      "prompt_tokens": 112,
+      "completion_tokens": 32
+    },
+    {
+      "id": 954,
+      "source": "As a result, people think of theirselves lowly and may lead to depression and mental disorder.",
+      "hypothesis": "As a result, people think of themselves lowly, which may lead to depression and mental disorder.",
+      "references": [
+        "As a result, people think of themselves badly and this may lead to depression and mental disorder.",
+        "As a result, people have a low opinion of themselves and this may lead to depression and mental disorder."
+      ],
+      "gleu": 0.7511675824175824,
+      "semantic_similarity": 0.8611516952514648,
+      "f0_5": 0.3333333333333333,
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "latency_ms": 3288.6547499947483,
+      "prompt_tokens": 101,
+      "completion_tokens": 21
+    },
+    {
+      "id": 956,
+      "source": "This is a serious social problem and affects a lot of people.",
+      "hypothesis": "This is a serious social problem that affects a lot of people.",
+      "references": [
+        "This is a serious social problem and it affects a lot of people.",
+        "This is a serious social problem and affects a lot of people."
+      ],
+      "gleu": 0.74760101010101,
+      "semantic_similarity": 0.9837872385978699,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 2742.4829590017907,
+      "prompt_tokens": 97,
+      "completion_tokens": 17
+    },
+    {
+      "id": 968,
+      "source": "People connecting through the social media sites can spend no money on the communication, and also take only one or a few seconds for the message to reach.",
+      "hypothesis": "People connecting through social media sites can spend no money on communication, and it takes only one or a few seconds for the message to reach its recipient.",
+      "references": [
+        "People connecting through the social media sites can spend no money on the communication, and also it takes only one or a few seconds for the message to arrive.",
+        "People connecting through the social media sites spend no money on communication, and it also takes only one or a few seconds for the message to arrive."
+      ],
+      "gleu": 0.7211202686202687,
+      "semantic_similarity": 0.9795793294906616,
+      "f0_5": 0.3448275862068965,
+      "precision": 0.3333333333333333,
+      "recall": 0.4,
+      "latency_ms": 3147.162458000821,
+      "prompt_tokens": 113,
+      "completion_tokens": 33
+    },
+    {
+      "id": 982,
+      "source": "The lost of interpersonal skills results in the inability for people to well present their ideas.",
+      "hypothesis": "The lack of interpersonal skills results in the inability for people to present their ideas well.",
+      "references": [
+        "The loss of interpersonal skills results in the inability of people to present their ideas well."
+      ],
+      "gleu": 0.5371909340659341,
+      "semantic_similarity": 0.9454818964004517,
+      "f0_5": 0.625,
+      "precision": 0.6666666666666666,
+      "recall": 0.5,
+      "latency_ms": 3930.806250005844,
+      "prompt_tokens": 101,
+      "completion_tokens": 21
+    },
+    {
+      "id": 987,
+      "source": "Some of the famous examples would be social media sites like Twitter and Facebook.",
+      "hypothesis": "Some of the famous examples are social media sites such as Twitter and Facebook.",
+      "references": [
+        "Some of the famous examples would be social media sites like Twitter and Facebook."
+      ],
+      "gleu": 0.4998959373959374,
+      "semantic_similarity": 0.98188716173172,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 1828.7465410103323,
+      "prompt_tokens": 99,
+      "completion_tokens": 19
+    },
+    {
+      "id": 1016,
+      "source": "Since some of the information has already been revealed on the home page, it is also easier to find some common topics to talk about.",
+      "hypothesis": "Since some of the information has already been revealed on the home page, it is also easier to find some common topics to talk about.",
+      "references": [
+        "Since some of the information has already been revealed on the home page, it is also easier to find some common topics to talk about."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2719.8322909971466,
+      "prompt_tokens": 110,
+      "completion_tokens": 30
+    },
+    {
+      "id": 1018,
+      "source": "This has been indicated in a report done by Boston University in 2012, 80 % of information posted online is true while a person may like 3 out of 10 times in real life.",
+      "hypothesis": "This was indicated in a report by Boston University in 2012; 80% of information posted online is true, whereas a person may lie 3 out of 10 times in real life.",
+      "references": [
+        "This has been indicated in a report done by Boston University in 2012: 80 % of information posted online is true while a person may lie 3 out of 10 times in real life.",
+        "It has been indicated in a report done by Boston University in 2012, that 80 % of information posted online is true, while a person may lie 3 out of 10 times in real life."
+      ],
+      "gleu": 0.6651186503522432,
+      "semantic_similarity": 0.9934618473052979,
+      "f0_5": 0.3125,
+      "precision": 0.2857142857142857,
+      "recall": 0.5,
+      "latency_ms": 3217.483332991833,
+      "prompt_tokens": 119,
+      "completion_tokens": 36
+    },
+    {
+      "id": 1022,
+      "source": "Another advantage of social media is in aiding the spread of democracy.",
+      "hypothesis": "Another advantage of social media is that it aids the spread of democracy.",
+      "references": [
+        "Another advantage of social media is in aiding the spread of democracy."
+      ],
+      "gleu": 0.5953379953379954,
+      "semantic_similarity": 0.9608886241912842,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 4034.9400830018567,
+      "prompt_tokens": 97,
+      "completion_tokens": 18
+    },
+    {
+      "id": 1028,
+      "source": "These social media may be tools of their campaign and manipulating the thoughts of the public.",
+      "hypothesis": "These social media platforms may be tools of their campaign, manipulating the thoughts of the public.",
+      "references": [
+        "these social media may be tools of their campaign and manipulate the thoughts of the public.",
+        "These social media may be tools of their campaign and manipulating the thoughts of the public."
+      ],
+      "gleu": 0.6410943223443223,
+      "semantic_similarity": 0.9392293095588684,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 744.5288750022883,
+      "prompt_tokens": 101,
+      "completion_tokens": 21
+    },
+    {
+      "id": 1029,
+      "source": "For example, in 2012 general election is Singapore, Dr Tan Chee Keong made use of facebook to spread his campaign videos to the public.",
+      "hypothesis": "For example, in the 2012 general election in Singapore, Dr. Tan Chee\u202fKeong made use of Facebook to spread his campaign videos to the public.",
+      "references": [
+        "For example, in the 2012 general election in Singapore, Dr Tan Chee Keong made use of facebook to spread his campaign videos to the public.",
+        "For example, in the 2012 general election in Singapore, Dr Tan Chee Keong made use of Facebook to spread his campaign videos to the public."
+      ],
+      "gleu": 0.8911034255599473,
+      "semantic_similarity": 0.9983265995979309,
+      "f0_5": 0.7894736842105263,
+      "precision": 0.75,
+      "recall": 1.0,
+      "latency_ms": 4054.2641670035664,
+      "prompt_tokens": 109,
+      "completion_tokens": 30
+    },
+    {
+      "id": 1044,
+      "source": "Through those sites we are able to talk to them, to know what their activities are and who their friends are, etc. From the surface point of view it is no doubt that these sites help us to have a better relationship with our relatives despite of the distance.",
+      "hypothesis": "Through those sites we are able to talk to them, to know what their activities are and who their friends are, etc. From the surface point of view, there is no doubt that these sites help us have a better relationship with our relatives despite the distance.",
+      "references": [
+        "Through these sites we are able to talk to them, to know what their activities are and who their friends are, etc. From a superficial point of view, it is no doubt that these sites help us to have a better relationship with our relatives despite the distance.",
+        "Through those sites, we are able to talk to them, to know what their activities are and who their friends are, etc. On the face of it, there is no doubt that these sites help us to have a better relationship with our relatives despite the distance."
+      ],
+      "gleu": 0.6840329754529569,
+      "semantic_similarity": 0.9925410151481628,
+      "f0_5": 0.47619047619047616,
+      "precision": 0.5,
+      "recall": 0.4,
+      "latency_ms": 2957.56245800294,
+      "prompt_tokens": 134,
+      "completion_tokens": 52
+    },
+    {
+      "id": 1045,
+      "source": "The sharing of information can be done faster through social media as well, that is why nowadays many news publishers make their own social media account, for example Channel News Asia has a twitter account and will update its follower with headline news.",
+      "hypothesis": "The sharing of information can be done faster through social media as well; that is why nowadays many news publishers create their own social media accounts. For example, Channel News Asia has a Twitter account and will update its followers with headline news.",
+      "references": [
+        "The sharing of information can occur faster through social media as well. That is why nowadays many news publishers make their own social media account; for example Channel News Asia has a twitter account and will update its followers with headline news.",
+        "The sharing of information can be done faster through social media as well. That is why, nowadays, many news publishers set up their own social media account. For example, Channel News Asia has a Twitter account and will update its followers with headline news."
+      ],
+      "gleu": 0.635682548685952,
+      "semantic_similarity": 0.9930700659751892,
+      "f0_5": 0.5263157894736841,
+      "precision": 0.5714285714285714,
+      "recall": 0.4,
+      "latency_ms": 4062.8216250042897,
+      "prompt_tokens": 128,
+      "completion_tokens": 48
+    },
+    {
+      "id": 1051,
+      "source": "I do think there is difference in it and I believe many of us will agree.",
+      "hypothesis": "I do think there is a difference in it, and I believe many of us will agree.",
+      "references": [
+        "I do think there is a difference in it and I believe many of us will agree.",
+        "I do think there is a difference and I believe many of us will agree."
+      ],
+      "gleu": 0.8326155462184874,
+      "semantic_similarity": 0.9967963695526123,
+      "f0_5": 0.5555555555555556,
+      "precision": 0.5,
+      "recall": 1.0,
+      "latency_ms": 2802.8614159993595,
+      "prompt_tokens": 101,
+      "completion_tokens": 22
+    },
+    {
+      "id": 1063,
+      "source": "Social media sites like Twitter and Facebook are popular among people in order for them to connect to others even from different countries.",
+      "hypothesis": "Social media sites like Twitter and Facebook are popular among people so that they can connect with others, even from different countries.",
+      "references": [
+        "Social media sites like Twitter and Facebook are popular among people in order for them to connect to others even from different countries.",
+        "Social media sites like Twitter and Facebook are popular among people for connecting to others even from different countries."
+      ],
+      "gleu": 0.5925011392116656,
+      "semantic_similarity": 0.9820946455001831,
+      "f0_5": 0.18518518518518515,
+      "precision": 0.16666666666666666,
+      "recall": 0.3333333333333333,
+      "latency_ms": 2333.871666996856,
+      "prompt_tokens": 108,
+      "completion_tokens": 27
+    },
+    {
+      "id": 1109,
+      "source": "In real life, establishing friendship requires the all-rounded understanding in one another and the caring for one another.",
+      "hypothesis": "In real life, establishing friendship requires an all\u2011rounded understanding of one another and caring for one another.",
+      "references": [
+        "In real life, establishing friendships requires the all-rounded understanding of one another and caring for one another.",
+        "In real life, establishing a friendship requires the all-round understanding of one another and caring for one another."
+      ],
+      "gleu": 0.5984156162464986,
+      "semantic_similarity": 0.9790321588516235,
+      "f0_5": 0.5263157894736842,
+      "precision": 0.5,
+      "recall": 0.6666666666666666,
+      "latency_ms": 2866.0613329993794,
+      "prompt_tokens": 103,
+      "completion_tokens": 22
+    },
+    {
+      "id": 1122,
+      "source": "Social network plays a role in providing and also filtering information.",
+      "hypothesis": "Social networks play a role in providing and also filtering information.",
+      "references": [
+        "Social network plays a role in providing and also filtering information.",
+        "Social networks play a role in providing and also filtering information."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2973.798874998465,
+      "prompt_tokens": 96,
+      "completion_tokens": 16
+    },
+    {
+      "id": 1132,
+      "source": "It is just different.",
+      "hypothesis": "It is just different.",
+      "references": [
+        "It is just different."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 1740.4813339962857,
+      "prompt_tokens": 89,
+      "completion_tokens": 9
+    },
+    {
+      "id": 1136,
+      "source": "It is true that social media makes people be able to connect one another more conveniently.",
+      "hypothesis": "It is true that social media makes it possible for people to connect with one another more conveniently.",
+      "references": [
+        "It is true that social media allows people to connect to one another more conveniently.",
+        "It is true that social media make people able to connect with one another more conveniently."
+      ],
+      "gleu": 0.5526143790849674,
+      "semantic_similarity": 0.9879741072654724,
+      "f0_5": 0.3333333333333333,
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "latency_ms": 2967.890374988201,
+      "prompt_tokens": 101,
+      "completion_tokens": 23
+    },
+    {
+      "id": 1140,
+      "source": "Therefore, there is need to discuss the advantages and disadvantages of social media.",
+      "hypothesis": "Therefore, there is a need to discuss the advantages and disadvantages of social media.",
+      "references": [
+        "Therefore, there is need to discuss the advantages and disadvantages of social media.",
+        "Therefore, there is a need to discuss the advantages and disadvantages of social media."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2770.8937499992317,
+      "prompt_tokens": 98,
+      "completion_tokens": 19
+    },
+    {
+      "id": 1151,
+      "source": "People indeed go to great length to make their words as shorter as they can.",
+      "hypothesis": "People indeed go to great lengths to make their words as short as they can.",
+      "references": [
+        "People indeed go to great length to make their words as shorter as they can.",
+        "Indeed, people go to great lengths to make their words as short as they can."
+      ],
+      "gleu": 0.7016483516483516,
+      "semantic_similarity": 0.9884717464447021,
+      "f0_5": 0.8333333333333334,
+      "precision": 1.0,
+      "recall": 0.5,
+      "latency_ms": 2763.1855409999844,
+      "prompt_tokens": 100,
+      "completion_tokens": 20
+    },
+    {
+      "id": 1156,
+      "source": "Updated news people care about can be easily obtained when you refresh your social media sites on your smart phones and laptops almost every time at any time.",
+      "hypothesis": "Updated news people care about can be easily obtained when you refresh your social media sites on your smartphones and laptops almost any time.",
+      "references": [
+        "Updated news people care about can be easily obtained when you refresh your social media sites on your smart phones and laptops at any time.",
+        "Up-to-date news people care about can be easily obtained when you refresh your social media sites on your smartphones and laptops, almost every time at any time."
+      ],
+      "gleu": 0.7634281479390175,
+      "semantic_similarity": 0.9919360280036926,
+      "f0_5": 0.45454545454545453,
+      "precision": 0.5,
+      "recall": 0.3333333333333333,
+      "latency_ms": 3089.081209007418,
+      "prompt_tokens": 113,
+      "completion_tokens": 29
+    },
+    {
+      "id": 1162,
+      "source": "No pledge of authenticity risks people's information and privacy that are shared on social media sites.",
+      "hypothesis": "Without a pledge of authenticity, people's information and privacy shared on social media sites are at risk.",
+      "references": [
+        "No pledge of authenticity protects people's information and privacy shared on social media sites.",
+        "The fact that there is no guarantee of authenticity risks people's information that is shared on social media sites."
+      ],
+      "gleu": 0.44663865546218484,
+      "semantic_similarity": 0.8113017678260803,
+      "f0_5": 0.1923076923076923,
+      "precision": 0.16666666666666666,
+      "recall": 0.5,
+      "latency_ms": 2995.9531250060536,
+      "prompt_tokens": 101,
+      "completion_tokens": 22
+    },
+    {
+      "id": 1206,
+      "source": "Moreover, people can be aware of what is going on in social situation and see the comments online and share their opinions on these websites.",
+      "hypothesis": "Moreover, people can be aware of what is going on in social situations, see the comments online, and share their opinions on these websites.",
+      "references": [
+        "Moreover, people can be aware of what is going on in society and see the comments online and share their opinions on these websites.",
+        "Moreover, people can be aware of what is going on in social situations and see the comments online and share their opinions on these websites."
+      ],
+      "gleu": 0.772268492377188,
+      "semantic_similarity": 0.9899559020996094,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 2913.4290830115788,
+      "prompt_tokens": 110,
+      "completion_tokens": 29
+    },
+    {
+      "id": 1209,
+      "source": "It will make people spend more time on chatting on the internet rather than communicate face to face such that the interpersonal skill will be badly affected.",
+      "hypothesis": "It will cause people to spend more time chatting on the internet rather than communicating face to face, which will badly affect interpersonal skills.",
+      "references": [
+        "They make people spend more time chatting on the internet rather than communicating face to face such that interpersonal skills are badly affected.",
+        "They will make people spend more time on chatting on the internet rather than communicating face to face, such that interpersonal skills will be badly affected."
+      ],
+      "gleu": 0.471385046113307,
+      "semantic_similarity": 0.9230234622955322,
+      "f0_5": 0.24390243902439024,
+      "precision": 0.2222222222222222,
+      "recall": 0.4,
+      "latency_ms": 2980.2063329989323,
+      "prompt_tokens": 112,
+      "completion_tokens": 29
+    },
+    {
+      "id": 1215,
+      "source": "They may feel uncomfortable when they communicate with people face to face.",
+      "hypothesis": "They may feel uncomfortable when they communicate with people face to face.",
+      "references": [
+        "They may feel uncomfortable when they communicate with people face to face."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2880.892750006751,
+      "prompt_tokens": 97,
+      "completion_tokens": 17
+    },
+    {
+      "id": 1218,
+      "source": "Some may even do something wrong.",
+      "hypothesis": "Some may even do something wrong.",
+      "references": [
+        "Some may even do something wrong."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2660.849040999892,
+      "prompt_tokens": 91,
+      "completion_tokens": 11
+    },
+    {
+      "id": 1219,
+      "source": "In conclusion, the showing up of social media sites is a double edged sword.",
+      "hypothesis": "In conclusion, the showing up of social media sites is a double\u2011edged sword.",
+      "references": [
+        "In conclusion, the showing up of social media sites is a double edged sword.",
+        "In conclusion, the appearance of social media sites is a double-edged sword."
+      ],
+      "gleu": 0.8436480186480186,
+      "semantic_similarity": 0.9955023527145386,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 2970.673290998093,
+      "prompt_tokens": 99,
+      "completion_tokens": 18
+    },
+    {
+      "id": 1220,
+      "source": "It can make our life simpler.",
+      "hypothesis": "It can make our lives simpler.",
+      "references": [
+        "It can make our life simpler."
+      ],
+      "gleu": 0.5666666666666667,
+      "semantic_similarity": 0.9894372820854187,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 2773.247208009707,
+      "prompt_tokens": 91,
+      "completion_tokens": 11
+    },
+    {
+      "id": 1225,
+      "source": "And try to bypass the shortcomings.",
+      "hypothesis": "And try to bypass the shortcomings.",
+      "references": [
+        "and try to bypass the shortcomings.",
+        "And try to bypass the shortcomings."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2995.191624999279,
+      "prompt_tokens": 91,
+      "completion_tokens": 11
+    },
+    {
+      "id": 1226,
+      "source": "Remember to send greetings to our friends and family frequently.",
+      "hypothesis": "Remember to send greetings to our friends and family frequently.",
+      "references": [
+        "We should remember that it is important to send greetings to our friends and family frequently.",
+        "And remember to send greetings to our friends and family frequently."
+      ],
+      "gleu": 0.7605158730158731,
+      "semantic_similarity": 0.9378566741943359,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 2664.429167009075,
+      "prompt_tokens": 95,
+      "completion_tokens": 15
+    },
+    {
+      "id": 1232,
+      "source": "There are two advantages and two disadvantages of using the social media in people's daily life.",
+      "hypothesis": "There are two advantages and two disadvantages of using social media in people's daily lives.",
+      "references": [
+        "There are two advantages and two disadvantages of using social media in people's daily lives.",
+        "There are two advantages and two disadvantages of using social media in daily life."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2831.6665419988567,
+      "prompt_tokens": 101,
+      "completion_tokens": 20
+    },
+    {
+      "id": 1233,
+      "source": "Firstly, the social media sites can connect people with their friends and parents closely.",
+      "hypothesis": "Firstly, social media sites can connect people closely with their friends and parents.",
+      "references": [
+        "Firstly, the social media sites can connect people with their friends and parents closely.",
+        "Firstly, the social media sites can closely connect people with their friends and parents."
+      ],
+      "gleu": 0.6145687645687645,
+      "semantic_similarity": 0.9936791062355042,
+      "f0_5": 0.3571428571428571,
+      "precision": 0.3333333333333333,
+      "recall": 0.5,
+      "latency_ms": 2814.6492910018424,
+      "prompt_tokens": 99,
+      "completion_tokens": 18
+    },
+    {
+      "id": 1245,
+      "source": "People even prefer talk to their friends and meet their friends online and gradually reject face-to-face communication.",
+      "hypothesis": "People even prefer to talk to their friends and meet their friends online, gradually rejecting face-to-face communication.",
+      "references": [
+        "People even prefer to talk to their friends and meet their friends online and gradually reject face-to-face communication.",
+        "People even prefer talking to their friends and meeting their friends online and gradually reject face-to-face communication."
+      ],
+      "gleu": 0.73546918767507,
+      "semantic_similarity": 0.9789953827857971,
+      "f0_5": 0.29411764705882354,
+      "precision": 0.25,
+      "recall": 1.0,
+      "latency_ms": 2789.2417080001906,
+      "prompt_tokens": 102,
+      "completion_tokens": 22
+    },
+    {
+      "id": 1259,
+      "source": "Then, we need to talk about the advantages and disadvantages of using social media in your daily life and society.",
+      "hypothesis": "Then we need to talk about the advantages and disadvantages of using social media in your daily life and society.",
+      "references": [
+        "Thus,, It is importnat to examine the advantages and disadvantages of using social media in daily life and society.",
+        "Therefore, we need to talk about the advantages and disadvantages of using social media in our daily life and society."
+      ],
+      "gleu": 0.6671353629170966,
+      "semantic_similarity": 0.9572988748550415,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 2759.5839580026222,
+      "prompt_tokens": 105,
+      "completion_tokens": 25
+    },
+    {
+      "id": 1262,
+      "source": "In old days, if one wants to tell some important news to another one, which lives far away, he needs to write letters and it wastes time.",
+      "hypothesis": "In the old days, if one wanted to tell some important news to another person who lived far away, he needed to write letters, and it wasted time.",
+      "references": [
+        "In the old days, if one wanted to give some important news to someone, who lived far away, it was necessary to write letters and it took time.",
+        "In the old days, if one wanted to tell some important news to someone who lives far away, one needed to write letters and that wastes time."
+      ],
+      "gleu": 0.457979242979243,
+      "semantic_similarity": 0.9517328143119812,
+      "f0_5": 0.5128205128205128,
+      "precision": 0.5,
+      "recall": 0.5714285714285714,
+      "latency_ms": 2835.597792000044,
+      "prompt_tokens": 112,
+      "completion_tokens": 33
+    },
+    {
+      "id": 1269,
+      "source": "And the information collected may not be intact and true.",
+      "hypothesis": "And the information collected may not be intact or true.",
+      "references": [
+        "And the information collected may not be intact and true.",
+        "And the information collected might not be complete and true."
+      ],
+      "gleu": 0.7855158730158731,
+      "semantic_similarity": 0.9972931742668152,
+      "f0_5": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "latency_ms": 2925.287540987483,
+      "prompt_tokens": 95,
+      "completion_tokens": 15
+    },
+    {
+      "id": 1278,
+      "source": "However, some people worry that social network can affect interpersonal skills as it reduces face-to-face human contact.",
+      "hypothesis": "However, some people worry that social networks can affect interpersonal skills, as they reduce face-to-face human contact.",
+      "references": [
+        "However, some people worry that social networks can affect interpersonal skills as they reduce face-to-face human contact.",
+        "However, some people worry that social networking can affect interpersonal skills as it reduces face-to-face human contact."
+      ],
+      "gleu": 0.8326155462184874,
+      "semantic_similarity": 0.9988225698471069,
+      "f0_5": 0.7894736842105263,
+      "precision": 0.75,
+      "recall": 1.0,
+      "latency_ms": 3090.1732920028735,
+      "prompt_tokens": 102,
+      "completion_tokens": 22
+    },
+    {
+      "id": 1289,
+      "source": "A lot of fresh graduates can find jobs thanks to Facebook and Twitter.",
+      "hypothesis": "A lot of fresh graduates can find jobs thanks to Facebook and Twitter.",
+      "references": [
+        "A lot of fresh graduates can find jobs thanks to Facebook and Twitter."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2765.9037909907056,
+      "prompt_tokens": 98,
+      "completion_tokens": 18
+    },
+    {
+      "id": 1292,
+      "source": "On the other hand, social media also has disadvantages which have created worries to the society recently and made it a controversial phenomenon.",
+      "hypothesis": "On the other hand, social media also has disadvantages, which have recently created worries for society and made it a controversial phenomenon.",
+      "references": [
+        "On the other hand, social media also has disadvantages which have created worries for society recently and made it a controversial phenomenon.",
+        "On the other hand, social media also have disadvantages which have created worries for society recently and made it a controversial phenomenon."
+      ],
+      "gleu": 0.6975336067441331,
+      "semantic_similarity": 0.9966217279434204,
+      "f0_5": 0.45454545454545453,
+      "precision": 0.4,
+      "recall": 1.0,
+      "latency_ms": 2799.71312500129,
+      "prompt_tokens": 108,
+      "completion_tokens": 27
+    },
+    {
+      "id": 1303,
+      "source": "A lot of people use their true information on social media sites, which can lead to crimes and deception.",
+      "hypothesis": "A lot of people use their true information on social media sites, which can lead to crimes and deception.",
+      "references": [
+        "A lot of people use their true information on social media sites, which can lead to crimes and deception."
+      ],
+      "gleu": 1.0,
+      "semantic_similarity": 1.0,
+      "f0_5": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "latency_ms": 2937.3495830077445,
+      "prompt_tokens": 104,
+      "completion_tokens": 24
+    }
+  ]
+}
