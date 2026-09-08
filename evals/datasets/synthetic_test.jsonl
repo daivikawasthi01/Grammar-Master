@@ -1,0 +1,10 @@
+{"id": "syn-1", "source": "Their is no reason why you shouldn't come to the party.", "references": ["There is no reason why you shouldn't come to the party."], "category": "confusable"}
+{"id": "syn-2", "source": "Your welcome to visit our office anytime.", "references": ["You're welcome to visit our office anytime."], "category": "confusable"}
+{"id": "syn-3", "source": "The bridge was built by engineers in 1924.", "references": ["The bridge was built by engineers in 1924."], "category": "passive_acceptable"}
+{"id": "syn-4", "source": "I am writing this letter in order to clarify the policy.", "references": ["I am writing this letter to clarify the policy."], "category": "conciseness"}
+{"id": "syn-5", "source": "He did not recieve the package due to the fact that he moved.", "references": ["He did not receive the package because he moved."], "category": "spelling_and_clarity"}
+{"id": "syn-6", "source": "We need to make a decision at this point in time.", "references": ["We need to decide now."], "category": "conciseness"}
+{"id": "syn-7", "source": "The results definately demonstrates a improvement.", "references": ["The results definitely demonstrate an improvement."], "category": "spelling_agreement_article"}
+{"id": "syn-8", "source": "Neither the teacher nor the students was in the classroom.", "references": ["Neither the teacher nor the students were in the classroom."], "category": "subject_verb_agreement"}
+{"id": "syn-9", "source": "Its a very unique opportunity that will effect everyone.", "references": ["It's a unique opportunity that will affect everyone."], "category": "confusable_and_engagement"}
+{"id": "syn-10", "source": "She bought apples , oranges , and bananas .", "references": ["She bought apples, oranges, and bananas."], "category": "punctuation_spacing"}

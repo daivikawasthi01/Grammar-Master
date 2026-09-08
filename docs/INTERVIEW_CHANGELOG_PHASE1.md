@@ -4,24 +4,41 @@ This document records the 5 critical architectural, security, and algorithmic fl
 
 ---
 
-## 1. Invalid Groq Model IDs Across All AI Routes
+## 1. Centralized Groq Model Configuration & Verification
 
-### Root Cause
-All 7 AI endpoints (`grammar-check`, `text-check`, `tone-check`, `text-translate`, `synonyms-check`, `ai-text-modify`, `analyze-document`) hardcoded the model ID:
+### Initial Diagnosis & Root Cause
+All 7 AI endpoints (`grammar-check`, `text-check`, `tone-check`, `text-translate`, `synonyms-check`, `ai-text-modify`, `analyze-document`) hardcoded disparate string literals across different routes:
 ```typescript
 model: "openai/gpt-oss-120b"
 ```
-Groq has never hosted `openai/gpt-oss-120b`. Every single API invocation triggered an immediate 400/404 error from the Groq SDK, which was either swallowed in catch blocks (e.g. falling back to simple regex matching in `analyze-document`) or returned unmodified strings to the client. The core LLM feature was effectively dead on arrival.
+Because this model ID resembled an OpenAI model rather than standard Groq LLaMA models, it was initially suspected during Phase 1 code review to be an invalid/fictitious model ID causing route failures. 
+
+### Phase 2 Empirical Discovery & Addendum
+During Phase 2 evaluation benchmarking, rather than assuming standard catalog defaults, we queried the live Groq API key directly via `client.models.list()`. 
+
+The live API returned:
+```json
+[
+  "openai/gpt-oss-120b",
+  "openai/gpt-oss-20b",
+  "qwen/qwen3.6-27b",
+  "qwen/qwen3.8-27b",
+  "canopylabs/orpheus-v1-english"
+]
+```
+Querying standard catalog models like `llama-3.3-70b-versatile` actually returned `404: model not found` on this specific Groq environment. In reality, Groq hosts open-weight OSS architectures (`openai/gpt-oss-120b` for 120B reasoning and `openai/gpt-oss-20b` for 20B fast inference) for this tier. 
+
+The true architectural flaw was **string fragmentation across routes without validation or fallback**, meaning any future model migration or deprecation would require touching 7 separate route files with no type safety.
 
 ### Engineering Fix
-- Created `src/lib/ai-config.ts` defining a single source of truth for model configurations:
-  - `GROQ_MODELS.PRIMARY = "llama-3.3-70b-versatile"` for nuanced reasoning, grammar correction, and tone adjustment.
-  - `GROQ_MODELS.FAST = "llama-3.1-8b-instant"` for ultra-low latency completions like synonyms.
-- Implemented `getGroqClient()` with proper API key validation.
-- Replaced hardcoded strings across all 7 routes with the typed centralized configuration.
+- Created `src/config/ai-models.json` as a single, language-agnostic source of truth:
+  - `"PRIMARY": "openai/gpt-oss-120b"`: Configured for primary grammar correction and tone adjustment routes.
+  - `"FAST": "openai/gpt-oss-20b"`: Configured for lightweight completions like synonym lookups and triage.
+- Bound this into `src/lib/ai-config.ts` (`GROQ_MODELS`) with typed exports and a shared singleton `getGroqClient()` with proper API key validation.
+- Replaced hardcoded strings across all routes with typed configuration imports, ensuring both the TypeScript Next.js application and the Python evaluation harness (`evals/run_eval.py`) consume the exact same verified models.
 
 ### Interview Talking Point
-> *"When auditing the inference layer, I found that all AI routes were querying a non-existent Groq model (`openai/gpt-oss-120b`), causing silent fallback to trivial regex rules. I centralized model configuration behind a typed config module (`ai-config.ts`), routing complex reasoning tasks to `llama-3.3-70b-versatile` and low-latency triage to `llama-3.1-8b-instant`, with automated error boundaries."*
+> *"I initially suspected `openai/gpt-oss-120b` was an invalid model ID. But during Phase 2, rather than guessing, I queried the live Groq endpoint via `client.models.list()`, discovering that this account specifically provisioned `openai/gpt-oss-120b` and `openai/gpt-oss-20b`, while standard catalog IDs returned 404. I extracted the model mapping into a version-controlled `src/config/ai-models.json` file shared between our Next.js backend and our Python evaluation harness, eliminating cross-language drift and string fragmentation across route handlers."*
 
 ---
 
