@@ -1,13 +1,4 @@
-import mongoose, { Schema, Document, models } from 'mongoose';
+import User from '@/app/db/schema';
 
-export interface IUser extends Document {
-  email: string;
-  password: string;
-}
-
-const UserSchema: Schema = new Schema<IUser>({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-});
-
-export default models.User || mongoose.model<IUser>('User', UserSchema);
+// Re-export canonical User model to eliminate schema collision across mongoose.models.User
+export default User;

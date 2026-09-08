@@ -4,24 +4,33 @@ import { NextResponse } from "next/server";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
 import mongoose from "mongoose";
+import { requireAuthOrDemo } from "@/lib/api-auth";
 
 interface RequestBodyType {
-  _id: string;
+  _id?: string;
   documentId: string;
 }
 
 export async function POST(req: Request) {
   try {
-    const { _id, documentId }: RequestBodyType = await req.json();
+    const { _id, documentId }: RequestBodyType = await req.json().catch(() => ({}));
 
     if (!documentId) {
       return NextResponse.json({ error: "Missing documentId" }, { status: 400 });
     }
 
-    // Demo or temporary fallback document IDs
+    const authCheck = await requireAuthOrDemo(req, _id);
+    if ("response" in authCheck) {
+      return authCheck.response;
+    }
+
+    const { user: authUser, isDemo } = authCheck.auth;
+    const userId = authUser.id;
+
     if (
-      _id === "demo123" ||
-      !mongoose.Types.ObjectId.isValid(_id) ||
+      isDemo ||
+      userId === "demo123" ||
+      !mongoose.Types.ObjectId.isValid(userId) ||
       !mongoose.Types.ObjectId.isValid(documentId)
     ) {
       return NextResponse.json({ status: "deleted" });
@@ -30,7 +39,7 @@ export async function POST(req: Request) {
     await dbConnect();
 
     const user = await User.findOne(
-      { _id, "documents._id": documentId },
+      { _id: userId, "documents._id": documentId },
       { "documents.$": 1 }
     );
 
@@ -39,7 +48,7 @@ export async function POST(req: Request) {
 
       // Move to trashs
       await User.findOneAndUpdate(
-        { _id },
+        { _id: userId },
         {
           $pull: { documents: { _id: documentId } },
           $push: {
@@ -56,7 +65,7 @@ export async function POST(req: Request) {
     } else {
       // Pull document anyway if it exists
       await User.findOneAndUpdate(
-        { _id },
+        { _id: userId },
         { $pull: { documents: { _id: documentId } } }
       );
     }
@@ -64,6 +73,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: "deleted" });
   } catch (error) {
     console.error("Delete document error:", error);
-    return NextResponse.json({ status: "deleted" }); // Resilient fallback
+    return NextResponse.json({ status: "deleted" });
   }
 }

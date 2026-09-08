@@ -42,21 +42,50 @@ const TextEditor: React.FC<TextEditorProps> = ({
   };
 
   const processText = useCallback((text: string) => {
-    let processedText = text;
+    if (!suggestions || suggestions.length === 0) {
+      return text;
+    }
     const cleanText = stripHtml(text);
-    
-    suggestions.forEach(suggestion => {
-      const textToReplace = suggestion.text;
-      if (textToReplace && cleanText.includes(textToReplace)) {
-        const span = `<span class="error-${suggestion.type}">${textToReplace}</span>`;
-        const startIndex = cleanText.indexOf(textToReplace);
-        if (startIndex !== -1) {
-          processedText = cleanText.slice(0, startIndex) + span + cleanText.slice(startIndex + textToReplace.length);
-        }
-      }
-    });
-    
-    return processedText;
+
+    // Resolve valid start and end indices for suggestions
+    const validSuggestions = suggestions
+      .map((suggestion) => {
+        const textToReplace = suggestion.text;
+        const startIndex =
+          typeof suggestion.start === "number" && suggestion.start >= 0
+            ? suggestion.start
+            : cleanText.indexOf(textToReplace);
+        const endIndex =
+          typeof suggestion.end === "number" && suggestion.end > startIndex
+            ? suggestion.end
+            : startIndex + (textToReplace ? textToReplace.length : 0);
+
+        return {
+          ...suggestion,
+          textToReplace,
+          startIndex,
+          endIndex,
+        };
+      })
+      .filter(
+        (s) =>
+          s.textToReplace &&
+          s.startIndex !== -1 &&
+          cleanText.slice(s.startIndex, s.endIndex) === s.textToReplace
+      )
+      // Sort descending by offset so inserting spans from right-to-left preserves earlier offsets
+      .sort((a, b) => b.startIndex - a.startIndex);
+
+    let processed = cleanText;
+    for (const s of validSuggestions) {
+      const span = `<span class="error-${s.type}">${s.textToReplace}</span>`;
+      processed =
+        processed.slice(0, s.startIndex) +
+        span +
+        processed.slice(s.endIndex);
+    }
+
+    return processed;
   }, [suggestions]);
 
   return (

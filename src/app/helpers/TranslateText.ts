@@ -26,13 +26,7 @@ export const HandleTranslateText = async (
             console.error('Translation error:', data.error);
             setTranslateText(undefined);
         } else if (data.success?.text) {
-            const translatedNodes = Array.from(tempDiv.childNodes).map(node => {
-                if (node.nodeType === Node.TEXT_NODE) {
-                    return data.success.text;
-                }
-                return (node as Element).outerHTML || node.textContent || '';
-            });
-            setTranslateText(translatedNodes.join(''));
+            setTranslateText(data.success.text);
         }
     } catch (err) {
         console.error('Translation failed:', err);

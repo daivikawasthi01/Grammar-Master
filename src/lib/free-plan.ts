@@ -106,8 +106,17 @@ export class RedisRateLimiter {
       return;
     }
 
-    const RedisClient = getUpstashRedisClass();
-    this.client = RedisClient ? new RedisClient({ url, token }) : null;
+    try {
+      let formattedUrl = url.trim();
+      if (formattedUrl && !formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
+        formattedUrl = `https://${formattedUrl}`;
+      }
+      new URL(formattedUrl);
+      const RedisClient = getUpstashRedisClass();
+      this.client = RedisClient ? new RedisClient({ url: formattedUrl, token }) : null;
+    } catch {
+      this.client = null;
+    }
   }
 
   async check(key: string): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
@@ -119,22 +128,26 @@ export class RedisRateLimiter {
     const bucket = `ratelimit:${key}`;
     const windowSeconds = Math.ceil(this.windowMs / 1000);
 
-    const current = await this.client.incr(bucket);
-    const ttl = await this.client.ttl(bucket);
+    try {
+      const current = await this.client.incr(bucket);
+      const ttl = await this.client.ttl(bucket);
 
-    if (ttl === -1 || ttl === -2) {
-      await this.client.expire(bucket, windowSeconds);
+      if (ttl === -1 || ttl === -2) {
+        await this.client.expire(bucket, windowSeconds);
+      }
+
+      const allowed = Number(current) <= this.limit;
+      const remaining = Math.max(0, this.limit - Number(current));
+      const resetAt = now + this.windowMs;
+
+      return {
+        allowed,
+        remaining,
+        resetAt,
+      };
+    } catch {
+      return new InMemoryRateLimiter({ limit: this.limit, windowMs: this.windowMs }).check(key);
     }
-
-    const allowed = Number(current) <= this.limit;
-    const remaining = Math.max(0, this.limit - Number(current));
-    const resetAt = now + this.windowMs;
-
-    return {
-      allowed,
-      remaining,
-      resetAt,
-    };
   }
 }
 
@@ -150,11 +163,15 @@ export async function enforceRateLimit(
 }
 
 export function getRouteLimiter(limit = 20, windowMs = 60_000) {
-  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL ?? process.env.REDIS_URL;
-  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  try {
+    const upstashUrl = process.env.UPSTASH_REDIS_REST_URL ?? process.env.REDIS_URL;
+    const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-  if (upstashUrl && upstashToken) {
-    return new RedisRateLimiter({ limit, windowMs, url: upstashUrl, token: upstashToken });
+    if (upstashUrl && upstashToken) {
+      return new RedisRateLimiter({ limit, windowMs, url: upstashUrl, token: upstashToken });
+    }
+  } catch {
+    // Fall back to in-memory rate limiter if URL or Redis init fails
   }
 
   return new InMemoryRateLimiter({ limit, windowMs });
