@@ -7,7 +7,9 @@ export function middleware(request: NextRequest) {
     // Protect account routes
     if (request.nextUrl.pathname.startsWith('/account')) {
         if (!token) {
-            return NextResponse.redirect(new URL('/login', request.url));
+            const loginUrl = request.nextUrl.clone();
+            loginUrl.pathname = '/login';
+            return NextResponse.redirect(loginUrl);
         }
     }
 
@@ -16,7 +18,9 @@ export function middleware(request: NextRequest) {
         request.nextUrl.pathname === '/login' || 
         request.nextUrl.pathname === '/register'
     )) {
-        return NextResponse.redirect(new URL('/account', request.url));
+        const accountUrl = request.nextUrl.clone();
+        accountUrl.pathname = '/account';
+        return NextResponse.redirect(accountUrl);
     }
 
     return NextResponse.next();

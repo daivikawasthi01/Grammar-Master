@@ -191,7 +191,21 @@ const cleanHtmlTags = (raw: string): string => {
     handledItemsRef.current.add(sug.id);
 
     const cleanText = stripHtml(text);
-    const newText = cleanText.replace(sug.originalText, sug.replacementText);
+    let newText: string;
+    if (
+      typeof sug.startIndex === "number" &&
+      typeof sug.endIndex === "number" &&
+      sug.startIndex >= 0 &&
+      sug.endIndex <= cleanText.length &&
+      cleanText.slice(sug.startIndex, sug.endIndex) === sug.originalText
+    ) {
+      newText =
+        cleanText.slice(0, sug.startIndex) +
+        sug.replacementText +
+        cleanText.slice(sug.endIndex);
+    } else {
+      newText = cleanText.replace(sug.originalText, sug.replacementText);
+    }
     setText(newText);
 
     setSuggestions((prev) => {

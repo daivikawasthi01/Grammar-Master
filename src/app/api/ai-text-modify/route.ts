@@ -4,7 +4,9 @@ import "@/lib/polyfill";
 import { NextResponse } from "next/server";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
-import Groq from "groq-sdk";
+import { GROQ_MODELS, getGroqClient } from "@/lib/ai-config";
+import { requireAuthOrDemo } from "@/lib/api-auth";
+import { normalizePlan, getPromptLimit } from "@/lib/free-plan";
 
 interface TextModifyRequest {
   text: string;
@@ -15,10 +17,37 @@ interface TextModifyRequest {
 
 export async function POST(req: Request) {
   try {
-    const { text, action, customPrompt, _id } = (await req.json()) as TextModifyRequest;
+    const { text, action, customPrompt, _id } = (await req.json().catch(() => ({}))) as TextModifyRequest;
 
     if (!text?.trim() || !action) {
       return NextResponse.json({ error: "Missing required text or action" }, { status: 400 });
+    }
+
+    const authCheck = await requireAuthOrDemo(req, _id);
+    if ("response" in authCheck) {
+      return authCheck.response;
+    }
+
+    const { user: authUser, isDemo } = authCheck.auth;
+    const userId = authUser.id;
+
+    let plan = authUser.plan || "free";
+    let promptsUsed = 0;
+
+    if (!isDemo) {
+      await dbConnect();
+      const dbUser = await User.findById(userId);
+      if (dbUser) {
+        plan = normalizePlan(dbUser.plan);
+        promptsUsed = dbUser.prompts || 0;
+      }
+    }
+
+    const limit = getPromptLimit(normalizePlan(plan));
+    if (promptsUsed >= limit) {
+      return NextResponse.json({
+        error: "You have used your free plan AI prompt limit.",
+      });
     }
 
     let prompt = "";
@@ -59,7 +88,7 @@ export async function POST(req: Request) {
 
     if (process.env.GROQ_API_KEY) {
       try {
-        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+        const groq = getGroqClient();
         const completion = await groq.chat.completions.create({
           messages: [
             {
@@ -69,7 +98,7 @@ export async function POST(req: Request) {
             },
             { role: "user", content: prompt },
           ],
-          model: "openai/gpt-oss-120b",
+          model: GROQ_MODELS.PRIMARY,
           temperature: 0.5,
           max_tokens: 1024,
         });
@@ -87,10 +116,9 @@ export async function POST(req: Request) {
       }
     }
 
-    if (_id && _id !== "demo123") {
+    if (!isDemo) {
       try {
-        await dbConnect();
-        await User.findByIdAndUpdate(_id, { $inc: { prompts: 1 } });
+        await User.findByIdAndUpdate(userId, { $inc: { prompts: 1 } });
       } catch (e) {
         // non-blocking
       }

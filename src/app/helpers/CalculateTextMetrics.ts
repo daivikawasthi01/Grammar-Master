@@ -1,39 +1,23 @@
-interface TextMetrics {
+export interface TextMetrics {
   correctness: number;
   clarity: number;
   engagement: number;
   delivery: number;
 }
 
-// Expanded common words dictionary
-const commonWords = new Set([
-  'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'for',
-  'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at', 'this', 'but', 'his',
-  'by', 'from', 'they', 'we', 'say', 'her', 'she', 'or', 'an', 'will', 'my',
-  'one', 'all', 'would', 'there', 'their', 'what', 'so', 'up', 'out', 'if',
-  'about', 'who', 'get', 'which', 'go', 'me', 'when', 'make', 'can', 'like',
-  'time', 'no', 'just', 'him', 'know', 'take', 'people', 'into', 'year', 'your',
-  'good', 'some', 'could', 'them', 'see', 'other', 'than', 'then', 'now', 'look',
-  'only', 'come', 'its', 'over', 'think', 'also', 'back', 'after', 'use', 'two',
-  'how', 'our', 'work', 'first', 'well', 'way', 'even', 'new', 'want', 'because',
-  'any', 'these', 'give', 'day', 'most', 'us',
-  'is', 'are', 'was', 'were', 'has', 'have', 'had', 'been', 'being',
-  'do', 'does', 'did', 'doing', 'would', 'should', 'could', 'might',
-  'must', 'shall', 'will', 'may', 'can', 'here', 'there', 'where',
-  'why', 'how', 'what', 'who', 'whom', 'whose', 'which', 'when',
-  'am', 'im', "i'm", "isn't", "aren't", "wasn't", "weren't",
-  'very', 'really', 'quite', 'rather', 'too', 'enough', 'such',
-  'both', 'either', 'neither', 'each', 'every', 'any', 'some',
-  'many', 'much', 'more', 'most', 'other', 'another', 'same',
-  // Add common name prefixes/suffixes
-  'mr', 'mrs', 'ms', 'dr', 'prof', 'sr', 'jr', 'ing', 'ed', 'ph',
+// Common misspellings and typos dictionary
+const KNOWN_TYPOS = new Set([
+  'teh', 'definately', 'recieve', 'seperate', 'untill', 'wierd', 'occured',
+  'goverment', 'beleive', 'truely', 'accommodate', 'embarass', 'neccessary',
+  'concious', 'existance', 'maintainance', 'pronounciation', 'tommorow',
+  'irregardless', 'alot', 'untill', 'wich', 'thier'
 ]);
 
-// Common sentence starters for better engagement analysis
-const sentenceStarters = new Set([
-  'firstly', 'secondly', 'finally', 'notably', 'importantly',
-  'interestingly', 'surprisingly', 'consequently', 'additionally',
-  'similarly', 'conversely', 'meanwhile', 'subsequently', 'ultimately'
+// Common irregular past participles for true passive voice detection
+const PASSIVE_PARTICIPLES = new Set([
+  'built', 'done', 'seen', 'written', 'known', 'made', 'found',
+  'taken', 'given', 'chosen', 'driven', 'eaten', 'spoken', 'broken',
+  'brought', 'caught', 'bought', 'taught', 'thought', 'felt', 'left'
 ]);
 
 export const calculateTextMetrics = async (text: string): Promise<TextMetrics> => {
@@ -41,7 +25,7 @@ export const calculateTextMetrics = async (text: string): Promise<TextMetrics> =
     correctness: 0,
     clarity: 0,
     engagement: 0,
-    delivery: 0
+    delivery: 0,
   };
 
   if (!text || text.trim().length === 0) {
@@ -53,170 +37,219 @@ export const calculateTextMetrics = async (text: string): Promise<TextMetrics> =
     return metrics;
   }
 
-  const words = cleanText.split(/\s+/).filter(w => w.length > 0);
-  const sentences = cleanText.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  const words = cleanText.split(/\s+/).filter((w) => w.length > 0);
+  const sentences = cleanText.split(/[.!?]+/).filter((s) => s.trim().length > 0);
 
   if (words.length === 0 || sentences.length === 0) {
     return metrics;
   }
 
   // Calculate scores
-  metrics.correctness = calculateCorrectnessScore(words, sentences);
+  metrics.correctness = calculateCorrectnessScore(words, sentences, cleanText);
   metrics.clarity = calculateClarityScore(cleanText, words, sentences);
   metrics.engagement = calculateEngagementScore(words);
-  metrics.delivery = calculateDeliveryScore(cleanText);
+  metrics.delivery = calculateDeliveryScore(cleanText, words);
 
   return metrics;
 };
 
-// Enhanced scoring functions
-const calculateSpellingScore = (words: string[]): number => {
-  const potentialMisspellings = words.filter(word => {
-    const cleanWord = word.toLowerCase().replace(/[^a-z]/g, '');
-    return cleanWord.length > 0 && 
-           !commonWords.has(cleanWord) && 
-           !commonWords.has(cleanWord + 's') &&
-           !commonWords.has(cleanWord + 'ed') &&
-           !commonWords.has(cleanWord + 'ing');
-  });
+/**
+ * Evaluates spelling based on known high-frequency typos, 
+ * triple-letter repetitions, and impossible consonant clusters.
+ */
+export const calculateSpellingScore = (words: string[]): number => {
+  if (words.length === 0) return 100;
 
-  return Math.max(0, 100 - (potentialMisspellings.length / words.length * 100));
+  let typoCount = 0;
+
+  for (const word of words) {
+    const clean = word.toLowerCase().replace(/[^a-z]/g, '');
+    if (!clean) continue;
+
+    // 1. Check known high-frequency typos
+    if (KNOWN_TYPOS.has(clean)) {
+      typoCount++;
+      continue;
+    }
+
+    // 2. Three or more identical consecutive characters (e.g. "soooo", "pleaaase")
+    if (/([a-z])\1{2,}/.test(clean)) {
+      typoCount++;
+      continue;
+    }
+
+    // 3. 5+ consecutive consonants without a vowel (excluding common onomatopoeia/initialisms)
+    if (/[bcdfghjklmnpqrstvwxyz]{5,}/.test(clean) && clean.length > 5) {
+      typoCount++;
+      continue;
+    }
+  }
+
+  const errorRatio = typoCount / words.length;
+  return Math.max(50, Math.round(100 - errorRatio * 200));
 };
 
-const calculateGrammarScore = (text: string, sentences: string[]): number => {
-  let issues = 0;
-  
-  // Check for common grammar issues
-  const grammarPatterns = [
-    /\s+[.,!?]/, // Space before punctuation
-    /[^\s]\s+[^\s]{1}\s+/, // Isolated single letters
-    /\s+'/,  // Space before apostrophe
-    /\s\s+/, // Multiple spaces
-    /\bi\b(?!['])/i, // Uncapitalized 'I'
-    /\b(am|is|are|was|were)\s+\w+ing\b/i, // Potential passive voice
-    /\b(their|there|they're|your|you're|its|it's|whose|who's)\b/i, // Common confusables
-  ];
+/**
+ * Checks for genuine grammar errors, true passive voice constructions,
+ * and punctuation abnormalities without falsely penalizing continuous tense.
+ */
+export const calculateGrammarScore = (text: string, sentences: string[]): number => {
+  if (sentences.length === 0) return 100;
 
-  issues = grammarPatterns.reduce((count, pattern) => {
-    return count + (text.match(pattern)?.length || 0);
-  }, 0);
+  let issues = 0;
+
+  // 1. Double punctuation or space before punctuation
+  const spaceBeforePunctuation = (text.match(/\s+[.,!?:;]/g) || []).length;
+  const multipleSpaces = (text.match(/[^\S\r\n]{2,}/g) || []).length;
+  const uncapitalizedI = (text.match(/\bi\b(?!['])/g) || []).length;
+
+  // 2. Isolated single letters other than 'a' or 'i' (e.g. "the c dog")
+  const rogueSingleLetters = (text.match(/\s+[b-hj-zB-HJ-Z]\s+/g) || []).length;
+
+  // 3. True passive voice: auxiliary 'be' + regular past participle (-ed/-en) or known irregular
+  const passiveMatches = Array.from(
+    text.matchAll(/\b(am|is|are|was|were|been|being|be)\s+([a-zA-Z]+)\b/gi)
+  );
+  let truePassiveCount = 0;
+  for (const match of passiveMatches) {
+    const verb = match[2].toLowerCase();
+    if (verb.endsWith("ed") || verb.endsWith("en") || PASSIVE_PARTICIPLES.has(verb)) {
+      truePassiveCount++;
+    }
+  }
+
+  // 4. Common confusable collocations (e.g. "their is", "your welcome")
+  const confusableTypos =
+    (text.match(/\btheir\s+(is|are|was|were)\b/gi) || []).length +
+    (text.match(/\byour\s+(welcome|right|wrong)\b/gi) || []).length;
+
+  issues +=
+    spaceBeforePunctuation +
+    multipleSpaces +
+    uncapitalizedI +
+    rogueSingleLetters +
+    truePassiveCount * 0.5 +
+    confusableTypos * 1.5;
 
   // Sentence structure checks
-  sentences.forEach(sentence => {
-    if (sentence.trim().length < 3) issues++;
-    if (sentence.trim().length > 250) issues++;
-    if (!/^[A-Z]/.test(sentence.trim())) issues++;
+  sentences.forEach((sentence) => {
+    const trimmed = sentence.trim();
+    if (trimmed.length > 0 && !/^[A-Z"']/.test(trimmed)) issues += 0.5;
+    if (trimmed.length > 300) issues += 0.5; // Excessively long run-on sentence
   });
 
-  return Math.max(0, 100 - (issues / sentences.length * 25));
+  const penalty = (issues / sentences.length) * 20;
+  return Math.max(50, Math.round(100 - penalty));
 };
 
-const calculatePunctuationScore = (text: string): number => {
+export const calculatePunctuationScore = (text: string): number => {
   const punctuation = [',', ';', ':', '!', '?', '-', '(', '"', '.'];
-  const textLength = text.length;
-  
-  // Check for balanced punctuation
-  const quotes = (text.match(/"/g) || []).length;
-  const parentheses = (text.match(/\(/g) || []).length === (text.match(/\)/g) || []).length;
-  
-  const punctuationCount = punctuation.reduce((count, punct) => {
-    return count + (text.match(new RegExp(`\\${punct}`, 'g'))?.length || 0);
-  }, 0);
+  const textLength = Math.max(1, text.length);
 
-  const balancedScore = (quotes % 2 === 0 && parentheses) ? 100 : 80;
-  const densityScore = Math.min(100, (punctuationCount / (textLength / 100)) * 15);
-  
+  const quotes = (text.match(/"/g) || []).length;
+  const openParens = (text.match(/\(/g) || []).length;
+  const closeParens = (text.match(/\)/g) || []).length;
+  const balanced = quotes % 2 === 0 && openParens === closeParens;
+
+  let punctuationCount = 0;
+  for (const punct of punctuation) {
+    punctuationCount += (text.split(punct).length - 1);
+  }
+
+  const density = (punctuationCount / (textLength / 100));
+  const balancedScore = balanced ? 100 : 85;
+  const densityScore = Math.min(100, Math.max(60, Math.round(70 + density * 5)));
+
   return Math.round((balancedScore + densityScore) / 2);
 };
 
-// Helper functions remain the same
-const analyzeTextComplexity = (text: string): number => {
-  const words = text.split(/\s+/);
-  const complexWords = words.filter(word => 
-    word.length > 6 || 
-    word.match(/ing$|ed$|tion$|ment$|ness$|ity$/)
+export const analyzeTextComplexity = (text: string): number => {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return 0;
+
+  const complexWords = words.filter(
+    (word) =>
+      word.length > 8 ||
+      /(tion|ment|ness|ity|ship|able|ible)$/i.test(word)
   );
   return (complexWords.length / words.length) * 100;
 };
 
-const analyzeSentenceVariety = (sentences: string[]): number => {
-  if (sentences.length < 2) return 50;
+export const analyzeSentenceVariety = (sentences: string[]): number => {
+  if (sentences.length < 2) return 70;
 
-  const lengths = sentences.map(s => s.trim().split(/\s+/).length);
+  const lengths = sentences.map((s) => s.trim().split(/\s+/).filter(Boolean).length);
   const avgLength = lengths.reduce((a, b) => a + b, 0) / lengths.length;
-  const variance = lengths.reduce((a, b) => a + Math.pow(b - avgLength, 2), 0) / lengths.length;
-  return Math.min(100, variance * 5);
+  const variance =
+    lengths.reduce((a, b) => a + Math.pow(b - avgLength, 2), 0) / lengths.length;
+  return Math.min(100, Math.max(50, Math.round(60 + Math.sqrt(variance) * 5)));
 };
 
-const countTransitionWords = (text: string): number => {
+export const countTransitionWords = (text: string): number => {
   const transitionWords = [
     'however', 'therefore', 'furthermore', 'moreover', 'nevertheless',
     'although', 'consequently', 'meanwhile', 'afterward', 'finally',
     'thus', 'hence', 'accordingly', 'subsequently', 'conversely'
   ];
-  
-  const wordCount = text.toLowerCase().split(/\s+/).length;
-  const transitionCount = transitionWords.reduce((count, word) => {
-    const regex = new RegExp(`\\b${word}\\b`, 'gi');
-    return count + (text.match(regex)?.length || 0);
-  }, 0);
 
-  return Math.min(100, (transitionCount / wordCount) * 500);
+  const lower = text.toLowerCase();
+  const words = lower.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return 0;
+
+  let count = 0;
+  for (const word of transitionWords) {
+    count += (lower.split(word).length - 1);
+  }
+
+  return Math.min(100, Math.round((count / words.length) * 400 + 50));
 };
 
-const analyzePunctuationVariety = (text: string): number => {
-  const punctuation = [',', ';', ':', '!', '?', '-', '(', '"'];
-  const textLength = text.length;
-  
-  const punctuationCount = punctuation.reduce((count, punct) => {
-    return count + (text.match(new RegExp(`\\${punct}`, 'g'))?.length || 0);
-  }, 0);
-
-  return Math.min(100, (punctuationCount / (textLength / 100)) * 10);
-};
-
-// Add these missing calculation functions
-const calculateCorrectnessScore = (words: string[], sentences: string[]): number => {
+export const calculateCorrectnessScore = (
+  words: string[],
+  sentences: string[],
+  text: string
+): number => {
   const spellingScore = calculateSpellingScore(words);
-  const grammarScore = calculateGrammarScore(sentences.join(' '), sentences);
-  const punctuationScore = calculatePunctuationScore(sentences.join(' '));
-  
+  const grammarScore = calculateGrammarScore(text, sentences);
+  const punctuationScore = calculatePunctuationScore(text);
+
   return Math.round(
-    spellingScore * 0.4 + 
-    grammarScore * 0.4 + 
+    spellingScore * 0.4 +
+    grammarScore * 0.4 +
     punctuationScore * 0.2
   );
 };
 
-const calculateClarityScore = (text: string, words: string[], sentences: string[]): number => {
+export const calculateClarityScore = (
+  text: string,
+  words: string[],
+  sentences: string[]
+): number => {
   const complexity = analyzeTextComplexity(text);
   const variety = analyzeSentenceVariety(sentences);
   const structure = countTransitionWords(text);
-  
+
   return Math.round(
-    (100 - complexity) * 0.4 + 
-    variety * 0.3 + 
+    Math.max(40, 100 - complexity * 0.5) * 0.4 +
+    variety * 0.3 +
     structure * 0.3
   );
 };
 
-const calculateEngagementScore = (words: string[]): number => {
-  const uniqueWords = new Set(words.map(w => w.toLowerCase())).size;
-  const wordVariety = (uniqueWords / words.length) * 100;
-  const sentenceStarters = countTransitionWords(words.join(' '));
-  
-  return Math.round(
-    wordVariety * 0.6 + 
-    sentenceStarters * 0.4
-  );
+export const calculateEngagementScore = (words: string[]): number => {
+  if (words.length === 0) return 100;
+  const uniqueWords = new Set(words.map((w) => w.toLowerCase().replace(/[^a-z]/g, ''))).size;
+  const lexicalDiversity = (uniqueWords / words.length) * 100;
+
+  return Math.min(100, Math.max(50, Math.round(lexicalDiversity * 0.8 + 20)));
 };
 
-const calculateDeliveryScore = (text: string): number => {
-  const punctuationVariety = analyzePunctuationVariety(text);
+export const calculateDeliveryScore = (text: string, words: string[]): number => {
+  const punctuationScore = calculatePunctuationScore(text);
   const transitionScore = countTransitionWords(text);
-  
+
   return Math.round(
-    punctuationVariety * 0.5 + 
+    punctuationScore * 0.5 +
     transitionScore * 0.5
   );
 };

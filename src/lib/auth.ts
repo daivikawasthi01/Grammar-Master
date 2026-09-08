@@ -1,8 +1,8 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { AuthOptions } from 'next-auth';
-import User from '@/models/User';
+import User from '@/app/db/schema';
 import dbConnect from './mongodb';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -15,13 +15,13 @@ export const authOptions: AuthOptions = {
       async authorize(credentials) {
         await dbConnect();
 
-        const user = await User.findOne({ email: credentials?.email });
+        const user = await User.findOne({ email: credentials?.email }).select('+password');
         if (!user || !credentials?.password) return null;
 
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) return null;
 
-        return { id: user._id, email: user.email };
+        return { id: user._id.toString(), email: user.email, name: user.name };
       }
     })
   ],
@@ -37,7 +37,7 @@ export const authOptions: AuthOptions = {
       return token;
     },
     async session({ session, token }) {
-        // @ts-ignore
+      // @ts-ignore
       session.user = token.user;
       return session;
     }
