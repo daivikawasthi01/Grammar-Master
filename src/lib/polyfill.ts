@@ -27,6 +27,15 @@ if (typeof globalThis !== 'undefined') {
   }
 }
 
+if (!process.env.NEXTAUTH_URL) {
+  process.env.NEXTAUTH_URL = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : 'http://localhost:3000';
+}
+if (!process.env.NEXTAUTH_SECRET) {
+  process.env.NEXTAUTH_SECRET = process.env.JWT_SECRET || 'writ-ai-build-secret-key-fallback';
+}
+
 if (typeof globalThis.TextEncoder === 'undefined') {
   globalThis.TextEncoder = util.TextEncoder;
 }

@@ -3,6 +3,15 @@ if (!buffer.SlowBuffer) {
   buffer.SlowBuffer = buffer.Buffer;
 }
 
+if (!process.env.NEXTAUTH_URL) {
+  process.env.NEXTAUTH_URL = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : 'http://localhost:3000';
+}
+if (!process.env.NEXTAUTH_SECRET) {
+  process.env.NEXTAUTH_SECRET = process.env.JWT_SECRET || 'writ-ai-build-secret-key-fallback';
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,

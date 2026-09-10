@@ -5,6 +5,7 @@ import dbConnect from './mongodb';
 import bcrypt from 'bcrypt';
 
 export const authOptions: AuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || 'writ-ai-build-secret-key-fallback',
   providers: [
     CredentialsProvider({
       name: 'Credentials',
