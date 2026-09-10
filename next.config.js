@@ -6,11 +6,24 @@ if (!buffer.SlowBuffer) {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  serverExternalPackages: ['@xenova/transformers', 'onnxruntime-node', 'sharp'],
+  serverExternalPackages: [
+    '@xenova/transformers',
+    'onnxruntime-node',
+    'sharp',
+    'jsonwebtoken',
+    'jwa',
+    'jws',
+    'buffer-equal-constant-time'
+  ],
   webpack: (config, { isServer }) => {
     config.resolve.fallback = { ...config.resolve.fallback, fs: false };
     if (isServer) {
-      config.externals = [...(config.externals || []), '@xenova/transformers', 'onnxruntime-node', 'sharp'];
+      config.externals = [
+        ...(config.externals || []),
+        '@xenova/transformers',
+        'onnxruntime-node',
+        'sharp',
+      ];
     }
     return config;
   },
