@@ -7,6 +7,7 @@ import Loading from '@/app/components/Loading';
 import Sidebar from '../components/Sidebar';
 import SettingsModal from './components/SettingsModal';
 import { SettingsList } from './components/lists/setting';
+import StyleGuideManager from './components/StyleGuideManager';
 
 interface UserData {
   name?: string;
@@ -154,6 +155,9 @@ const Settings: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Style Guides & Glossaries (RAG) */}
+          <StyleGuideManager />
 
           {/* Usage Card */}
           <div className="glass-edge bg-surface-container-lowest/50 border border-white/10 rounded-3xl p-6 md:p-8 backdrop-blur-2xl shadow-xl">

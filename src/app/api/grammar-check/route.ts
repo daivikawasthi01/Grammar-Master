@@ -5,6 +5,7 @@ import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
 import { GROQ_MODELS, getGroqClient } from "@/lib/ai-config";
 import { requireAuthOrDemo } from "@/lib/api-auth";
+import { retrieveRelevantRules, buildStyleRAGPrompt } from "@/lib/rag-style";
 import {
   normalizePlan,
   getPromptLimit,
@@ -81,7 +82,11 @@ export async function POST(req: Request) {
       });
     }
 
-    const promptGrammar = `You are a professional grammar and writing expert. Review the following text in ${language} and:
+    // Retrieve relevant custom style/glossary rules via RAG
+    const relevantRules = await retrieveRelevantRules(text, userId, 3);
+    const ragStylePrompt = buildStyleRAGPrompt(relevantRules);
+
+    const baseGrammarPrompt = `You are a professional grammar and writing expert. Review the following text in ${language} and:
 1. Fix any grammatical errors
 2. Correct spelling mistakes
 3. Improve punctuation where needed
@@ -89,10 +94,14 @@ export async function POST(req: Request) {
 5. If no corrections are needed, return the exact same text
 6. Focus only on grammar, spelling, and punctuation - do not change the writing style or tone`;
 
+    const fullSystemPrompt = ragStylePrompt
+      ? `${baseGrammarPrompt}\n\n${ragStylePrompt}`
+      : baseGrammarPrompt;
+
     const groq = getGroqClient();
     const completion = await groq.chat.completions.create({
       messages: [
-        { role: "system", content: promptGrammar },
+        { role: "system", content: fullSystemPrompt },
         { role: "user", content: text },
       ],
       model: GROQ_MODELS.PRIMARY,
@@ -105,8 +114,8 @@ export async function POST(req: Request) {
     const response = completion.choices[0]?.message?.content || text;
     const payload =
       response === text
-        ? { success: { correct: true, text: response } }
-        : { success: { correct: false, text: response } };
+        ? { success: { correct: true, text: response, appliedRules: relevantRules } }
+        : { success: { correct: false, text: response, appliedRules: relevantRules } };
 
     promptCache.set(cacheKey, payload);
     return NextResponse.json(payload);
