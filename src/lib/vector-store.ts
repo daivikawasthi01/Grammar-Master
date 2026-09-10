@@ -31,7 +31,7 @@ class InMemoryVectorStore {
   query(vector: number[], userId: string, topK = 3): VectorQueryResult[] {
     const matches: VectorQueryResult[] = [];
 
-    for (const [id, record] of this.records.entries()) {
+    this.records.forEach((record, id) => {
       if (record.metadata && String(record.metadata.userId) === String(userId)) {
         const score = cosineSimilarity(vector, record.vector);
         matches.push({
@@ -40,16 +40,16 @@ class InMemoryVectorStore {
           metadata: record.metadata,
         });
       }
-    }
+    });
 
     matches.sort((a, b) => b.score - a.score);
     return matches.slice(0, topK);
   }
 
   delete(ids: string[]) {
-    for (const id of ids) {
+    ids.forEach((id) => {
       this.records.delete(id);
-    }
+    });
   }
 
   clear() {
