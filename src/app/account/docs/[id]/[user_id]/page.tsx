@@ -27,7 +27,7 @@ const stripHtml = (html: string) => {
 
 const DEFAULT_SUGGESTIONS: SuggestionItem[] = [
   {
-    id: "sug-1",
+    id: "sug-init-1",
     originalText: "teh",
     replacementText: "the",
     category: "correctness",
@@ -36,7 +36,7 @@ const DEFAULT_SUGGESTIONS: SuggestionItem[] = [
     explanation: "'teh' is a common typo for 'the'.",
   },
   {
-    id: "sug-2",
+    id: "sug-init-2",
     originalText: "due to the fact that",
     replacementText: "because",
     category: "clarity",
@@ -46,14 +46,15 @@ const DEFAULT_SUGGESTIONS: SuggestionItem[] = [
   },
 ];
 
+const INITIAL_DOC_TEXT =
+  "The integration of generative models into the core workflow has yielded significant productivity gains. However, teh initial rollout faced some resistance due to the fact that comprehensive training materials were delayed.\n\nMoving forward, our strategy relies on leveraging these tools not just for efficiency, but for enhancing creative output. We must ensure that the human element remains central to our operations.";
+
 const Doc: React.FC<DocsProps> = ({ params }) => {
   const { id, user_id } = use(params);
   const { isLogged } = useAuth();
   const { document: docData, error, isLoading } = useDocument(user_id, id);
 
-  const [text, setText] = useState<string>(
-    "The integration of generative models into the core workflow has yielded significant productivity gains. However, teh initial rollout faced some resistance due to the fact that comprehensive training materials were delayed.\n\nMoving forward, our strategy relies on leveraging these tools not just for efficiency, but for enhancing creative output. We must ensure that the human element remains central to our operations."
-  );
+  const [text, setText] = useState<string>(INITIAL_DOC_TEXT);
   const [title, setTitle] = useState<string>("Quarterly_AI_Report.docx");
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<string>("");
@@ -84,26 +85,44 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
     delivery: 0,
   });
 
-  // Track applied/dismissed items to prevent re-suggesting or looping AI calls
+  // Stable refs for DOM content & caret preservation
+  const editorRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<string>(INITIAL_DOC_TEXT);
+  const initialRenderDoneRef = useRef<boolean>(false);
   const handledItemsRef = useRef<Set<string>>(new Set());
   const isAcceptingRef = useRef<boolean>(false);
 
-const cleanHtmlTags = (raw: string): string => {
-  if (!raw) return "";
-  if (!raw.includes("<") || !raw.includes(">")) return raw;
-  return raw
-    .replace(/<\/p>/gi, "\n\n")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/li>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-};
+  const cleanHtmlTags = (raw: string): string => {
+    if (!raw) return "";
+    if (!raw.includes("<") || !raw.includes(">")) return raw;
+    return raw
+      .replace(/<\/p>/gi, "\n\n")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/li>/gi, "\n")
+      .replace(/<[^>]+>/g, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  };
 
-  // Load document
+  // Set initial text on mount
+  useEffect(() => {
+    if (editorRef.current && !initialRenderDoneRef.current) {
+      editorRef.current.innerText = INITIAL_DOC_TEXT;
+      initialRenderDoneRef.current = true;
+    }
+  }, []);
+
+  // Load document from DB
   useEffect(() => {
     if (docData) {
-      if (docData.text) setText(cleanHtmlTags(docData.text));
+      if (docData.text) {
+        const cleaned = cleanHtmlTags(docData.text);
+        setText(cleaned);
+        textRef.current = cleaned;
+        if (editorRef.current) {
+          editorRef.current.innerText = cleaned;
+        }
+      }
       if (docData.title) setTitle(docData.title);
     }
   }, [docData]);
@@ -125,14 +144,13 @@ const cleanHtmlTags = (raw: string): string => {
           setIsSaving(false);
         }
       }
-    }, 1000);
+    }, 1200);
 
     return () => clearTimeout(saveTimeout);
   }, [text, title, docData, user_id, id]);
 
   // Document Analysis Engine trigger
   const runAnalysis = useCallback(async (currentText: string) => {
-    // If we just accepted a suggestion, skip full AI re-trigger to prevent score drop reset
     if (isAcceptingRef.current) {
       isAcceptingRef.current = false;
       return;
@@ -147,12 +165,11 @@ const cleanHtmlTags = (raw: string): string => {
       });
 
       if (res.data) {
-        // Filter out any suggestions the user already fixed or dismissed
         const rawSuggestions: SuggestionItem[] = res.data.suggestions || [];
         const filtered = rawSuggestions.filter(
           (s) =>
             s.originalText &&
-            cleanText.includes(s.originalText) &&
+            cleanText.toLowerCase().includes(s.originalText.toLowerCase()) &&
             !handledItemsRef.current.has(s.originalText.toLowerCase()) &&
             !handledItemsRef.current.has(s.id)
         );
@@ -174,13 +191,22 @@ const cleanHtmlTags = (raw: string): string => {
     }
   }, [docData, id]);
 
+  // Debounced analysis while user is actively typing
   useEffect(() => {
     const timeout = setTimeout(() => {
       runAnalysis(text);
-    }, 600);
+    }, 1200);
 
     return () => clearTimeout(timeout);
   }, [text, runAnalysis]);
+
+  // Direct editor input handler without destructive DOM re-renders
+  const handleEditorInput = (e: React.FormEvent<HTMLDivElement>) => {
+    const currentVal = e.currentTarget.innerText;
+    textRef.current = currentVal;
+    setText(currentVal);
+    handledItemsRef.current.clear();
+  };
 
   // Handle Suggestion Actions (Accept / Dismiss)
   const handleApplySuggestion = (sug: SuggestionItem) => {
@@ -190,26 +216,34 @@ const cleanHtmlTags = (raw: string): string => {
     handledItemsRef.current.add(sug.replacementText.toLowerCase());
     handledItemsRef.current.add(sug.id);
 
-    const cleanText = stripHtml(text);
+    const currentText = editorRef.current ? editorRef.current.innerText : text;
     let newText: string;
     if (
       typeof sug.startIndex === "number" &&
       typeof sug.endIndex === "number" &&
       sug.startIndex >= 0 &&
-      sug.endIndex <= cleanText.length &&
-      cleanText.slice(sug.startIndex, sug.endIndex) === sug.originalText
+      sug.endIndex <= currentText.length &&
+      currentText.slice(sug.startIndex, sug.endIndex) === sug.originalText
     ) {
       newText =
-        cleanText.slice(0, sug.startIndex) +
+        currentText.slice(0, sug.startIndex) +
         sug.replacementText +
-        cleanText.slice(sug.endIndex);
+        currentText.slice(sug.endIndex);
     } else {
-      newText = cleanText.replace(sug.originalText, sug.replacementText);
+      // Case-insensitive regex replacement for the first occurrence
+      const escaped = sug.originalText.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+      const regex = new RegExp(`\\b${escaped}\\b`, "i");
+      newText = currentText.replace(regex, sug.replacementText);
     }
+
+    textRef.current = newText;
     setText(newText);
+    if (editorRef.current) {
+      editorRef.current.innerText = newText;
+    }
 
     setSuggestions((prev) => {
-      const updated = prev.filter((item) => item.id !== sug.id && item.originalText !== sug.originalText);
+      const updated = prev.filter((item) => item.id !== sug.id && item.originalText.toLowerCase() !== sug.originalText.toLowerCase());
       const remainingCount = updated.length;
       setOverallScore(remainingCount === 0 ? 100 : Math.max(50, Math.min(99, 100 - remainingCount * 8)));
       return updated;
@@ -245,7 +279,13 @@ const cleanHtmlTags = (raw: string): string => {
       });
 
       if (res.data?.success?.text) {
-        setText(res.data.success.text);
+        const modified = res.data.success.text;
+        textRef.current = modified;
+        setText(modified);
+        if (editorRef.current) {
+          editorRef.current.innerText = modified;
+        }
+        runAnalysis(modified);
       }
     } catch (err) {
       console.error("AI action error:", err);
@@ -274,9 +314,6 @@ const cleanHtmlTags = (raw: string): string => {
     link.click();
     URL.revokeObjectURL(url);
   };
-
-  // Split paragraphs and render with interactive highlights
-  const paragraphs = text.split("\n\n");
 
   return (
     <div className="bg-background text-on-surface h-screen overflow-hidden flex flex-col font-body-md selection:bg-primary-container selection:text-on-primary-container relative">
@@ -313,69 +350,15 @@ const cleanHtmlTags = (raw: string): string => {
               {title.replace(/\.[^/.]+$/, "") || "Quarterly AI Impact Assessment"}
             </h1>
 
-            {/* Paragraphs with live interactive suggestion pills */}
-            <div className="space-y-8 min-h-[400px]">
-              {paragraphs.map((para, pIdx) => {
-                // Find applicable suggestions in this paragraph
-                let elements: React.ReactNode[] = [para];
-
-                suggestions.forEach((sug) => {
-                  if (!sug.originalText || !para.includes(sug.originalText)) return;
-                  const newElements: React.ReactNode[] = [];
-                  elements.forEach((el) => {
-                    if (typeof el === "string") {
-                      const parts = el.split(sug.originalText);
-                      parts.forEach((part, i) => {
-                        newElements.push(part);
-                        if (i < parts.length - 1) {
-                          const isError = sug.category === "correctness";
-                          newElements.push(
-                            <span
-                              key={`${sug.id}-${i}`}
-                              onClick={() => handleApplySuggestion(sug)}
-                              className={`px-1.5 py-0.5 rounded cursor-pointer relative group transition-colors inline-block font-medium ${
-                                isError
-                                  ? "bg-error/10 text-error hover:bg-error/20"
-                                  : "bg-secondary/10 text-secondary hover:bg-secondary/20"
-                              }`}
-                            >
-                              {sug.originalText}
-                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-surface-container-high border border-white/10 p-3 rounded-xl text-sm whitespace-nowrap shadow-2xl z-20 text-on-surface pointer-events-none">
-                                {isError ? "Change to: " : "Simplify to: "}
-                                <strong className={isError ? "text-error font-bold" : "text-secondary font-bold"}>
-                                  {sug.replacementText}
-                                </strong>
-                              </span>
-                            </span>
-                          );
-                        }
-                      });
-                    } else {
-                      newElements.push(el);
-                    }
-                  });
-                  elements = newElements;
-                });
-
-                return (
-                  <p
-                    key={pIdx}
-                    contentEditable
-                    suppressContentEditableWarning
-                    onInput={(e) => {
-                      // User actively typing: clear handled items ref for fresh analysis
-                      handledItemsRef.current.clear();
-                      const newParas = [...paragraphs];
-                      newParas[pIdx] = e.currentTarget.innerText;
-                      setText(newParas.join("\n\n"));
-                    }}
-                    className="outline-none text-lg text-on-surface-variant leading-[1.8]"
-                  >
-                    {elements}
-                  </p>
-                );
-              })}
-            </div>
+            {/* Unified Document Editor with natural typing & stable caret */}
+            <div
+              ref={editorRef}
+              contentEditable
+              suppressContentEditableWarning
+              onInput={handleEditorInput}
+              className="outline-none text-lg text-on-surface-variant leading-[1.8] min-h-[500px] whitespace-pre-wrap font-sans focus:outline-none"
+              style={{ minHeight: "55vh" }}
+            />
 
             {/* Floating Rich Formatting Toolbar */}
             <div className="fixed bottom-10 left-[32.5%] -translate-x-1/2 bg-gradient-to-b from-white/[0.08] to-transparent backdrop-blur-3xl border border-white/10 p-2 rounded-full flex items-center gap-2 shadow-[0_16px_40px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)] z-40">
@@ -455,3 +438,4 @@ const cleanHtmlTags = (raw: string): string => {
 };
 
 export default Doc;
+

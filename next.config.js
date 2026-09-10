@@ -6,8 +6,12 @@ if (!buffer.SlowBuffer) {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  webpack: (config) => {
-    config.resolve.fallback = { fs: false };
+  serverExternalPackages: ['@xenova/transformers', 'onnxruntime-node', 'sharp'],
+  webpack: (config, { isServer }) => {
+    config.resolve.fallback = { ...config.resolve.fallback, fs: false };
+    if (isServer) {
+      config.externals = [...(config.externals || []), '@xenova/transformers', 'onnxruntime-node', 'sharp'];
+    }
     return config;
   },
 };

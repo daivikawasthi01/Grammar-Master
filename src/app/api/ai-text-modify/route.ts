@@ -7,6 +7,7 @@ import dbConnect from "@/lib/mongodb";
 import { GROQ_MODELS, getGroqClient } from "@/lib/ai-config";
 import { requireAuthOrDemo } from "@/lib/api-auth";
 import { normalizePlan, getPromptLimit } from "@/lib/free-plan";
+import { retrieveRelevantRules, buildStyleRAGPrompt } from "@/lib/rag-style";
 
 interface TextModifyRequest {
   text: string;
@@ -50,6 +51,10 @@ export async function POST(req: Request) {
       });
     }
 
+    // Retrieve relevant custom style rules via RAG
+    const relevantRules = await retrieveRelevantRules(text, userId, 3);
+    const ragStylePrompt = buildStyleRAGPrompt(relevantRules);
+
     let prompt = "";
     switch (action) {
       case "improve":
@@ -89,12 +94,17 @@ export async function POST(req: Request) {
     if (process.env.GROQ_API_KEY) {
       try {
         const groq = getGroqClient();
+        const baseSystemPrompt =
+          "You are an expert Grammarly AI writing assistant. Return ONLY the final modified text without quotes, introductory remarks, or explanations.";
+        const fullSystemPrompt = ragStylePrompt
+          ? `${baseSystemPrompt}\n\n${ragStylePrompt}`
+          : baseSystemPrompt;
+
         const completion = await groq.chat.completions.create({
           messages: [
             {
               role: "system",
-              content:
-                "You are an expert Grammarly AI writing assistant. Return ONLY the final modified text without quotes, introductory remarks, or explanations.",
+              content: fullSystemPrompt,
             },
             { role: "user", content: prompt },
           ],
@@ -128,6 +138,7 @@ export async function POST(req: Request) {
       success: {
         text: modifiedText,
         action,
+        appliedRules: relevantRules,
       },
     });
   } catch (error: any) {

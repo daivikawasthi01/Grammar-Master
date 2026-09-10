@@ -1,137 +1,158 @@
-# Grammar Master
+# Grammar Master (writ.ai)
 
-Grammar Master is a Next.js writing assistant for grammar correction, tone-based rewriting, translation, and synonym generation. The app is intentionally free-only, using Groq for AI processing and MongoDB for user and prompt persistence.
+Grammar Master is a modern AI-augmented writing and cognitive workspace built with Next.js 15, React 18, and Groq LLMs. It delivers real-time grammar checking, style rule enforcement, tone rewriting, document statistics, and custom organization-level **Style Guide & Glossary RAG (Retrieval-Augmented Generation)**.
+
+---
 
 ## Table of Contents
 
 - [Features](#features)
+- [Style Guide & Glossary RAG Architecture](#style-guide--glossary-rag-architecture)
 - [Tech Stack](#tech-stack)
-- [Free-Only Policy](#free-only-policy)
 - [Getting Started](#getting-started)
 - [Environment Variables](#environment-variables)
-- [Upstash Setup](#upstash-setup)
+- [Vector & Redis Store Configuration](#vector--redis-store-configuration)
 - [Running Locally](#running-locally)
+- [Testing](#testing)
 - [Deployment](#deployment)
 - [Scripts](#scripts)
-- [Notes](#notes)
+
+---
 
 ## Features
 
-- Grammar correction
-- Text comparison and correction
-- Translation
-- Synonym generation
-- Tone-based rewriting
-- Redis-backed rate limiting for production
-- MongoDB-backed user and prompt tracking
+- **Real-Time Document Analysis & Inspector**: Real-time readability scores, spelling & grammar checks, word counts, and detected tone analysis (Formal, Confident, Friendly).
+- **Style Guide & Glossary RAG**: Upload, edit, and enforce custom company or project style rules (e.g., *"Use 'eBPF', never 'Ebpf'"*, *"Always write 'PostgreSQL' instead of 'Postgres'"*).
+- **Atomic Rule Chunking & Vector Search**: Automatic segmentation into atomic rules with local 384-dimensional dense vector embeddings (`all-MiniLM-L6-v2`).
+- **AI Text Modification & Copilot**: Expand, shorten, formalize, simplify, or rewrite selections using Groq's high-speed LLM inference (`openai/gpt-oss-120b`).
+- **Interactive Document Editor**: Native contentEditable workspace with caret stabilization and instant suggestion acceptance.
+- **Export Formats**: One-click document export to `.docx`, `.pdf`, and `.txt`.
+- **Production-Ready Rate Limiting**: Dual-tier rate limiting with Upstash Redis and in-memory fallback for local development.
+
+---
+
+## Style Guide & Glossary RAG Architecture
+
+```mermaid
+flowchart TD
+    A[Custom Style Guide Text / Markdown] --> B[Atomic Segmentation Engine]
+    B -->|Splits per bullet / rule| C[Local Embeddings Engine\n@xenova/transformers 384-dim]
+    C --> D[Dual-Tier Vector Store\nUpstash Vector + In-Memory Fallback]
+    
+    E[User Types Document Text] --> F[Analyze / Rewrite Request]
+    F --> G[Vector Retrieval Top-K Matches]
+    D -->|Cosine Similarity Query| G
+    G --> H[Strict Precedence RAG Injection]
+    H --> I[Groq LLM AI Engine]
+    H --> J[Direct Rule Suggestion Matcher]
+    I & J --> K[Real-Time Suggestion Cards & Inspector]
+```
+
+1. **Atomic Rule Ingestion**: Raw guidelines are parsed and stripped of Markdown formatting into discrete atomic rules.
+2. **Dense Vector Embeddings**: Each rule is converted into a normalized 384-dim vector using `@xenova/transformers` running locally in Node.js without external API costs.
+3. **User-Isolated Vector Storage**: Vectors and metadata are stored in Upstash Vector (or a global singleton in-memory store in dev).
+4. **Strict Precedence Prompting**: Retrieved style rules override general grammar suggestions to strictly preserve brand terminology and casing.
+
+---
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Framework | Next.js 15, React 18, TypeScript |
-| Database | MongoDB + Mongoose |
-| AI | Groq SDK |
-| Rate limiting | Upstash Redis (production), in-memory fallback (local) |
-| Styling | Bootstrap + custom SCSS |
+| **Framework** | Next.js 15 (App Router), React 18, TypeScript |
+| **Styling** | Tailwind CSS + Glassmorphism / Aurora design system |
+| **Database** | MongoDB + Mongoose |
+| **Vector Search / RAG** | Upstash Vector + `@xenova/transformers` (`all-MiniLM-L6-v2`) |
+| **AI Inference** | Groq SDK (`openai/gpt-oss-120b`, `llama-3.3-70b-versatile`) |
+| **Rate Limiting** | Upstash Redis (production) + In-memory fallback |
+| **Testing** | Jest, React Testing Library |
 
-## Free-Only Policy
-
-This project is designed to stay free-only. There is no paid plan logic — `plan` is normalized to `free` at runtime on every request.
-
-Enforced rules:
-
-- `plan` is restricted to `free`
-- Prompt limit is fixed at `1000` per user
-- AI routes enforce a per-user rate limit
-- Upstash Redis backs rate limiting in production when configured
+---
 
 ## Getting Started
 
+### Prerequisites
+- Node.js 18.18+ or Node.js 20+
+- MongoDB instance (local or MongoDB Atlas)
+- Groq API Key ([Groq Console](https://console.groq.com))
+
+### 1. Clone & Install
 ```bash
 git clone https://github.com/daivikawasthi01/Grammar-Master.git
 cd Grammar-Master
 npm install
+```
+
+### 2. Configure Environment
+```bash
 cp .env.example .env.local
 ```
 
-Fill in the required variables in `.env.local` (see [Environment Variables](#environment-variables)), then run:
+Fill in your configuration in `.env.local` (see [Environment Variables](#environment-variables)).
 
+### 3. Run Development Server
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
 
 ## Environment Variables
 
 | Variable | Required | Description |
 |---|---|---|
 | `MONGODB_URI` | Yes | MongoDB connection string (local or Atlas) |
-| `JWT_SECRET` | Yes | Random secret used to sign auth tokens |
-| `NEXTAUTH_SECRET` | Yes | Random secret for NextAuth (different from `JWT_SECRET`) |
-| `NEXTAUTH_URL` | Yes | `http://localhost:3000` locally, your production URL when deployed |
-| `GROQ_API_KEY` | Yes | API key from Groq, used by every AI route |
-| `UPSTASH_REDIS_REST_URL` | No | Upstash Redis REST URL, enables production rate limiting |
-| `UPSTASH_REDIS_REST_TOKEN` | No | Upstash Redis REST token (write-enabled, not readonly) |
+| `JWT_SECRET` | Yes | Secret used for signing JWT auth tokens |
+| `NEXTAUTH_SECRET` | Yes | Random secret for NextAuth session encryption |
+| `NEXTAUTH_URL` | Yes | Base URL (`http://localhost:3000` in dev, production URL in prod) |
+| `GROQ_API_KEY` | Yes | API key from Groq for LLM analysis & suggestions |
+| `UPSTASH_VECTOR_REST_URL` | Optional | Upstash Vector REST endpoint for scalable style rule RAG |
+| `UPSTASH_VECTOR_REST_TOKEN` | Optional | Upstash Vector REST read/write token |
+| `UPSTASH_REDIS_REST_URL` | Optional | Upstash Redis REST URL for production rate limiting |
+| `UPSTASH_REDIS_REST_TOKEN` | Optional | Upstash Redis REST token |
 
 ```env
+# Database & Auth
 MONGODB_URI=mongodb://127.0.0.1:27017/grammar-master
-JWT_SECRET=your-long-random-secret
-NEXTAUTH_SECRET=your-different-long-random-secret
+JWT_SECRET=your-random-jwt-secret
+NEXTAUTH_SECRET=your-random-nextauth-secret
 NEXTAUTH_URL=http://localhost:3000
-GROQ_API_KEY=your_groq_api_key_here
-UPSTASH_REDIS_REST_URL=https://your-upstash-instance.upstash.io
-UPSTASH_REDIS_REST_TOKEN=your_upstash_token_here
+
+# Groq AI
+GROQ_API_KEY=gsk_your_groq_api_key
+
+# Optional: Upstash Vector & Redis (In-memory fallback used if omitted)
+UPSTASH_VECTOR_REST_URL=https://your-vector-index.upstash.io
+UPSTASH_VECTOR_REST_TOKEN=your_upstash_vector_token
+UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your_upstash_redis_token
 ```
 
-**Notes:**
-- Use different random values for `JWT_SECRET` and `NEXTAUTH_SECRET`.
-- The rate limiter uses `incr`, `expire`, and `ttl`, so the Upstash token must be write-enabled, not readonly.
-- If Upstash variables are missing, the app automatically falls back to an in-memory rate limiter for local development.
+---
 
-## Upstash Setup
+## Testing
 
-1. Create a Redis database in the [Upstash console](https://console.upstash.com).
-2. Copy the REST URL and REST token from the database details page.
-3. Add both to `.env.local` for local development, and to your Vercel project's environment variables for production.
-
-If Upstash is not configured, rate limiting still works locally via the in-memory fallback — no setup required to run the app.
-
-## Running Locally
+Run the automated test suite covering embeddings, vector stores, atomic rule segmentation, and style guide endpoints:
 
 ```bash
-npm run dev
+npx jest src/lib/ src/app/api/style-guide/
 ```
 
-Then open [http://localhost:3000](http://localhost:3000).
-
-## Deployment
-
-This app deploys cleanly to [Vercel](https://vercel.com). Set the following in your Vercel project's environment variables:
-
-```env
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-NEXTAUTH_SECRET=your_nextauth_secret
-NEXTAUTH_URL=https://your-production-domain.com
-GROQ_API_KEY=your_groq_key
-UPSTASH_REDIS_REST_URL=https://your-upstash-instance.upstash.io
-UPSTASH_REDIS_REST_TOKEN=your_upstash_token
-```
-
-Redeploy after adding or updating any environment variable.
+---
 
 ## Scripts
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Start the development server |
-| `npm run build` | Build for production |
-| `npm run start` | Start the production server |
-| `npm test` | Run the test suite |
+| `npm run dev` | Start development server with Turbopack / Next.js |
+| `npm run build` | Compile Next.js production build |
+| `npm run start` | Start production server |
+| `npm test` | Run Jest unit and integration tests |
 
-## Notes
+---
 
-- Prompt limit and plan behavior are centralized in `src/lib/free-plan.ts`.
-- AI routes are rate-limited and cache short-lived responses to reduce duplicate calls to Groq.
+## License
+
+MIT

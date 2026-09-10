@@ -6,6 +6,12 @@ import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
 import { GROQ_MODELS, getGroqClient } from "@/lib/ai-config";
 import { requireAuthOrDemo } from "@/lib/api-auth";
+import {
+  retrieveRelevantRules,
+  buildStyleRAGPrompt,
+  extractStyleRuleSuggestions,
+  StyleSuggestionItem,
+} from "@/lib/rag-style";
 
 interface AnalyzeRequest {
   text: string;
@@ -14,17 +20,7 @@ interface AnalyzeRequest {
   documentId?: string;
 }
 
-export interface SuggestionItem {
-  id: string;
-  category: "correctness" | "clarity" | "engagement" | "delivery";
-  title: string;
-  description: string;
-  originalText: string;
-  replacementText: string;
-  explanation: string;
-  startIndex?: number;
-  endIndex?: number;
-}
+export type SuggestionItem = StyleSuggestionItem;
 
 export interface ToneItem {
   name: string;
@@ -68,7 +64,7 @@ function runRuleBasedAnalysis(text: string): SuggestionItem[] {
       const replacement = matchStr.replace(rule.pattern, rule.replacement);
 
       suggestions.push({
-        id: `rule-${count++}`,
+        id: `rule-${Date.now()}-${count++}-${Math.random().toString(36).substring(2, 6)}`,
         category: rule.category,
         title: rule.title,
         description: `Consider replacing "${matchStr}" with "${replacement}".`,
@@ -108,7 +104,6 @@ function computeMetrics(text: string) {
   const readingTimeMin = Math.max(1, Math.ceil(wordCount / 200));
   const speakingTimeMin = Math.max(1, Math.ceil(wordCount / 130));
 
-  // Flesch Reading Ease approximation
   const readabilityScore = Math.max(
     20,
     Math.min(100, Math.round(206.835 - 1.015 * avgWordsPerSentence - 15))
@@ -154,7 +149,6 @@ function computeTones(text: string): ToneItem[] {
   const confidentMatches = confidentKeywords.reduce((count, k) => count + (lower.split(k).length - 1), 0);
   const friendlyMatches = friendlyKeywords.reduce((count, k) => count + (lower.split(k).length - 1), 0);
 
-  // Normalized density factor (matches per 100 words)
   const formalDensity = (formalMatches / totalWords) * 100;
   const confidentDensity = (confidentMatches / totalWords) * 100;
   const friendlyDensity = (friendlyMatches / totalWords) * 100;
@@ -195,16 +189,29 @@ export async function POST(req: Request) {
 
     const metrics = computeMetrics(text);
     const tones = computeTones(text);
-    let suggestions: SuggestionItem[] = runRuleBasedAnalysis(text);
 
-    // AI-powered deep analysis if API key is present
+    // 1. Retrieve Style Guide Rules via RAG
+    const relevantRules = await retrieveRelevantRules(text, userId, 5);
+
+    // 2. Direct style rule suggestions
+    const styleSuggestions = extractStyleRuleSuggestions(text, relevantRules);
+
+    // 3. Rule-based static grammar checks
+    const staticSuggestions = runRuleBasedAnalysis(text);
+
+    let suggestions: SuggestionItem[] = [...styleSuggestions, ...staticSuggestions];
+
+    // 4. AI-powered deep analysis with Style Guide RAG injection
     if (process.env.GROQ_API_KEY) {
       try {
         const groq = getGroqClient();
+        const styleRAGPrompt = buildStyleRAGPrompt(relevantRules);
+
         const systemPrompt = `You are Grammarly AI. Analyze the text in ${language} and provide structured suggestions in JSON format.
+${styleRAGPrompt}
 Return ONLY valid JSON with a "suggestions" array. Each suggestion item must have:
 - "category": one of ["correctness", "clarity", "engagement", "delivery"]
-- "title": short title (e.g., "Grammar", "Spelling", "Conciseness", "Tone")
+- "title": short title (e.g., "Grammar", "Spelling", "Conciseness", "Tone", "Style Guide")
 - "description": brief summary
 - "originalText": exact substring from text to replace
 - "replacementText": suggested replacement
@@ -253,7 +260,7 @@ Example output:
               }
 
               return {
-                id: `ai-${idx + 1}`,
+                id: `ai-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
                 category: ["correctness", "clarity", "engagement", "delivery"].includes(item.category)
                   ? item.category
                   : "correctness",
@@ -267,10 +274,10 @@ Example output:
               };
             });
 
-            // Merge AI suggestions with rule-based ones without exact duplicates
-            const existingKeys = new Set(suggestions.map((s) => `${s.originalText}->${s.replacementText}`));
+            // Merge AI suggestions without duplicate originalText
+            const existingKeys = new Set(suggestions.map((s) => `${s.originalText.toLowerCase()}->${s.replacementText.toLowerCase()}`));
             for (const aiSug of aiSuggestions) {
-              if (aiSug.originalText && !existingKeys.has(`${aiSug.originalText}->${aiSug.replacementText}`)) {
+              if (aiSug.originalText && !existingKeys.has(`${aiSug.originalText.toLowerCase()}->${aiSug.replacementText.toLowerCase()}`)) {
                 suggestions.push(aiSug);
               }
             }
@@ -321,3 +328,4 @@ Example output:
     );
   }
 }
+

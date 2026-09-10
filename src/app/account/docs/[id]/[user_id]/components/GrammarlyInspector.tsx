@@ -98,11 +98,11 @@ export const GrammarlyInspector: React.FC<GrammarlyInspectorProps> = ({
             <p className="text-on-surface-variant text-sm">No issues found. Excellent writing!</p>
           </div>
         ) : (
-          filteredSuggestions.map((sug) => {
+          filteredSuggestions.map((sug, idx) => {
             const isCorrectness = sug.category === "correctness";
             return (
               <div
-                key={sug.id}
+                key={`${sug.id}-${idx}`}
                 className="bg-white/[0.02] backdrop-blur-md rounded-2xl border border-white/5 overflow-hidden flex flex-col transition-all hover:bg-white/[0.04]"
               >
                 <div className="p-5 relative">

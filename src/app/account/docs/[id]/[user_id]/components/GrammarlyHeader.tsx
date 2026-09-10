@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import StyleGuideManager from "@/app/account/settings/components/StyleGuideManager";
 
 interface GrammarlyHeaderProps {
   title: string;
@@ -27,6 +28,7 @@ export const GrammarlyHeader: React.FC<GrammarlyHeaderProps> = ({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState(title);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showStyleGuideModal, setShowStyleGuideModal] = useState(false);
 
   const handleTitleSubmit = () => {
     setIsEditingTitle(false);
@@ -134,6 +136,16 @@ export const GrammarlyHeader: React.FC<GrammarlyHeaderProps> = ({
           )}
         </div>
 
+        {/* Style Guides RAG Button */}
+        <button
+          onClick={() => setShowStyleGuideModal(true)}
+          className="text-on-surface-variant hover:text-primary hover:bg-white/5 transition-colors px-3.5 py-2 rounded-full font-medium text-xs border border-white/5 flex items-center gap-1.5"
+          title="Manage Custom Style Guides & Glossaries"
+        >
+          <span className="material-symbols-outlined text-[16px] text-primary">menu_book</span>
+          <span>Style Rules</span>
+        </button>
+
         {/* Primary AI Button */}
         <button
           onClick={onToggleAIAssistant}
@@ -142,6 +154,24 @@ export const GrammarlyHeader: React.FC<GrammarlyHeaderProps> = ({
           ✨ Ask writ.ai
         </button>
       </div>
+
+      {showStyleGuideModal && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowStyleGuideModal(false);
+            }
+          }}
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-2xl flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-200"
+        >
+          <div className="relative w-full max-w-2xl max-h-[85vh] rounded-3xl overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.9)] border border-white/20 bg-[#13111c]">
+            <StyleGuideManager
+              isModal={true}
+              onClose={() => setShowStyleGuideModal(false)}
+            />
+          </div>
+        </div>
+      )}
     </header>
   );
 };
