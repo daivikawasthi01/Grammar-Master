@@ -2,7 +2,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { AuthOptions } from 'next-auth';
 import User from '@/app/db/schema';
 import dbConnect from './mongodb';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || 'writ-ai-build-secret-key-fallback',

@@ -41,4 +41,6 @@ __pycache__/
 evals/conll14st-test-data/
 evals/*.tar.gz
 scratch/
+full-stack_chatApp/
+
 

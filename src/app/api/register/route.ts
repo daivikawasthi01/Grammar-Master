@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import User from "@/app/db/schema";
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import dbConnect from "@/lib/mongodb";
 
 interface RequestBodyType {

@@ -37,7 +37,7 @@ if (!process.env.NEXTAUTH_SECRET) {
 }
 
 if (typeof globalThis.TextEncoder === 'undefined') {
-  globalThis.TextEncoder = util.TextEncoder;
+  globalThis.TextEncoder = util.TextEncoder as any;
 }
 
 if (typeof globalThis.TextDecoder === 'undefined') {
