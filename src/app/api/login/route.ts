@@ -11,7 +11,15 @@ import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!body) {
+      return NextResponse.json(
+        { error: "Invalid request payload" },
+        { status: 400 }
+      );
+    }
+
+    const { email, password } = body;
 
     if (!email || !password) {
       return NextResponse.json(
@@ -27,7 +35,7 @@ export async function POST(req: Request) {
     await dbConnect();
 
     const user = await User.findOne({ email }).select("+password");
-    if (!user) {
+    if (!user || !user.password) {
       return NextResponse.json(
         {
           error: "Invalid email or password",
@@ -79,11 +87,11 @@ export async function POST(req: Request) {
         plan: user.plan,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Login error:", error);
     return NextResponse.json(
       {
-        error: "Authentication failed",
+        error: error?.message || "Authentication failed",
       },
       {
         status: 500,
