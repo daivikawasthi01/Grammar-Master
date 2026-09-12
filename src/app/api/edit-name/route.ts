@@ -5,8 +5,6 @@ import { NextResponse } from "next/server";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
 
-import bcrypt from 'bcrypt'
-
 interface RequestBodyType {
   newName:string 
   email:string

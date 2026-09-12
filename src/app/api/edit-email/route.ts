@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 interface RequestBodyType {
   password: string 
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
         const { password, email, newEmail }: RequestBodyType = await req.json();
         await dbConnect();
         
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email }).select('+password');
         if (!user) {
             return NextResponse.json({ error: 'User not found' });
         }

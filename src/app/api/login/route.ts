@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import "@/lib/polyfill";
 import { NextResponse } from "next/server";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
