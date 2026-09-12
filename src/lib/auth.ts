@@ -17,7 +17,7 @@ export const authOptions: AuthOptions = {
         await dbConnect();
 
         const user = await User.findOne({ email: credentials?.email }).select('+password');
-        if (!user || !credentials?.password) return null;
+        if (!user || !user.password || !credentials?.password) return null;
 
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) return null;

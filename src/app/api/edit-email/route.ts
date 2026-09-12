@@ -17,7 +17,7 @@ export async function POST(req: Request) {
         await dbConnect();
         
         const user = await User.findOne({ email }).select('+password');
-        if (!user) {
+        if (!user || !user.password) {
             return NextResponse.json({ error: 'User not found' });
         }
         
