@@ -161,7 +161,7 @@ const BENCHMARK_SENTENCES: BenchmarkCase[] = [
   },
 ];
 
-describe("20-Sentence Custom Style Rules RAG Benchmark", () => {
+describe("20-Case Sanity Check: Style Rules & Rule-Matcher Tests", () => {
   const userId = "eval_bench_user_42";
   let atomicRules: string[] = [];
 
@@ -195,12 +195,13 @@ describe("20-Sentence Custom Style Rules RAG Benchmark", () => {
     expect(atomicRules.length).toBe(9);
   });
 
-  it("evaluates rule violation detection across all 20 benchmark sentences (100% target accuracy)", () => {
+  it("evaluates deterministic rule-matcher (extractStyleRuleSuggestions) violation detection across 20-case sanity check", () => {
     let totalExpected = 0;
     let totalDetected = 0;
     let totalFixed = 0;
 
     for (const testCase of BENCHMARK_SENTENCES) {
+      // NOTE: This evaluates extractStyleRuleSuggestions regex matcher directly (not Groq LLM route)
       const suggestions = extractStyleRuleSuggestions(testCase.input, atomicRules);
 
       for (const exp of testCase.expectedViolations) {
@@ -247,10 +248,10 @@ describe("20-Sentence Custom Style Rules RAG Benchmark", () => {
     const sentenceFixRate = (totalFixed / BENCHMARK_SENTENCES.length) * 100;
 
     console.log(
-      `[Style RAG Benchmark] Total Sentences: ${BENCHMARK_SENTENCES.length}, Fixed: ${totalFixed} (${sentenceFixRate.toFixed(1)}%)`
+      `[Rule-Matcher Test] Total Sentences: ${BENCHMARK_SENTENCES.length}, Fixed: ${totalFixed} (${sentenceFixRate.toFixed(1)}%)`
     );
     console.log(
-      `[Style RAG Benchmark] Total Violations: ${totalExpected}, Detected: ${totalDetected} (${detectionRate.toFixed(1)}%)`
+      `[Rule-Matcher Test] Total Violations: ${totalExpected}, Detected: ${totalDetected} (${detectionRate.toFixed(1)}%)`
     );
 
     expect(totalFixed).toBe(20);
@@ -258,7 +259,7 @@ describe("20-Sentence Custom Style Rules RAG Benchmark", () => {
     expect(totalDetected).toBe(totalExpected);
   });
 
-  it("measures RAG vector retrieval precision for style queries against MIN_STYLE_RETRIEVAL_SCORE", async () => {
+  it("measures vector retrieval precision for 20-case sanity check against MIN_STYLE_RETRIEVAL_SCORE", async () => {
     let retrievedCount = 0;
 
     for (const testCase of BENCHMARK_SENTENCES) {
@@ -276,7 +277,7 @@ describe("20-Sentence Custom Style Rules RAG Benchmark", () => {
 
     const retrievalRecall = (retrievedCount / BENCHMARK_SENTENCES.length) * 100;
     console.log(
-      `[Style RAG Benchmark] Vector Retrieval Top-3 Semantic Recall: ${retrievalRecall.toFixed(1)}% (${retrievedCount}/20)`
+      `[20-Case Sanity Check] Vector Retrieval Top-3 Semantic Recall: ${retrievalRecall.toFixed(1)}% (${retrievedCount}/20)`
     );
 
     expect(retrievalRecall).toBeGreaterThanOrEqual(95);

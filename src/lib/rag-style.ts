@@ -81,18 +81,20 @@ export async function retrieveRelevantRules(
   }
 
   try {
-    const effectiveUserId = userId || "demo_user";
+    const isDemo =
+      !userId ||
+      userId === "demo_user" ||
+      userId === "demo123" ||
+      userId === "null" ||
+      userId === "undefined";
+
+    const effectiveUserId = isDemo ? "demo_user" : userId;
     const queryEmb = await generateEmbedding(text);
     let results = await queryVectors(queryEmb, effectiveUserId, topK);
 
-    // If no vectors found in store, check MongoDB if user has chunks, or use default rules
+    // If no vectors found in store, check MongoDB if user has chunks, or use default rules for demo mode
     if (results.length === 0) {
-      if (
-        effectiveUserId === "demo_user" ||
-        effectiveUserId === "demo123" ||
-        effectiveUserId === "null" ||
-        effectiveUserId === "undefined"
-      ) {
+      if (isDemo) {
         return DEFAULT_STYLE_RULES;
       }
 
@@ -116,10 +118,10 @@ export async function retrieveRelevantRules(
           await upsertVectors(vectorRecords);
           results = await queryVectors(queryEmb, effectiveUserId, topK);
         } else {
-          return DEFAULT_STYLE_RULES;
+          return [];
         }
       } catch (dbErr) {
-        return DEFAULT_STYLE_RULES;
+        return [];
       }
     }
 
@@ -127,10 +129,16 @@ export async function retrieveRelevantRules(
       .filter((r) => r.metadata?.text && r.score >= MIN_STYLE_RETRIEVAL_SCORE)
       .map((r) => r.metadata!.text);
 
-    return matched.length > 0 ? matched : DEFAULT_STYLE_RULES;
+    return matched.length > 0 ? matched : (isDemo ? DEFAULT_STYLE_RULES : []);
   } catch (err) {
     console.error("Error retrieving style guide rules:", err);
-    return DEFAULT_STYLE_RULES;
+    const isDemo =
+      !userId ||
+      userId === "demo_user" ||
+      userId === "demo123" ||
+      userId === "null" ||
+      userId === "undefined";
+    return isDemo ? DEFAULT_STYLE_RULES : [];
   }
 }
 
