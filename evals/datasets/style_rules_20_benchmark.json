@@ -1,0 +1,181 @@
+{
+  "name": "Custom Style Rules & Terminology RAG Benchmark",
+  "version": "1.0.0",
+  "description": "20 evaluation sentences testing custom organization style rules, terminology enforcement, and vector retrieval accuracy.",
+  "rules": [
+    "Use 'eBPF', never 'Ebpf' or 'ebpf'.",
+    "Always write 'PostgreSQL' instead of 'Postgres'.",
+    "Write 'microservices' as a single word, never 'micro-services'.",
+    "Capitalize 'Q3' in all business communications, never 'q3'.",
+    "Always refer to our application as 'Grammar Master'.",
+    "Use 'Kubernetes', never 'K8s' or 'k8s'.",
+    "Use 'TypeScript', never 'Typescript' or 'typescript'.",
+    "Always write 'macOS' instead of 'Mac OS' or 'Mac OSX'.",
+    "Use 'OAuth 2.0', never 'Oauth2' or 'oAuth2'."
+  ],
+  "cases": [
+    {
+      "id": 1,
+      "input": "We deployed ebpf filters for high-speed network observability.",
+      "expected_violations": [
+        { "original": "ebpf", "replacement": "eBPF" }
+      ],
+      "relevant_rule": "Use 'eBPF', never 'Ebpf' or 'ebpf'."
+    },
+    {
+      "id": 2,
+      "input": "The kernel monitor relies on Ebpf bytecode probes.",
+      "expected_violations": [
+        { "original": "Ebpf", "replacement": "eBPF" }
+      ],
+      "relevant_rule": "Use 'eBPF', never 'Ebpf' or 'ebpf'."
+    },
+    {
+      "id": 3,
+      "input": "Our team migrated the primary database to Postgres last week.",
+      "expected_violations": [
+        { "original": "Postgres", "replacement": "PostgreSQL" }
+      ],
+      "relevant_rule": "Always write 'PostgreSQL' instead of 'Postgres'."
+    },
+    {
+      "id": 4,
+      "input": "The analytics service queries Postgres for weekly reporting.",
+      "expected_violations": [
+        { "original": "Postgres", "replacement": "PostgreSQL" }
+      ],
+      "relevant_rule": "Always write 'PostgreSQL' instead of 'Postgres'."
+    },
+    {
+      "id": 5,
+      "input": "We refactored the monolith into micro-services for better isolation.",
+      "expected_violations": [
+        { "original": "micro-services", "replacement": "microservices" }
+      ],
+      "relevant_rule": "Write 'microservices' as a single word, never 'micro-services'."
+    },
+    {
+      "id": 6,
+      "input": "Each engineering team owns a set of decoupled micro-services.",
+      "expected_violations": [
+        { "original": "micro-services", "replacement": "microservices" }
+      ],
+      "relevant_rule": "Write 'microservices' as a single word, never 'micro-services'."
+    },
+    {
+      "id": 7,
+      "input": "Revenue targets for q3 exceeded our initial growth forecast.",
+      "expected_violations": [
+        { "original": "q3", "replacement": "Q3" }
+      ],
+      "relevant_rule": "Capitalize 'Q3' in all business communications, never 'q3'."
+    },
+    {
+      "id": 8,
+      "input": "The financial roadmap for q3 will be presented on Monday.",
+      "expected_violations": [
+        { "original": "q3", "replacement": "Q3" }
+      ],
+      "relevant_rule": "Capitalize 'Q3' in all business communications, never 'q3'."
+    },
+    {
+      "id": 9,
+      "input": "Welcome to grammar master, your intelligent writing assistant.",
+      "expected_violations": [
+        { "original": "grammar master", "replacement": "Grammar Master" }
+      ],
+      "relevant_rule": "Always refer to our application as 'Grammar Master'."
+    },
+    {
+      "id": 10,
+      "input": "All onboarding engineers should install grammar master.",
+      "expected_violations": [
+        { "original": "grammar master", "replacement": "Grammar Master" }
+      ],
+      "relevant_rule": "Always refer to our application as 'Grammar Master'."
+    },
+    {
+      "id": 11,
+      "input": "We manage production clusters on K8s across multiple regions.",
+      "expected_violations": [
+        { "original": "K8s", "replacement": "Kubernetes" }
+      ],
+      "relevant_rule": "Use 'Kubernetes', never 'K8s' or 'k8s'."
+    },
+    {
+      "id": 12,
+      "input": "Managing k8s deployments requires automated YAML validation.",
+      "expected_violations": [
+        { "original": "k8s", "replacement": "Kubernetes" }
+      ],
+      "relevant_rule": "Use 'Kubernetes', never 'K8s' or 'k8s'."
+    },
+    {
+      "id": 13,
+      "input": "Our backend codebase is built entirely with typescript and Node.",
+      "expected_violations": [
+        { "original": "typescript", "replacement": "TypeScript" }
+      ],
+      "relevant_rule": "Use 'TypeScript', never 'Typescript' or 'typescript'."
+    },
+    {
+      "id": 14,
+      "input": "We upgraded the project to the latest Typescript release.",
+      "expected_violations": [
+        { "original": "Typescript", "replacement": "TypeScript" }
+      ],
+      "relevant_rule": "Use 'TypeScript', never 'Typescript' or 'typescript'."
+    },
+    {
+      "id": 15,
+      "input": "The desktop application runs smoothly on Mac OS.",
+      "expected_violations": [
+        { "original": "Mac OS", "replacement": "macOS" }
+      ],
+      "relevant_rule": "Always write 'macOS' instead of 'Mac OS' or 'Mac OSX'."
+    },
+    {
+      "id": 16,
+      "input": "Compatibility testing was verified on Mac OSX systems.",
+      "expected_violations": [
+        { "original": "Mac OSX", "replacement": "macOS" }
+      ],
+      "relevant_rule": "Always write 'macOS' instead of 'Mac OS' or 'Mac OSX'."
+    },
+    {
+      "id": 17,
+      "input": "User login is secured using standard Oauth2 flows.",
+      "expected_violations": [
+        { "original": "Oauth2", "replacement": "OAuth 2.0" }
+      ],
+      "relevant_rule": "Use 'OAuth 2.0', never 'Oauth2' or 'oAuth2'."
+    },
+    {
+      "id": 18,
+      "input": "Third-party integrations communicate using oAuth2 tokens.",
+      "expected_violations": [
+        { "original": "oAuth2", "replacement": "OAuth 2.0" }
+      ],
+      "relevant_rule": "Use 'OAuth 2.0', never 'Oauth2' or 'oAuth2'."
+    },
+    {
+      "id": 19,
+      "input": "The pipeline combines Postgres with ebpf monitoring.",
+      "expected_violations": [
+        { "original": "Postgres", "replacement": "PostgreSQL" },
+        { "original": "ebpf", "replacement": "eBPF" }
+      ],
+      "relevant_rule": "Always write 'PostgreSQL' instead of 'Postgres'."
+    },
+    {
+      "id": 20,
+      "input": "In q3 we migrated our micro-services to K8s.",
+      "expected_violations": [
+        { "original": "q3", "replacement": "Q3" },
+        { "original": "micro-services", "replacement": "microservices" },
+        { "original": "K8s", "replacement": "Kubernetes" }
+      ],
+      "relevant_rule": "Write 'microservices' as a single word, never 'micro-services'."
+    }
+  ]
+}

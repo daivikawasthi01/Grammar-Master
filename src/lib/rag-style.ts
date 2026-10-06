@@ -13,6 +13,13 @@ export const DEFAULT_STYLE_RULES = [
 ];
 
 /**
+ * Minimum cosine similarity threshold for vector retrieval (0.20).
+ * Filters out orthogonal / weakly matching noise while reliably matching
+ * domain terms and syntactic variants.
+ */
+export const MIN_STYLE_RETRIEVAL_SCORE = 0.20;
+
+/**
  * Splits raw style guide or glossary text into atomic rules.
  * Each bullet, list item, or line is treated as an isolated rule chunk.
  */
@@ -117,7 +124,7 @@ export async function retrieveRelevantRules(
     }
 
     const matched = results
-      .filter((r) => r.metadata?.text && r.score > 0.05)
+      .filter((r) => r.metadata?.text && r.score >= MIN_STYLE_RETRIEVAL_SCORE)
       .map((r) => r.metadata!.text);
 
     return matched.length > 0 ? matched : DEFAULT_STYLE_RULES;
@@ -190,7 +197,13 @@ export function extractStyleRuleSuggestions(text: string, rules: string[]): Styl
       }
     } else if (match2) {
       preferred = match2[1];
-      forbidden = [match2[2]];
+      const rest = rule.slice(rule.toLowerCase().indexOf("instead of") + 10);
+      const quoted = rest.match(/['"]([^'"]+)['"]/g);
+      if (quoted && quoted.length > 0) {
+        forbidden = quoted.map((q) => q.replace(/['"]/g, ""));
+      } else {
+        forbidden = [match2[2]];
+      }
     } else if (match3) {
       preferred = match3[1];
       forbidden = [match3[2]];
@@ -206,6 +219,11 @@ export function extractStyleRuleSuggestions(text: string, rules: string[]): Styl
         preferred = allQuoted[0].replace(/['"]/g, "");
         forbidden = allQuoted.slice(1).map((q) => q.replace(/['"]/g, ""));
       }
+    }
+
+    // Also check if text has casing mismatches of the preferred term itself
+    if (preferred && !forbidden.some((f) => f.toLowerCase() === preferred.toLowerCase())) {
+      forbidden.push(preferred);
     }
 
     for (const badWord of forbidden) {
