@@ -27,7 +27,8 @@ Grammar Master is a modern AI-augmented writing and cognitive workspace built wi
 - **AI Text Modification & Copilot**: Expand, shorten, formalize, simplify, or rewrite selections using Groq's high-speed LLM inference (`openai/gpt-oss-120b`).
 - **Interactive Document Editor**: Native contentEditable workspace with caret stabilization and instant suggestion acceptance.
 - **Export Formats**: One-click document export to `.docx`, `.pdf`, and `.txt`.
-- **Production-Ready Rate Limiting**: Dual-tier rate limiting with Upstash Redis and in-memory fallback for local development.
+- **Production-Ready Rate Limiting**: Distributed rate limiting backed by Upstash Redis with local in-memory fallback.
+- **In-Memory Response Caching**: In-memory TTL caching (`PromptCache`) across analysis routes to eliminate redundant LLM invocations for identical prompt queries.
 
 ---
 
@@ -65,6 +66,7 @@ flowchart TD
 | **Vector Search / RAG** | Upstash Vector + `@xenova/transformers` (`all-MiniLM-L6-v2`) |
 | **AI Inference** | Groq SDK (`openai/gpt-oss-120b`, `llama-3.3-70b-versatile`) |
 | **Rate Limiting** | Upstash Redis (production) + In-memory fallback |
+| **Response Caching** | In-memory TTL cache (`PromptCache`) |
 | **Testing** | Jest, React Testing Library |
 
 ---
