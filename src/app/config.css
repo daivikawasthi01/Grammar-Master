@@ -121,3 +121,73 @@ code, pre, .font-mono {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
 }
+
+/* TipTap Suggestion Underlines & Highlights */
+.sg {
+  text-decoration: underline wavy;
+  text-underline-offset: 4px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background-color 0.15s ease;
+}
+.sg:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.sg-correctness {
+  text-decoration-color: #f87171;
+}
+.sg-clarity {
+  text-decoration-color: #60a5fa;
+}
+.sg-engagement {
+  text-decoration-color: #c084fc;
+}
+.sg-delivery {
+  text-decoration-color: #fbbf24;
+}
+.sg-style {
+  text-decoration-color: #34d399;
+}
+
+/* TipTap Editor ProseMirror Styles */
+.ProseMirror {
+  outline: none;
+  min-height: 480px;
+}
+.ProseMirror p {
+  margin-bottom: 1.25rem;
+  line-height: 1.8;
+}
+.ProseMirror h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--on-surface);
+}
+.ProseMirror h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--on-surface);
+}
+.ProseMirror ul, .ProseMirror ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.ProseMirror blockquote {
+  border-left: 3px solid var(--primary-container);
+  padding-left: 1rem;
+  margin-left: 0;
+  margin-bottom: 1.25rem;
+  color: var(--on-surface-variant);
+  font-style: italic;
+}
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: rgba(203, 195, 215, 0.35);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
