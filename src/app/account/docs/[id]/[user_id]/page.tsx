@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useEffect, useState, use, useCallback, useRef } from "react";
+import React, { useState, use } from "react";
 import useDocument from "@/app/hooks/useDocument";
-import { HandleSaveDocument } from "@/app/helpers/SaveDocument";
 import useAuth from "@/app/hooks/useAuth";
-import axios from "axios";
-
 import { GrammarlyHeader } from "./components/GrammarlyHeader";
 import { GrammarlyInspector } from "./components/GrammarlyInspector";
 import { AIAssistantDrawer } from "./components/AIAssistantDrawer";
 import { SuggestionItem, ToneItem } from "@/app/api/analyze-document/route";
+import { TipTapEditor } from "@/components/editor/TipTapEditor";
+import Loading from "@/app/components/Loading";
 
 interface DocsProps {
   params: Promise<{
@@ -17,13 +16,6 @@ interface DocsProps {
     user_id: string;
   }>;
 }
-
-const stripHtml = (html: string) => {
-  if (typeof window === "undefined") return html;
-  const tmp = window.document.createElement("div");
-  tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || "";
-};
 
 const DEFAULT_SUGGESTIONS: SuggestionItem[] = [
   {
@@ -46,20 +38,12 @@ const DEFAULT_SUGGESTIONS: SuggestionItem[] = [
   },
 ];
 
-const INITIAL_DOC_TEXT =
-  "The integration of generative models into the core workflow has yielded significant productivity gains. However, teh initial rollout faced some resistance due to the fact that comprehensive training materials were delayed.\n\nMoving forward, our strategy relies on leveraging these tools not just for efficiency, but for enhancing creative output. We must ensure that the human element remains central to our operations.";
-
 const Doc: React.FC<DocsProps> = ({ params }) => {
   const { id, user_id } = use(params);
   const { isLogged } = useAuth();
   const { document: docData, error, isLoading, isLoaded } = useDocument(user_id, id);
 
-  const [text, setText] = useState<string>("");
   const [title, setTitle] = useState<string>("Untitled Document");
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string>("");
-  const [lastSaved, setLastSaved] = useState<string>("");
-
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
 
@@ -67,269 +51,99 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
   const [overallScore, setOverallScore] = useState<number>(85);
   const [suggestions, setSuggestions] = useState<SuggestionItem[]>(DEFAULT_SUGGESTIONS);
   const [metrics, setMetrics] = useState({
-    wordCount: 452,
-    charCount: 2840,
-    sentenceCount: 24,
-    readingTimeMin: 2,
-    speakingTimeMin: 3,
+    wordCount: 0,
+    charCount: 0,
+    sentenceCount: 0,
+    readingTimeMin: 1,
+    speakingTimeMin: 1,
     readabilityScore: 88,
-    readabilityGrade: "Grade 10",
+    readabilityGrade: "Grade 8-9",
   });
   const [tones, setTones] = useState<ToneItem[]>([
     { name: "Professional", score: 85, color: "#d0bcff" },
     { name: "Direct", score: 75, color: "#adc6ff" },
   ]);
   const [categories, setCategories] = useState({
-    correctness: 1,
-    clarity: 1,
+    correctness: 0,
+    clarity: 0,
     engagement: 0,
     delivery: 0,
   });
 
-  // Stable refs for DOM content, caret preservation, and race protection
-  const editorRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<string>("");
-  const initialDocLoadedRef = useRef<boolean>(false);
-  const handledItemsRef = useRef<Set<string>>(new Set());
-  const isAcceptingRef = useRef<boolean>(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const latestRequestIdRef = useRef<number>(0);
-
-  const cleanHtmlTags = (raw: string): string => {
-    if (!raw) return "";
-    if (!raw.includes("<") || !raw.includes(">")) return raw;
-    return raw
-      .replace(/<\/p>/gi, "\n\n")
-      .replace(/<br\s*\/?>/gi, "\n")
-      .replace(/<\/li>/gi, "\n")
-      .replace(/<[^>]+>/g, "")
-      .replace(/\n{3,}/g, "\n\n")
-      .trim();
-  };
-
-  // Safe initial load: only populate editor once server responds to prevent overwriting real docs
-  useEffect(() => {
-    if (isLoaded && docData && !initialDocLoadedRef.current) {
-      const cleaned = cleanHtmlTags(docData.text || "");
-      setText(cleaned);
-      textRef.current = cleaned;
-      if (editorRef.current) {
-        editorRef.current.innerText = cleaned;
-      }
-      if (docData.title) setTitle(docData.title);
-      initialDocLoadedRef.current = true;
-    }
-  }, [isLoaded, docData]);
-
-  // Safe auto-save: strictly blocked until document is confirmed loaded
-  useEffect(() => {
-    if (!isLoaded || !docData || !initialDocLoadedRef.current) return;
-    if (text === (docData.text || "") && title === (docData.title || "")) return;
-
-    const saveTimeout = setTimeout(async () => {
-      setIsSaving(true);
-      setSaveError("");
-      try {
-        const success = await HandleSaveDocument(user_id, id, title, text);
-        if (success) {
-          setLastSaved(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
-        } else {
-          setSaveError("Failed to save changes");
-        }
-      } catch (err) {
-        setSaveError("Connection error while saving");
-      } finally {
-        setIsSaving(false);
-      }
-    }, 1000);
-
-    return () => clearTimeout(saveTimeout);
-  }, [text, title, docData, isLoaded, user_id, id]);
-
-  // Document Analysis Engine trigger with AbortController and request ID ordering
-  const runAnalysis = useCallback(async (currentText: string) => {
-    if (isAcceptingRef.current) {
-      isAcceptingRef.current = false;
-      return;
-    }
-
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-    const currentRequestId = ++latestRequestIdRef.current;
-
-    try {
-      const cleanText = stripHtml(currentText);
-      const res = await axios.post("/api/analyze-document", {
-        text: cleanText,
-        language: docData?.language || "American English",
-        _id: id,
-        requestId: String(currentRequestId),
-      }, {
-        signal: controller.signal,
-      });
-
-      if (currentRequestId !== latestRequestIdRef.current) {
-        return; // Discard stale out-of-order response
-      }
-
-      if (res.data) {
-        const rawSuggestions: SuggestionItem[] = res.data.suggestions || [];
-        const filtered = rawSuggestions.filter(
-          (s) =>
-            s.originalText &&
-            cleanText.toLowerCase().includes(s.originalText.toLowerCase()) &&
-            !handledItemsRef.current.has(s.originalText.toLowerCase()) &&
-            !handledItemsRef.current.has(s.id)
-        );
-
-        setSuggestions(filtered);
-
-        if (filtered.length === 0) {
-          setOverallScore(100);
-        } else {
-          setOverallScore(res.data.overallScore || Math.max(60, 100 - filtered.length * 8));
-        }
-
-        if (res.data.metrics) setMetrics(res.data.metrics);
-        if (res.data.tones) setTones(res.data.tones);
-        if (res.data.categories) setCategories(res.data.categories);
-      }
-    } catch (err: any) {
-      if (axios.isCancel(err) || err?.name === "CanceledError" || err?.name === "AbortError") {
-        return;
-      }
-      console.error("Analysis route error:", err);
-    }
-  }, [docData, id]);
-
-  // Debounced 800ms analysis while user is actively typing
-  useEffect(() => {
-    if (!initialDocLoadedRef.current) return;
-    const timeout = setTimeout(() => {
-      runAnalysis(text);
-    }, 800);
-
-    return () => clearTimeout(timeout);
-  }, [text, runAnalysis]);
-
-  // Direct editor input handler without destructive DOM re-renders
-  const handleEditorInput = (e: React.FormEvent<HTMLDivElement>) => {
-    const currentVal = e.currentTarget.innerText;
-    textRef.current = currentVal;
-    setText(currentVal);
-    handledItemsRef.current.clear();
-  };
-
-  // Handle Suggestion Actions (Accept / Dismiss)
-  const handleApplySuggestion = (sug: SuggestionItem) => {
-    if (!sug.originalText) return;
-    isAcceptingRef.current = true;
-    handledItemsRef.current.add(sug.originalText.toLowerCase());
-    handledItemsRef.current.add(sug.replacementText.toLowerCase());
-    handledItemsRef.current.add(sug.id);
-
-    const currentText = editorRef.current ? editorRef.current.innerText : text;
-    let newText: string;
-    if (
-      typeof sug.startIndex === "number" &&
-      typeof sug.endIndex === "number" &&
-      sug.startIndex >= 0 &&
-      sug.endIndex <= currentText.length &&
-      currentText.slice(sug.startIndex, sug.endIndex) === sug.originalText
-    ) {
-      newText =
-        currentText.slice(0, sug.startIndex) +
-        sug.replacementText +
-        currentText.slice(sug.endIndex);
-    } else {
-      // Case-insensitive regex replacement for the first occurrence
-      const escaped = sug.originalText.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
-      const regex = new RegExp(`\\b${escaped}\\b`, "i");
-      newText = currentText.replace(regex, sug.replacementText);
-    }
-
-    textRef.current = newText;
-    setText(newText);
-    if (editorRef.current) {
-      editorRef.current.innerText = newText;
-    }
-
-    setSuggestions((prev) => {
-      const updated = prev.filter((item) => item.id !== sug.id && item.originalText.toLowerCase() !== sug.originalText.toLowerCase());
-      const remainingCount = updated.length;
-      setOverallScore(remainingCount === 0 ? 100 : Math.max(50, Math.min(99, 100 - remainingCount * 8)));
-      return updated;
-    });
-  };
-
-  const handleDismissSuggestion = (sugId: string) => {
-    isAcceptingRef.current = true;
-    handledItemsRef.current.add(sugId);
-
-    setSuggestions((prev) => {
-      const sug = prev.find((s) => s.id === sugId);
-      if (sug?.originalText) {
-        handledItemsRef.current.add(sug.originalText.toLowerCase());
-      }
-      const updated = prev.filter((item) => item.id !== sugId);
-      const remainingCount = updated.length;
-      setOverallScore(remainingCount === 0 ? 100 : Math.max(50, Math.min(99, 100 - remainingCount * 8)));
-      return updated;
-    });
-  };
-
-  // AI Drawer Action handler
-  const handleAIAction = async (action: string, customPrompt?: string) => {
-    setAiLoading(true);
-    try {
-      const cleanText = stripHtml(text);
-      const res = await axios.post("/api/ai-text-modify", {
-        text: cleanText,
-        action,
-        customPrompt,
-        _id: user_id,
-      });
-
-      if (res.data?.success?.text) {
-        const modified = res.data.success.text;
-        textRef.current = modified;
-        setText(modified);
-        if (editorRef.current) {
-          editorRef.current.innerText = modified;
-        }
-        runAnalysis(modified);
-      }
-    } catch (err) {
-      console.error("AI action error:", err);
-    } finally {
-      setAiLoading(false);
-      setShowAIAssistant(false);
+  const handleAnalysisUpdate = (data: {
+    overallScore: number;
+    metrics: any;
+    tones: any[];
+    categories: any;
+    suggestions: any[];
+  }) => {
+    setOverallScore(data.overallScore);
+    if (data.metrics) setMetrics(data.metrics);
+    if (data.tones) setTones(data.tones);
+    if (data.categories) setCategories(data.categories);
+    if (data.suggestions) {
+      const items: SuggestionItem[] = data.suggestions.map((s) => ({
+        id: s.id,
+        originalText: s.original,
+        replacementText: s.replacement,
+        category: s.category,
+        title: s.title,
+        description: s.message,
+        explanation: s.explanation,
+        startIndex: s.from,
+        endIndex: s.to,
+      }));
+      setSuggestions(items);
     }
   };
 
-  // Export Document Handler
   const handleExport = (format: "docx" | "pdf" | "txt") => {
-    const cleanText = stripHtml(text);
-    const filename = `${title || "document"}.${format === "docx" ? "docx" : format === "pdf" ? "pdf" : "txt"}`;
-
     if (format === "pdf") {
       window.print();
       return;
     }
-
-    const mime = format === "docx" ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document" : "text/plain";
-    const blob = new Blob([cleanText], { type: `${mime};charset=utf-8` });
-    const link = window.document.createElement("a");
+    const plain = (docData as any)?.text || "";
+    const blob = new Blob([plain], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
     link.href = url;
-    link.download = filename;
+    link.download = `${title || "document"}.txt`;
     link.click();
     URL.revokeObjectURL(url);
   };
+
+  if (isLoading || !isLoaded) {
+    return <Loading />;
+  }
+
+  if (error && !docData) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center space-y-4">
+        <span className="material-symbols-outlined text-4xl text-rose-400">error</span>
+        <h2 className="text-xl font-bold text-on-surface">Document Unavailable</h2>
+        <p className="text-sm text-on-surface-variant max-w-md">{error}</p>
+        <a
+          href="/account"
+          className="px-5 py-2 rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 text-xs font-semibold"
+        >
+          Return to Dashboard
+        </a>
+      </div>
+    );
+  }
+
+  const initialContent =
+    docData?.content && docData.content.type
+      ? docData.content
+      : {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: docData?.text || "" }],
+            },
+          ],
+        };
 
   return (
     <div className="bg-background text-on-surface h-screen overflow-hidden flex flex-col font-body-md selection:bg-primary-container selection:text-on-primary-container relative">
@@ -337,9 +151,8 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
       <GrammarlyHeader
         title={title}
         onTitleChange={setTitle}
-        isSaving={isSaving}
-        saveError={saveError}
-        lastSaved={lastSaved}
+        isSaving={false}
+        lastSaved="auto"
         overallScore={overallScore}
         onToggleAIAssistant={() => setShowAIAssistant(true)}
         onExport={handleExport}
@@ -348,86 +161,17 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
 
       {/* Main Workspace */}
       <main className="flex-1 flex mt-16 h-[calc(100vh-64px)] relative">
-        {/* Spatially Layered Background Glows */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-          <div className="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-primary-container/10 rounded-full blur-[140px]" />
-          <div className="absolute bottom-[20%] right-[30%] w-[40%] h-[40%] bg-secondary/5 rounded-full blur-[120px]" />
-        </div>
-
-        {/* Left Canvas (Editor) */}
-        <section className="flex-1 flex justify-center overflow-y-auto relative p-12 z-10">
-          <div className="w-full max-w-[800px] text-body-lg text-on-surface-variant leading-[1.8] relative pb-32 mt-8">
-            {/* Title Editable */}
-            <h1
-              className="text-4xl md:text-5xl font-bold font-headline mb-10 outline-none text-on-surface tracking-tight"
-              contentEditable
-              suppressContentEditableWarning
-              onBlur={(e) => setTitle(e.currentTarget.innerText)}
-            >
-              {title.replace(/\.[^/.]+$/, "") || "Quarterly AI Impact Assessment"}
-            </h1>
-
-            {/* Unified Document Editor with natural typing & stable caret */}
-            <div
-              ref={editorRef}
-              contentEditable
-              suppressContentEditableWarning
-              onInput={handleEditorInput}
-              className="outline-none text-lg text-on-surface-variant leading-[1.8] min-h-[500px] whitespace-pre-wrap font-sans focus:outline-none"
-              style={{ minHeight: "55vh" }}
+        {/* Left Canvas (TipTap Editor) */}
+        <section className="flex-1 flex justify-center overflow-y-auto relative p-8 md:p-12 z-10">
+          <div className="w-full max-w-[800px] text-on-surface-variant relative pb-32">
+            <TipTapEditor
+              docId={id}
+              initialTitle={docData?.title || "Untitled Document"}
+              initialContent={initialContent}
+              initialVersion={docData?.version || 1}
+              onTitleChange={setTitle}
+              onAnalysisUpdate={handleAnalysisUpdate}
             />
-
-            {/* Floating Rich Formatting Toolbar */}
-            <div className="fixed bottom-10 left-[32.5%] -translate-x-1/2 bg-gradient-to-b from-white/[0.08] to-transparent backdrop-blur-3xl border border-white/10 p-2 rounded-full flex items-center gap-2 shadow-[0_16px_40px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)] z-40">
-              <button
-                className="p-2 rounded-full hover:bg-white/10 text-on-surface transition-colors"
-                title="Bold"
-                onClick={() => document.execCommand("bold")}
-              >
-                <span className="material-symbols-outlined text-[20px]">format_bold</span>
-              </button>
-              <button
-                className="p-2 rounded-full hover:bg-white/10 text-on-surface transition-colors"
-                title="Italic"
-                onClick={() => document.execCommand("italic")}
-              >
-                <span className="material-symbols-outlined text-[20px]">format_italic</span>
-              </button>
-              <button
-                className="p-2 rounded-full hover:bg-white/10 text-on-surface transition-colors"
-                title="Underline"
-                onClick={() => document.execCommand("underline")}
-              >
-                <span className="material-symbols-outlined text-[20px]">format_underlined</span>
-              </button>
-
-              <div className="w-px h-6 bg-white/10 self-center mx-1" />
-
-              <button
-                className="p-2 rounded-full hover:bg-white/10 text-on-surface transition-colors"
-                title="Bullet List"
-                onClick={() => document.execCommand("insertUnorderedList")}
-              >
-                <span className="material-symbols-outlined text-[20px]">format_list_bulleted</span>
-              </button>
-              <button
-                className="p-2 rounded-full hover:bg-white/10 text-on-surface transition-colors"
-                title="Numbered List"
-                onClick={() => document.execCommand("insertOrderedList")}
-              >
-                <span className="material-symbols-outlined text-[20px]">format_list_numbered</span>
-              </button>
-
-              <div className="w-px h-6 bg-white/10 self-center mx-1" />
-
-              <button
-                onClick={() => setShowAIAssistant(true)}
-                className="p-2 rounded-full hover:bg-white/10 text-primary transition-colors pulse-glow flex items-center justify-center"
-                title="Ask writ.ai Copilot"
-              >
-                <span className="material-symbols-outlined text-[20px]">auto_awesome</span>
-              </button>
-            </div>
           </div>
         </section>
 
@@ -438,8 +182,8 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
           metrics={metrics}
           tones={tones}
           categories={categories}
-          onApplySuggestion={handleApplySuggestion}
-          onDismissSuggestion={handleDismissSuggestion}
+          onApplySuggestion={() => {}}
+          onDismissSuggestion={() => {}}
         />
       </main>
 
@@ -447,7 +191,7 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
       <AIAssistantDrawer
         isOpen={showAIAssistant}
         onClose={() => setShowAIAssistant(false)}
-        onApplyAction={handleAIAction}
+        onApplyAction={async () => {}}
         isLoading={aiLoading}
       />
     </div>
@@ -455,4 +199,3 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
 };
 
 export default Doc;
-
