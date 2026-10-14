@@ -3,34 +3,53 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
+import { requireUser } from "@/lib/api-auth";
 
-interface RequestBodyType {
-  _id:string 
-}
-
-interface documentParamsType {
-  params: Promise<{ 
-    document: string; 
+interface DocumentParamsType {
+  params: Promise<{
+    document: string;
   }>;
 }
 
-export async function POST(req: Request, props: documentParamsType) {
-    try {
-        const params = await props.params;
-        const {_id}:RequestBodyType = await req.json()
-        await dbConnect();
-        
-        if (params.document){
-            const document = await User.findOne({ '_id': _id}).select('documents')
-            const filteredDocument = document.documents.filter((doc: any) =>
-                doc.title.toLowerCase().includes(params.document.toLowerCase())
-            )
-            return NextResponse.json({status: 'searched', filteredDocument})
-        }
-        
-        return NextResponse.json({ error: 'No search term provided' }, { status: 400 });
-    } catch (error) {
-        console.error('Search document error:', error);
-        return NextResponse.json({ error: 'Failed to search documents' }, { status: 500 });
+export async function POST(req: Request, props: DocumentParamsType) {
+  try {
+    const auth = await requireUser(req);
+    if ("response" in auth) {
+      return auth.response;
     }
+
+    const params = await props.params;
+    const searchTerm = params?.document ? decodeURIComponent(params.document).trim() : "";
+
+    if (!searchTerm) {
+      return NextResponse.json(
+        { error: "No search term provided" },
+        { status: 400 }
+      );
+    }
+
+    await dbConnect();
+    const user = await User.findById(auth.user.id).select("documents");
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    const filteredDocument = (user.documents || []).filter((doc: any) =>
+      doc.title?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return NextResponse.json({
+      status: "searched",
+      filteredDocument,
+    });
+  } catch (error) {
+    console.error("Search document error:", error);
+    return NextResponse.json(
+      { error: "Failed to search documents" },
+      { status: 500 }
+    );
+  }
 }

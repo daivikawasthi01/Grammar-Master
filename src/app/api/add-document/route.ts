@@ -3,78 +3,63 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
-import mongoose from "mongoose";
-import { requireAuthOrDemo } from "@/lib/api-auth";
+import { requireUser } from "@/lib/api-auth";
+import { z } from "zod";
 
-interface RequestBodyType {
-  _id?: string;
-  title?: string;
-  text?: string;
-}
+const addDocSchema = z.object({
+  title: z.string().optional().default("Untitled Document"),
+  text: z.string().optional().default(""),
+});
 
 export async function POST(req: Request) {
   try {
-    const body: RequestBodyType = await req.json().catch(() => ({}));
-    const authCheck = await requireAuthOrDemo(req, body._id);
-    if ("response" in authCheck) {
-      return authCheck.response;
+    const auth = await requireUser(req);
+    if ("response" in auth) {
+      return auth.response;
     }
 
-    const { user: authUser, isDemo } = authCheck.auth;
-    const userId = authUser.id;
-    const docTitle = body.title || "Untitled Document";
-    const docText = body.text || "";
-    const fallbackDocId = "doc_" + Date.now();
+    const body = await req.json().catch(() => ({}));
+    const parsed = addDocSchema.safeParse(body);
+    const { title, text } = parsed.success ? parsed.data : { title: "Untitled Document", text: "" };
+    const userId = auth.user.id;
 
-    if (isDemo || userId === "demo123" || !mongoose.Types.ObjectId.isValid(userId)) {
-      return NextResponse.json({
-        status: "added",
-        documentId: fallbackDocId,
-        _id: userId,
-      });
-    }
-
-    try {
-      await dbConnect();
-      const updatedUser = await User.findOneAndUpdate(
-        { _id: userId },
-        {
-          $push: {
-            documents: {
-              title: docTitle,
-              text: docText,
-              status: "created",
-              language: "American English",
-            },
+    await dbConnect();
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId },
+      {
+        $push: {
+          documents: {
+            title: title.trim() || "Untitled Document",
+            text: text || "",
+            status: "created",
+            language: "American English",
           },
         },
-        { new: true }
-      );
+      },
+      { new: true }
+    );
 
-      if (updatedUser && updatedUser.documents?.length > 0) {
-        const documents = updatedUser.documents;
-        const newDoc = documents[documents.length - 1];
-        return NextResponse.json({
-          status: "added",
-          documentId: newDoc._id.toString(),
-          _id: userId,
-        });
-      }
-    } catch (dbError) {
-      console.error("Database connection or query error in add-document:", dbError);
+    if (!updatedUser || !updatedUser.documents?.length) {
+      return NextResponse.json(
+        { error: "Failed to create document" },
+        { status: 500 }
+      );
     }
+
+    const documents = updatedUser.documents;
+    const newDoc = documents[documents.length - 1];
 
     return NextResponse.json({
       status: "added",
-      documentId: fallbackDocId,
+      documentId: newDoc._id.toString(),
       _id: userId,
+      title: newDoc.title,
     });
   } catch (error: any) {
     console.error("Error in add-document route:", error);
-    return NextResponse.json({
-      status: "added",
-      documentId: "doc_" + Date.now(),
-      _id: "demo123",
-    });
+    return NextResponse.json(
+      { error: "Failed to create document" },
+      { status: 500 }
+    );
   }
 }

@@ -1,52 +1,47 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { PollingData } from '../types/data';
 
-const DEFAULT_DEMO_USER: PollingData = {
-  _id: "demo123",
-  email: "demo@writ.ai",
-  name: "Writ AI User",
-  plan: "pro",
-  prompts: 2450,
-  documents: [
-    {
-      _id: "demo_doc_1",
-      title: "Quarterly_AI_Strategy.docx",
-      text: "Executive Summary: In modern software engineering and content generation, friction during draft creation limits creativity. writ.ai introduces an ethereal glassmorphic workspace that automatically evaluates correctness, tone, and conciseness in real-time.",
-      status: "created",
-      language: "American English"
-    }
-  ],
-  trashs: []
-};
-
 const usePolling = () => {
-  const [data, setData] = useState<PollingData>(DEFAULT_DEMO_USER);
+  const [data, setData] = useState<PollingData | null>(null);
   const [errorPoll, setErrorPoll] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const response = await axios.get('/api/user');
       if (response.data && !response.data.error) {
         setData(response.data);
         setErrorPoll('');
+      } else {
+        setErrorPoll(response.data?.error || 'Failed to load user data');
       }
     } catch (err: any) {
-      // Keep DEFAULT_DEMO_USER if network or DB issue occurs
+      setErrorPoll(err.response?.data?.error || 'Network error fetching user data');
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, []);
 
-  const mutate = () => {
-    fetchData();
-  };
+  const mutate = useCallback(() => {
+    return fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
-  return { data, errorPoll, mutate };
+    // Refetch on window focus rather than aggressive 5-second polling interval
+    const onFocus = () => {
+      fetchData();
+    };
+
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [fetchData]);
+
+  return { data, errorPoll, isLoading, mutate };
 };
 
 export default usePolling;

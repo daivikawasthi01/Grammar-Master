@@ -1,47 +1,50 @@
 import axios from 'axios';
 import { useState, useEffect } from 'react';
 
-interface DataType {
+export interface DocumentDataType {
     date?: string;
     status?: string;
     text?: string;
+    content?: any;
     title?: string;
     _id?: string;
     language?: string;
+    version?: number;
 }
-
-const DEFAULT_DOC: DataType = {
-    _id: "demo_doc_1",
-    title: "Quarterly_AI_Strategy.docx",
-    text: "Executive Summary: In modern software engineering and content generation, friction during draft creation limits creativity. writ.ai introduces an ethereal glassmorphic workspace that automatically evaluates correctness, tone, and conciseness in real-time.\n\nThe integration of generative models into the core workflow has yielded significant productivity gains. However, teh initial rollout faced some resistance due to delayed training resources.\n\nMoving forward, our strategy relies on leveraging AI tools for enhancing creative output while keeping the human element central to operations.",
-    status: "created",
-    language: "American English"
-};
 
 const useDocument = (_id: string, document_id: string) => {
     const [error, setError] = useState('');
-    const [document, setDocument] = useState<DataType>(DEFAULT_DOC);
+    const [document, setDocument] = useState<DocumentDataType | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
         if (!_id || !document_id) return;
         setIsLoading(true);
+        setIsLoaded(false);
+        setError('');
+
         axios.get(`/api/document/${_id}/${document_id}`)
             .then(({ data }) => {
                 if (data && !data.error) {
                     setDocument(data);
                     setError('');
+                    setIsLoaded(true);
+                } else {
+                    setError(data.error || 'Failed to load document');
+                    setIsLoaded(false);
                 }
             })
-            .catch(() => {
-                // Silently keep DEFAULT_DOC on network issues
+            .catch((err) => {
+                setError(err.response?.data?.error || 'Failed to load document');
+                setIsLoaded(false);
             })
             .finally(() => {
                 setIsLoading(false);
             });
     }, [_id, document_id]);
 
-    return { document, error, isLoading, setDocument };
+    return { document, error, isLoading, isLoaded, setDocument };
 };
 
 export default useDocument;

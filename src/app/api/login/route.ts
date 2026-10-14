@@ -8,53 +8,41 @@ import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
 import { JWT_SECRET } from "@/app/config/auth";
 import { cookies } from "next/headers";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email format").toLowerCase().trim(),
+  password: z.string().min(1, "Password is required"),
+});
 
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => null);
-    if (!body) {
+    const parsed = loginSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid request payload" },
+        { error: parsed.error.issues[0]?.message || "Invalid credentials" },
         { status: 400 }
       );
     }
 
-    const { email, password } = body;
-
-    if (!email || !password) {
-      return NextResponse.json(
-        {
-          error: "Email and password are required",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
+    const { email, password } = parsed.data;
 
     await dbConnect();
 
     const user = await User.findOne({ email }).select("+password");
     if (!user || !user.password) {
       return NextResponse.json(
-        {
-          error: "Invalid email or password",
-        },
-        {
-          status: 401,
-        }
+        { error: "Invalid email or password" },
+        { status: 401 }
       );
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return NextResponse.json(
-        {
-          error: "Invalid email or password",
-        },
-        {
-          status: 401,
-        }
+        { error: "Invalid email or password" },
+        { status: 401 }
       );
     }
 
@@ -63,7 +51,7 @@ export async function POST(req: Request) {
         id: user._id.toString(),
         email: user.email,
         name: user.name,
-        plan: user.plan,
+        plan: user.plan || "free",
       },
       JWT_SECRET,
       { expiresIn: "7d" }
@@ -81,21 +69,17 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       user: {
-        id: user._id,
+        id: user._id.toString(),
         email: user.email,
         name: user.name,
-        plan: user.plan,
+        plan: user.plan || "free",
       },
     });
-  } catch (error: any) {
-    console.error("Login error:", error);
+  } catch (error) {
+    console.error("Login route error:", error);
     return NextResponse.json(
-      {
-        error: error?.message || "Authentication failed",
-      },
-      {
-        status: 500,
-      }
+      { error: "An unexpected error occurred during login." },
+      { status: 500 }
     );
   }
 }

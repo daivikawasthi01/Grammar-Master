@@ -52,11 +52,12 @@ const INITIAL_DOC_TEXT =
 const Doc: React.FC<DocsProps> = ({ params }) => {
   const { id, user_id } = use(params);
   const { isLogged } = useAuth();
-  const { document: docData, error, isLoading } = useDocument(user_id, id);
+  const { document: docData, error, isLoading, isLoaded } = useDocument(user_id, id);
 
-  const [text, setText] = useState<string>(INITIAL_DOC_TEXT);
-  const [title, setTitle] = useState<string>("Quarterly_AI_Report.docx");
+  const [text, setText] = useState<string>("");
+  const [title, setTitle] = useState<string>("Untitled Document");
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string>("");
   const [lastSaved, setLastSaved] = useState<string>("");
 
   const [showAIAssistant, setShowAIAssistant] = useState(false);
@@ -85,12 +86,14 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
     delivery: 0,
   });
 
-  // Stable refs for DOM content & caret preservation
+  // Stable refs for DOM content, caret preservation, and race protection
   const editorRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<string>(INITIAL_DOC_TEXT);
-  const initialRenderDoneRef = useRef<boolean>(false);
+  const textRef = useRef<string>("");
+  const initialDocLoadedRef = useRef<boolean>(false);
   const handledItemsRef = useRef<Set<string>>(new Set());
   const isAcceptingRef = useRef<boolean>(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const latestRequestIdRef = useRef<number>(0);
 
   const cleanHtmlTags = (raw: string): string => {
     if (!raw) return "";
@@ -104,57 +107,59 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
       .trim();
   };
 
-  // Set initial text on mount
+  // Safe initial load: only populate editor once server responds to prevent overwriting real docs
   useEffect(() => {
-    if (editorRef.current && !initialRenderDoneRef.current) {
-      editorRef.current.innerText = INITIAL_DOC_TEXT;
-      initialRenderDoneRef.current = true;
-    }
-  }, []);
-
-  // Load document from DB
-  useEffect(() => {
-    if (docData) {
-      if (docData.text) {
-        const cleaned = cleanHtmlTags(docData.text);
-        setText(cleaned);
-        textRef.current = cleaned;
-        if (editorRef.current) {
-          editorRef.current.innerText = cleaned;
-        }
+    if (isLoaded && docData && !initialDocLoadedRef.current) {
+      const cleaned = cleanHtmlTags(docData.text || "");
+      setText(cleaned);
+      textRef.current = cleaned;
+      if (editorRef.current) {
+        editorRef.current.innerText = cleaned;
       }
       if (docData.title) setTitle(docData.title);
+      initialDocLoadedRef.current = true;
     }
-  }, [docData]);
+  }, [isLoaded, docData]);
 
-  // Auto-save logic
+  // Safe auto-save: strictly blocked until document is confirmed loaded
   useEffect(() => {
+    if (!isLoaded || !docData || !initialDocLoadedRef.current) return;
+    if (text === (docData.text || "") && title === (docData.title || "")) return;
+
     const saveTimeout = setTimeout(async () => {
-      if (!docData || (!text && !title)) return;
-      if (text !== docData.text || title !== docData.title) {
-        setIsSaving(true);
-        try {
-          const success = await HandleSaveDocument(user_id, id, title, text);
-          if (success) {
-            setLastSaved(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
-          }
-        } catch (err) {
-          console.error("Save document error:", err);
-        } finally {
-          setIsSaving(false);
+      setIsSaving(true);
+      setSaveError("");
+      try {
+        const success = await HandleSaveDocument(user_id, id, title, text);
+        if (success) {
+          setLastSaved(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+        } else {
+          setSaveError("Failed to save changes");
         }
+      } catch (err) {
+        setSaveError("Connection error while saving");
+      } finally {
+        setIsSaving(false);
       }
-    }, 1200);
+    }, 1000);
 
     return () => clearTimeout(saveTimeout);
-  }, [text, title, docData, user_id, id]);
+  }, [text, title, docData, isLoaded, user_id, id]);
 
-  // Document Analysis Engine trigger
+  // Document Analysis Engine trigger with AbortController and request ID ordering
   const runAnalysis = useCallback(async (currentText: string) => {
     if (isAcceptingRef.current) {
       isAcceptingRef.current = false;
       return;
     }
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const currentRequestId = ++latestRequestIdRef.current;
 
     try {
       const cleanText = stripHtml(currentText);
@@ -162,7 +167,14 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
         text: cleanText,
         language: docData?.language || "American English",
         _id: id,
+        requestId: String(currentRequestId),
+      }, {
+        signal: controller.signal,
       });
+
+      if (currentRequestId !== latestRequestIdRef.current) {
+        return; // Discard stale out-of-order response
+      }
 
       if (res.data) {
         const rawSuggestions: SuggestionItem[] = res.data.suggestions || [];
@@ -186,16 +198,20 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
         if (res.data.tones) setTones(res.data.tones);
         if (res.data.categories) setCategories(res.data.categories);
       }
-    } catch (err) {
+    } catch (err: any) {
+      if (axios.isCancel(err) || err?.name === "CanceledError" || err?.name === "AbortError") {
+        return;
+      }
       console.error("Analysis route error:", err);
     }
   }, [docData, id]);
 
-  // Debounced analysis while user is actively typing
+  // Debounced 800ms analysis while user is actively typing
   useEffect(() => {
+    if (!initialDocLoadedRef.current) return;
     const timeout = setTimeout(() => {
       runAnalysis(text);
-    }, 1200);
+    }, 800);
 
     return () => clearTimeout(timeout);
   }, [text, runAnalysis]);
@@ -322,6 +338,7 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
         title={title}
         onTitleChange={setTitle}
         isSaving={isSaving}
+        saveError={saveError}
         lastSaved={lastSaved}
         overallScore={overallScore}
         onToggleAIAssistant={() => setShowAIAssistant(true)}

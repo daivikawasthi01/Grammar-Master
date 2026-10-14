@@ -21,6 +21,10 @@ const documentSchema = new mongoose.Schema({
         type: String,
         default: 'American English'
     },
+    content: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {}
+    },
     version: {
         type: Number,
         default: () => Date.now(),

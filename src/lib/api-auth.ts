@@ -1,6 +1,7 @@
 import "./polyfill";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import * as jose from "jose";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { JWT_SECRET } from "@/app/config/auth";
@@ -44,23 +45,14 @@ export function isDemoModeAllowed(): boolean {
 }
 
 /**
- * Safely authenticates an incoming API request by validating the signed JWT cookie.
- * Prevents Insecure Direct Object References (IDOR) by deriving the user identity
- * strictly from cryptographic session credentials, never client-supplied IDs.
- *
- * Demo mode fallback is strictly isolated to the synthetic 'demo123' sandbox.
+ * Extracts and verifies JWT from request cookies using jose or jsonwebtoken.
  */
-export async function authenticateApiRequest(
-  req: Request,
-  requestedId?: string
-): Promise<AuthResult> {
-  // 1. Try reading the token cookie from next/headers
+export async function verifyTokenFromRequest(req: Request): Promise<AuthenticatedUser | null> {
   let token: string | undefined;
   try {
     const cookieStore = await cookies();
     token = cookieStore.get("token")?.value;
   } catch {
-    // Fallback to parsing the Cookie header directly
     const cookieHeader = req.headers.get("cookie") || "";
     const match = cookieHeader.match(/(?:^|;\s*)token=([^;]+)/);
     if (match) {
@@ -68,34 +60,80 @@ export async function authenticateApiRequest(
     }
   }
 
-  // 2. If token exists, verify cryptographic signature
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET) as {
-        id: string;
-        email: string;
-        name: string;
-        plan?: string;
-      };
+  if (!token) return null;
 
-      if (decoded && decoded.id) {
+  try {
+    // Primary: jose HMAC SHA-256 verification (works across Edge & Node runtimes)
+    const secretKey = new TextEncoder().encode(JWT_SECRET);
+    const { payload } = await jose.jwtVerify(token, secretKey);
+    const id = (payload.id as string) || (payload.sub as string);
+    if (id) {
+      return {
+        id,
+        email: (payload.email as string) || "",
+        name: (payload.name as string) || "User",
+        plan: (payload.plan as string) || "free",
+      };
+    }
+  } catch {
+    try {
+      // Fallback: jsonwebtoken
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      if (decoded && (decoded.id || decoded.sub)) {
         return {
-          authenticated: true,
-          isDemo: false,
-          user: {
-            id: decoded.id,
-            email: decoded.email,
-            name: decoded.name,
-            plan: decoded.plan || "free",
-          },
+          id: decoded.id || decoded.sub,
+          email: decoded.email || "",
+          name: decoded.name || "User",
+          plan: decoded.plan || "free",
         };
       }
     } catch {
-      // Invalid/expired token: proceed to check if non-prod demo mode applies
+      return null;
     }
   }
 
-  // 3. Security Guard against IDOR:
+  return null;
+}
+
+/**
+ * Strict authentication guard: returns verified user or 401 response.
+ * Never falls back to demo mode or trusts client IDs.
+ */
+export async function requireUser(
+  req: Request
+): Promise<{ user: AuthenticatedUser } | { response: NextResponse }> {
+  const user = await verifyTokenFromRequest(req);
+  if (!user) {
+    return {
+      response: NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      ),
+    };
+  }
+  return { user };
+}
+
+/**
+ * Safely authenticates an incoming API request by validating the signed JWT cookie.
+ * Prevents Insecure Direct Object References (IDOR) by deriving the user identity
+ * strictly from cryptographic session credentials, never client-supplied IDs.
+ */
+export async function authenticateApiRequest(
+  req: Request,
+  requestedId?: string
+): Promise<AuthResult> {
+  const verifiedUser = await verifyTokenFromRequest(req);
+
+  if (verifiedUser) {
+    return {
+      authenticated: true,
+      isDemo: false,
+      user: verifiedUser,
+    };
+  }
+
+  // Security Guard against IDOR:
   // If the client supplies a real MongoDB ObjectId without a valid token, reject immediately!
   if (requestedId && requestedId !== "demo123" && mongoose.Types.ObjectId.isValid(requestedId)) {
     return {
@@ -105,7 +143,7 @@ export async function authenticateApiRequest(
     };
   }
 
-  // 4. Isolated Demo Mode for local development / testing
+  // Isolated Demo Mode for local development / testing
   if (isDemoModeAllowed() && (!requestedId || requestedId === "demo123")) {
     return {
       authenticated: false,
@@ -146,3 +184,4 @@ export async function requireAuthOrDemo(
 
   return { auth: result };
 }
+

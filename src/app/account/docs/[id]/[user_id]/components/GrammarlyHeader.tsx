@@ -8,6 +8,7 @@ interface GrammarlyHeaderProps {
   title: string;
   onTitleChange: (newTitle: string) => void;
   isSaving: boolean;
+  saveError?: string;
   lastSaved: string;
   overallScore: number;
   onToggleAIAssistant: () => void;
@@ -19,6 +20,7 @@ export const GrammarlyHeader: React.FC<GrammarlyHeaderProps> = ({
   title,
   onTitleChange,
   isSaving,
+  saveError,
   lastSaved,
   overallScore,
   onToggleAIAssistant,
@@ -77,8 +79,8 @@ export const GrammarlyHeader: React.FC<GrammarlyHeaderProps> = ({
             </span>
           )}
 
-          <span className="text-xs text-on-surface-variant/50">
-            {isSaving ? "Saving..." : lastSaved ? `Saved (${lastSaved})` : "Saved"}
+          <span className={`text-xs ${saveError ? "text-rose-400" : "text-on-surface-variant/50"}`}>
+            {isSaving ? "Saving..." : saveError ? saveError : lastSaved ? `Saved (${lastSaved})` : "Saved"}
           </span>
         </div>
       </div>

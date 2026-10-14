@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import jwt from "jsonwebtoken";
-import { authenticateApiRequest, requireAuthOrDemo, isDemoModeAllowed } from "./api-auth";
+import { authenticateApiRequest, requireAuthOrDemo, requireUser, isDemoModeAllowed } from "./api-auth";
 import { JWT_SECRET } from "@/app/config/auth";
 
 // Mock next/headers
@@ -136,6 +136,38 @@ describe("api-auth security guard", () => {
     if ("auth" in guardResult) {
       expect(guardResult.auth.isDemo).toBe(true);
       expect(guardResult.auth.user.id).toBe("demo123");
+    }
+  });
+
+  test("requireUser returns user when valid token present", async () => {
+    const validToken = jwt.sign(
+      { id: "507f1f77bcf86cd799439011", email: "alice@example.com", name: "Alice", plan: "free" },
+      JWT_SECRET
+    );
+
+    (cookies as jest.Mock).mockResolvedValue({
+      get: (name: string) => (name === "token" ? { value: validToken } : undefined),
+    });
+
+    const req = new Request("http://localhost/api/upload", { method: "POST" });
+    const result = await requireUser(req);
+    expect("user" in result).toBe(true);
+    if ("user" in result) {
+      expect(result.user.id).toBe("507f1f77bcf86cd799439011");
+      expect(result.user.email).toBe("alice@example.com");
+    }
+  });
+
+  test("requireUser returns 401 when no token present", async () => {
+    (cookies as jest.Mock).mockResolvedValue({
+      get: () => undefined,
+    });
+
+    const req = new Request("http://localhost/api/upload", { method: "POST" });
+    const result = await requireUser(req);
+    expect("response" in result).toBe(true);
+    if ("response" in result) {
+      expect(result.response.status).toBe(401);
     }
   });
 });

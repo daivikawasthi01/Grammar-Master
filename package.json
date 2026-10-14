@@ -61,7 +61,8 @@
     "redux-thunk": "^2.4.2",
     "save-as": "^0.1.8",
     "typescript": "5.1.6",
-    "validator": "^13.9.0"
+    "validator": "^13.9.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.17.0",
