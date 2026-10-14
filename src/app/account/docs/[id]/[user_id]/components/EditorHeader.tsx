@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import StyleGuideManager from "@/app/account/settings/components/StyleGuideManager";
 
-interface GrammarlyHeaderProps {
+export interface EditorHeaderProps {
   title: string;
   onTitleChange: (newTitle: string) => void;
   isSaving: boolean;
@@ -16,7 +16,7 @@ interface GrammarlyHeaderProps {
   userId: string;
 }
 
-export const GrammarlyHeader: React.FC<GrammarlyHeaderProps> = ({
+export const EditorHeader: React.FC<EditorHeaderProps> = ({
   title,
   onTitleChange,
   isSaving,

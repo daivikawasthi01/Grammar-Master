@@ -95,7 +95,7 @@ export async function POST(req: Request) {
       try {
         const groq = getGroqClient();
         const baseSystemPrompt =
-          "You are an expert Grammarly AI writing assistant. Return ONLY the final modified text without quotes, introductory remarks, or explanations.";
+          "You are an expert Grammar Master AI writing assistant. Return ONLY the final modified text without quotes, introductory remarks, or explanations.";
         const fullSystemPrompt = ragStylePrompt
           ? `${baseSystemPrompt}\n\n${ragStylePrompt}`
           : baseSystemPrompt;
