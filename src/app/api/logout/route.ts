@@ -1,11 +1,17 @@
 export const dynamic = "force-dynamic";
 
-import { NextRequest } from "next/server"
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
+export async function POST() {
+  const cookieStore = await cookies();
+  cookieStore.set("token", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
 
-export async function POST(req : NextRequest) {
-    return new Response('Logged Out Success', {
-      status: 200,
-      headers: { 'Set-Cookie': `token=xd; HttpOnly; Max-Age=0; Path=/; SameSite=None; Secure`},
-    })
-  }
+  return NextResponse.json({ status: "success", message: "Logged out successfully" });
+}

@@ -4,36 +4,34 @@ import { NextResponse } from "next/server";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
 import mongoose from "mongoose";
-import { requireAuthOrDemo } from "@/lib/api-auth";
+import { requireUser } from "@/lib/api-auth";
+import { z } from "zod";
 
-interface RequestBodyType {
-  _id?: string;
-  documentId: string;
-}
+const deleteDocSchema = z.object({
+  documentId: z.string().min(1, "Document ID is required"),
+});
 
 export async function POST(req: Request) {
   try {
-    const { _id, documentId }: RequestBodyType = await req.json().catch(() => ({}));
-
-    if (!documentId) {
-      return NextResponse.json({ error: "Missing documentId" }, { status: 400 });
+    const auth = await requireUser(req);
+    if ("response" in auth) {
+      return auth.response;
     }
 
-    const authCheck = await requireAuthOrDemo(req, _id);
-    if ("response" in authCheck) {
-      return authCheck.response;
+    const body = await req.json().catch(() => null);
+    const parsed = deleteDocSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message || "Invalid payload" },
+        { status: 400 }
+      );
     }
 
-    const { user: authUser, isDemo } = authCheck.auth;
-    const userId = authUser.id;
+    const { documentId } = parsed.data;
+    const userId = auth.user.id;
 
-    if (
-      isDemo ||
-      userId === "demo123" ||
-      !mongoose.Types.ObjectId.isValid(userId) ||
-      !mongoose.Types.ObjectId.isValid(documentId)
-    ) {
-      return NextResponse.json({ status: "deleted" });
+    if (!mongoose.Types.ObjectId.isValid(documentId)) {
+      return NextResponse.json({ error: "Invalid document ID" }, { status: 400 });
     }
 
     await dbConnect();
@@ -43,36 +41,35 @@ export async function POST(req: Request) {
       { "documents.$": 1 }
     );
 
-    if (user && user.documents && user.documents.length > 0) {
-      const targetDoc = user.documents[0];
-
-      // Move to trashs
-      await User.findOneAndUpdate(
-        { _id: userId },
-        {
-          $pull: { documents: { _id: documentId } },
-          $push: {
-            trashs: {
-              _id: targetDoc._id,
-              title: targetDoc.title,
-              text: targetDoc.text,
-              status: targetDoc.status,
-              language: targetDoc.language || "American English",
-            },
-          },
-        }
-      );
-    } else {
-      // Pull document anyway if it exists
-      await User.findOneAndUpdate(
-        { _id: userId },
-        { $pull: { documents: { _id: documentId } } }
-      );
+    if (!user || !user.documents || user.documents.length === 0) {
+      return NextResponse.json({ error: "Document not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ status: "deleted" });
+    const targetDoc = user.documents[0];
+
+    // Move to trash
+    await User.findOneAndUpdate(
+      { _id: userId },
+      {
+        $pull: { documents: { _id: documentId } },
+        $push: {
+          trashs: {
+            _id: targetDoc._id,
+            title: targetDoc.title,
+            text: targetDoc.text,
+            status: targetDoc.status || "created",
+            language: targetDoc.language || "American English",
+          },
+        },
+      }
+    );
+
+    return NextResponse.json({ status: "deleted", documentId });
   } catch (error) {
     console.error("Delete document error:", error);
-    return NextResponse.json({ status: "deleted" });
+    return NextResponse.json(
+      { error: "Failed to delete document" },
+      { status: 500 }
+    );
   }
 }

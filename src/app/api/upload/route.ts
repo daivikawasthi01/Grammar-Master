@@ -2,64 +2,78 @@ export const dynamic = "force-dynamic";
 
 import "@/lib/polyfill";
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import jwt, { JwtPayload } from "jsonwebtoken";
-import { JWT_SECRET } from "@/app/config/auth";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
 import mammoth from "mammoth";
-import mongoose from "mongoose";
+import { requireUser } from "@/lib/api-auth";
 
-interface DecodedToken extends JwtPayload {
-  id: string;
-}
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = await requireUser(req);
+    if ("response" in auth) {
+      return auth.response;
+    }
+
+    const userId = auth.user.id;
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    let userId = (formData.get("_id") as string | null) || "demo123";
 
     if (!file) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    // Try to get userId from token if missing
-    if (!userId || userId === "demo123") {
-      try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("token")?.value;
-        if (token) {
-          const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
-          if (decoded?.id) {
-            userId = decoded.id;
-          }
-        }
-      } catch (err) {
-        // Token verification optional
-      }
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: "File exceeds maximum size limit of 5MB" },
+        { status: 413 }
+      );
     }
 
-    const title = file.name.replace(/\.[^/.]+$/, "") || "Uploaded Document";
+    const fileNameLower = file.name.toLowerCase();
+
+    // Explicitly reject legacy .doc
+    if (fileNameLower.endsWith(".doc")) {
+      return NextResponse.json(
+        { error: "Legacy .doc format is not supported. Please convert to .docx, .txt, or .md." },
+        { status: 400 }
+      );
+    }
+
+    const isDocx = fileNameLower.endsWith(".docx");
+    const isTxt = fileNameLower.endsWith(".txt");
+    const isMd = fileNameLower.endsWith(".md");
+
+    if (!isDocx && !isTxt && !isMd) {
+      return NextResponse.json(
+        { error: "Unsupported file type. Please upload .docx, .txt, or .md documents." },
+        { status: 400 }
+      );
+    }
+
+    const title = file.name.replace(/\.[^/.]+$/, "").trim() || "Uploaded Document";
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
     let textContent = "";
-    const fileNameLower = file.name.toLowerCase();
 
-    if (fileNameLower.endsWith(".docx") || fileNameLower.endsWith(".doc")) {
+    if (isDocx) {
       try {
         const result = await mammoth.extractRawText({ buffer });
         textContent = result.value || "";
       } catch (err) {
         console.error("Mammoth extractRawText failed:", err);
-        textContent = "Uploaded document content";
+        return NextResponse.json(
+          { error: "Failed to extract text from Word document. The file may be corrupted." },
+          { status: 422 }
+        );
       }
     } else {
       textContent = buffer.toString("utf-8");
     }
 
-    // Sanitize any remaining HTML tags from text
+    // Sanitize any stray HTML tags
     if (textContent.includes("<") && textContent.includes(">")) {
       textContent = textContent
         .replace(/<\/p>/gi, "\n\n")
@@ -70,71 +84,45 @@ export async function POST(req: NextRequest) {
         .trim();
     }
 
-    const fallbackDocId = "upload_" + Date.now();
-
-    // If demo user or invalid ObjectId, return parsed file content immediately
-    if (userId === "demo123" || !mongoose.Types.ObjectId.isValid(userId)) {
-      return NextResponse.json({
-        success: true,
-        status: "added",
-        documentId: fallbackDocId,
-        _id: userId,
-        title,
-        text: textContent,
-      });
-    }
-
-    try {
-      await dbConnect();
-      const updatedUser = await User.findOneAndUpdate(
-        { _id: userId },
-        {
-          $push: {
-            documents: {
-              title,
-              text: textContent,
-              status: "created",
-              language: "American English",
-            },
+    await dbConnect();
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId },
+      {
+        $push: {
+          documents: {
+            title,
+            text: textContent,
+            status: "created",
+            language: "American English",
           },
         },
-        { new: true }
-      );
+      },
+      { new: true }
+    );
 
-      if (updatedUser && updatedUser.documents?.length > 0) {
-        const documents = updatedUser.documents;
-        const newDoc = documents[documents.length - 1];
-        return NextResponse.json({
-          success: true,
-          status: "added",
-          documentId: newDoc._id.toString(),
-          _id: userId,
-          title: newDoc.title,
-          text: newDoc.text,
-        });
-      }
-    } catch (dbErr) {
-      console.error("Database upload save error:", dbErr);
+    if (!updatedUser || !updatedUser.documents?.length) {
+      return NextResponse.json(
+        { error: "Failed to save uploaded document to user account" },
+        { status: 500 }
+      );
     }
 
-    // Resilient fallback if DB connection fails
+    const documents = updatedUser.documents;
+    const newDoc = documents[documents.length - 1];
+
     return NextResponse.json({
       success: true,
       status: "added",
-      documentId: fallbackDocId,
+      documentId: newDoc._id.toString(),
       _id: userId,
-      title,
-      text: textContent,
+      title: newDoc.title,
+      text: newDoc.text,
     });
   } catch (error: any) {
     console.error("Upload route error:", error);
-    return NextResponse.json({
-      success: true,
-      status: "added",
-      documentId: "upload_" + Date.now(),
-      _id: "demo123",
-      title: "Uploaded Document",
-      text: "<p>Uploaded document content</p>",
-    });
+    return NextResponse.json(
+      { error: "Failed to process upload" },
+      { status: 500 }
+    );
   }
 }

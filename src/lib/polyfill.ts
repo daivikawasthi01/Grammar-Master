@@ -32,8 +32,8 @@ if (!process.env.NEXTAUTH_URL) {
     ? `https://${process.env.VERCEL_URL}`
     : 'http://localhost:3000';
 }
-if (!process.env.NEXTAUTH_SECRET) {
-  process.env.NEXTAUTH_SECRET = process.env.JWT_SECRET || 'writ-ai-build-secret-key-fallback';
+if (!process.env.NEXTAUTH_SECRET && process.env.JWT_SECRET) {
+  process.env.NEXTAUTH_SECRET = process.env.JWT_SECRET;
 }
 
 if (typeof globalThis.TextEncoder === 'undefined') {

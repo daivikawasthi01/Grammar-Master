@@ -2,12 +2,10 @@ export const dynamic = "force-dynamic";
 
 import "@/lib/polyfill";
 import { NextResponse } from "next/server";
-import User from "@/app/db/schema";
-import dbConnect from "@/lib/mongodb";
 import { GROQ_MODELS, getGroqClient } from "@/lib/ai-config";
 import { requireAuthOrDemo } from "@/lib/api-auth";
 import {
-  retrieveRelevantRules,
+  getLexicalStyleRules,
   buildStyleRAGPrompt,
   extractStyleRuleSuggestions,
   StyleSuggestionItem,
@@ -18,6 +16,7 @@ interface AnalyzeRequest {
   language?: string;
   _id?: string;
   documentId?: string;
+  requestId?: string;
 }
 
 export type SuggestionItem = StyleSuggestionItem;
@@ -100,20 +99,37 @@ function computeMetrics(text: string) {
   const sentences = trimmed.split(/[.!?]+/).filter((s) => s.trim().length > 0);
   const sentenceCount = Math.max(1, sentences.length);
 
-  const avgWordsPerSentence = wordCount / sentenceCount;
-  const readingTimeMin = Math.max(1, Math.ceil(wordCount / 200));
-  const speakingTimeMin = Math.max(1, Math.ceil(wordCount / 130));
+  const readingTimeMin = Math.max(1, Math.ceil(wordCount / 225));
+  const speakingTimeMin = Math.max(1, Math.ceil(wordCount / 140));
 
-  const readabilityScore = Math.max(
-    20,
-    Math.min(100, Math.round(206.835 - 1.015 * avgWordsPerSentence - 15))
-  );
+  // Compute syllables for real Flesch-Kincaid
+  let syllableCount = 0;
+  for (const word of words) {
+    const w = word.toLowerCase().replace(/[^a-z]/g, "");
+    if (w.length <= 3) {
+      syllableCount += 1;
+      continue;
+    }
+    const syllables = w.replace(/(?:[^laeiouy]|ed|es|e)$/, "")
+      .replace(/^y/, "")
+      .match(/[aeiouy]{1,2}/g);
+    syllableCount += syllables ? syllables.length : 1;
+  }
 
-  let readabilityGrade = "Standard";
-  if (readabilityScore > 80) readabilityGrade = "Easy to read";
-  else if (readabilityScore > 60) readabilityGrade = "Standard";
-  else if (readabilityScore > 40) readabilityGrade = "Fairly Difficult";
-  else readabilityGrade = "Advanced / Complex";
+  // Flesch Reading Ease: 206.835 - 1.015 * (words / sentences) - 84.6 * (syllables / words)
+  const asl = wordCount / sentenceCount;
+  const asw = syllableCount / Math.max(1, wordCount);
+  const rawScore = 206.835 - (1.015 * asl) - (84.6 * asw);
+  const readabilityScore = Math.min(100, Math.max(0, Math.round(rawScore)));
+
+  let readabilityGrade = "Grade 8-9";
+  if (readabilityScore >= 90) readabilityGrade = "Very Easy";
+  else if (readabilityScore >= 80) readabilityGrade = "Easy";
+  else if (readabilityScore >= 70) readabilityGrade = "Fairly Easy";
+  else if (readabilityScore >= 60) readabilityGrade = "Standard";
+  else if (readabilityScore >= 50) readabilityGrade = "Fairly Difficult";
+  else if (readabilityScore >= 30) readabilityGrade = "Difficult";
+  else readabilityGrade = "Very Difficult";
 
   return {
     wordCount,
@@ -153,9 +169,9 @@ function computeTones(text: string): ToneItem[] {
   const confidentDensity = (confidentMatches / totalWords) * 100;
   const friendlyDensity = (friendlyMatches / totalWords) * 100;
 
-  const formalScore = Math.min(95, Math.max(50, Math.round(55 + formalDensity * 12)));
-  const confidentScore = Math.min(95, Math.max(45, Math.round(50 + confidentDensity * 10)));
-  const friendlyScore = Math.min(95, Math.max(40, Math.round(45 + friendlyDensity * 12)));
+  const formalScore = Math.min(95, Math.max(20, Math.round(30 + formalDensity * 15)));
+  const confidentScore = Math.min(95, Math.max(20, Math.round(25 + confidentDensity * 14)));
+  const friendlyScore = Math.min(95, Math.max(20, Math.round(20 + friendlyDensity * 15)));
 
   return [
     { name: "Formal", score: formalScore, color: "#2563EB" },
@@ -164,9 +180,35 @@ function computeTones(text: string): ToneItem[] {
   ];
 }
 
+const editsSchema = {
+  type: "object",
+  properties: {
+    edits: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          original: { type: "string" },
+          replacement: { type: "string" },
+          category: {
+            type: "string",
+            enum: ["correctness", "clarity", "engagement", "delivery"],
+          },
+          reason: { type: "string" },
+          occurrence: { type: "integer" },
+        },
+        required: ["original", "replacement", "category", "reason", "occurrence"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["edits"],
+  additionalProperties: false,
+};
+
 export async function POST(req: Request) {
   try {
-    const { text, language = "American English", _id, documentId }: AnalyzeRequest =
+    const { text, language = "American English", _id, requestId }: AnalyzeRequest =
       await req.json().catch(() => ({ text: "" }));
 
     const authCheck = await requireAuthOrDemo(req, _id);
@@ -174,11 +216,12 @@ export async function POST(req: Request) {
       return authCheck.response;
     }
 
-    const { user: authUser, isDemo } = authCheck.auth;
+    const { user: authUser } = authCheck.auth;
     const userId = authUser.id;
 
     if (!text || !text.trim()) {
       return NextResponse.json({
+        requestId,
         overallScore: 100,
         metrics: computeMetrics(""),
         tones: [],
@@ -190,142 +233,127 @@ export async function POST(req: Request) {
     const metrics = computeMetrics(text);
     const tones = computeTones(text);
 
-    // 1. Retrieve Style Guide Rules via RAG
-    const relevantRules = await retrieveRelevantRules(text, userId, 5);
+    // 1. Fast lexical style rules retrieval (zero embedding latency on hot path)
+    const styleRules = await getLexicalStyleRules(userId);
+    const styleSuggestions = extractStyleRuleSuggestions(text, styleRules);
 
-    // 2. Direct style rule suggestions
-    const styleSuggestions = extractStyleRuleSuggestions(text, relevantRules);
-
-    // 3. Rule-based static grammar checks
+    // 2. Rule-based static grammar checks
     const staticSuggestions = runRuleBasedAnalysis(text);
 
     let suggestions: SuggestionItem[] = [...styleSuggestions, ...staticSuggestions];
+    let aiStatus: "ok" | "unavailable" = "ok";
 
-    // 4. AI-powered deep analysis with Style Guide RAG injection
+    // 3. AI-powered check with Groq FAST model & strict schema
     if (process.env.GROQ_API_KEY) {
       try {
         const groq = getGroqClient();
-        const styleRAGPrompt = buildStyleRAGPrompt(relevantRules);
+        const styleRAGPrompt = buildStyleRAGPrompt(styleRules);
 
-        const systemPrompt = `You are Grammarly AI. Analyze the text in ${language} and provide structured suggestions in JSON format.
+        const systemPrompt = `You are Grammar Master AI, an advanced writing assistant. Analyze the text in ${language} and provide minimal, precise edits.
 ${styleRAGPrompt}
-Return ONLY valid JSON with a "suggestions" array. Each suggestion item must have:
-- "category": one of ["correctness", "clarity", "engagement", "delivery"]
-- "title": short title (e.g., "Grammar", "Spelling", "Conciseness", "Tone", "Style Guide")
-- "description": brief summary
-- "originalText": exact substring from text to replace
-- "replacementText": suggested replacement
-- "explanation": reason for suggestion
-
-Example output:
-{
-  "suggestions": [
-    {
-      "category": "correctness",
-      "title": "Grammar",
-      "description": "Fix subject-verb agreement",
-      "originalText": "they is",
-      "replacementText": "they are",
-      "explanation": "Use plural verb 'are' with 'they'."
-    }
-  ]
-}`;
+Return JSON conforming strictly to the requested schema. Do not rewrite sentences unless there is an error.
+Only propose edits where original is the exact substring to replace.`;
 
         const completion = await groq.chat.completions.create({
+          model: GROQ_MODELS.FAST,
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: text },
           ],
-          model: GROQ_MODELS.PRIMARY,
-          temperature: 0.2,
-          max_tokens: 1024,
-          response_format: { type: "json_object" },
-        });
+          temperature: 0.1,
+          max_completion_tokens: 2048,
+          // @ts-ignore
+          reasoning_effort: "low",
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "edits",
+              strict: true,
+              schema: editsSchema,
+            },
+          } as any,
+        } as any);
 
-        const content = completion.choices[0]?.message?.content;
-        if (content) {
-          const parsed = JSON.parse(content);
-          if (Array.isArray(parsed.suggestions) && parsed.suggestions.length > 0) {
-            const aiSuggestions: SuggestionItem[] = parsed.suggestions.map((item: any, idx: number) => {
-              const orig = item.originalText || "";
+        const rawContent = completion.choices[0]?.message?.content;
+        if (rawContent) {
+          const parsed = JSON.parse(rawContent);
+          if (Array.isArray(parsed.edits)) {
+            // Keep only edits whose original text really exists in the document
+            const validEdits = parsed.edits.filter(
+              (e: any) =>
+                e.original &&
+                e.original !== e.replacement &&
+                text.includes(e.original)
+            );
+
+            const aiSuggestions: SuggestionItem[] = validEdits.map((item: any, idx: number) => {
+              const orig = item.original;
               let sIndex: number | undefined = undefined;
               let eIndex: number | undefined = undefined;
 
-              if (orig) {
-                const foundIdx = text.indexOf(orig);
-                if (foundIdx !== -1) {
-                  sIndex = foundIdx;
-                  eIndex = foundIdx + orig.length;
-                }
+              const foundIdx = text.indexOf(orig);
+              if (foundIdx !== -1) {
+                sIndex = foundIdx;
+                eIndex = foundIdx + orig.length;
               }
 
               return {
                 id: `ai-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
-                category: ["correctness", "clarity", "engagement", "delivery"].includes(item.category)
-                  ? item.category
-                  : "correctness",
-                title: item.title || "Improvement",
-                description: item.description || "Suggested edit",
+                category: item.category || "correctness",
+                title: item.category === "correctness" ? "Grammar" : "Style & Clarity",
+                description: item.reason || `Replace with "${item.replacement}"`,
                 originalText: orig,
-                replacementText: item.replacementText || "",
-                explanation: item.explanation || "",
+                replacementText: item.replacement,
+                explanation: item.reason || "",
                 startIndex: sIndex,
                 endIndex: eIndex,
               };
             });
 
-            // Merge AI suggestions without duplicate originalText
-            const existingKeys = new Set(suggestions.map((s) => `${s.originalText.toLowerCase()}->${s.replacementText.toLowerCase()}`));
-            for (const aiSug of aiSuggestions) {
-              if (aiSug.originalText && !existingKeys.has(`${aiSug.originalText.toLowerCase()}->${aiSug.replacementText.toLowerCase()}`)) {
-                suggestions.push(aiSug);
-              }
-            }
+            suggestions = [...suggestions, ...aiSuggestions];
           }
         }
-      } catch (err) {
-        console.error("Groq AI analysis error (falling back to rule-based engine):", err);
+      } catch (aiErr) {
+        console.warn("Groq AI check unavailable, falling back to rule-based engine:", aiErr);
+        aiStatus = "unavailable";
       }
     }
 
-    // Count categories
+    // Deduplicate suggestions covering the exact same span/text
+    const seenSpans = new Set<string>();
+    const deduplicatedSuggestions: SuggestionItem[] = [];
+
+    for (const sug of suggestions) {
+      const key = `${sug.originalText.toLowerCase()}:${sug.replacementText.toLowerCase()}`;
+      if (!seenSpans.has(key)) {
+        seenSpans.add(key);
+        deduplicatedSuggestions.push(sug);
+      }
+    }
+
     const categories = {
-      correctness: suggestions.filter((s) => s.category === "correctness").length,
-      clarity: suggestions.filter((s) => s.category === "clarity").length,
-      engagement: suggestions.filter((s) => s.category === "engagement").length,
-      delivery: suggestions.filter((s) => s.category === "delivery").length,
+      correctness: deduplicatedSuggestions.filter((s) => s.category === "correctness").length,
+      clarity: deduplicatedSuggestions.filter((s) => s.category === "clarity").length,
+      engagement: deduplicatedSuggestions.filter((s) => s.category === "engagement").length,
+      delivery: deduplicatedSuggestions.filter((s) => s.category === "delivery").length,
     };
 
-    const totalIssues = suggestions.length;
-    const overallScore = Math.max(45, Math.min(100, 100 - totalIssues * 6));
-
-    // Safely update document timestamp in DB only for authenticated users (IDOR prevention)
-    const targetDocId = documentId || (_id && _id !== "demo123" && _id !== userId ? _id : undefined);
-    if (!isDemo && targetDocId) {
-      try {
-        await dbConnect();
-        await User.updateOne(
-          { _id: userId, "documents._id": targetDocId },
-          { $set: { "documents.$.version": Date.now(), "documents.$.lastSaved": new Date() } }
-        );
-      } catch (e) {
-        // non-blocking db update
-      }
-    }
+    const overallScore = Math.max(40, Math.min(100, 100 - deduplicatedSuggestions.length * 6));
 
     return NextResponse.json({
+      requestId,
       overallScore,
       metrics,
       tones,
       categories,
-      suggestions,
+      suggestions: deduplicatedSuggestions,
+      aiStatus,
     });
-  } catch (error: any) {
-    console.error("Document analysis error:", error);
+  } catch (error) {
+    console.error("Analyze document top-level error:", error);
     return NextResponse.json(
       { error: "Failed to analyze document" },
       { status: 500 }
     );
   }
 }
-

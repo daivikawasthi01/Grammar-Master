@@ -1,31 +1,27 @@
 import axios from 'axios';
 
 interface AddDocumentResponse {
-    documentId: string;
-    _id: string;
-    error?: string;
+  documentId: string;
+  _id: string;
+  error?: string;
 }
 
-export const HandleAddDocument = async (_id: string): Promise<void> => {
-    const targetUserId = _id || 'demo123';
-    try {
-        const { data } = await axios.post<AddDocumentResponse>('/api/add-document', { 
-            _id: targetUserId,
-            title: 'Untitled Document',
-            text: '',
-            status: 'created',
-            version: Date.now()
-        });
-        
-        if (data && data.documentId) {
-            window.location.href = `/account/docs/${data.documentId}/${data._id || targetUserId}`;
-            return;
-        }
-    } catch (error: any) {
-        console.warn('Backend add-document fallback engaged:', error?.message);
+export const HandleAddDocument = async (userId?: string): Promise<string | null> => {
+  try {
+    const { data } = await axios.post<AddDocumentResponse>('/api/add-document', {
+      title: 'Untitled Document',
+      text: '',
+    });
+
+    if (data && data.documentId) {
+      const redirectUrl = `/account/docs/${data.documentId}/${data._id || userId}`;
+      window.location.href = redirectUrl;
+      return data.documentId;
     }
-    
-    // Fallback: create demo document and redirect seamlessly
-    const demoDocId = 'doc_' + Date.now();
-    window.location.href = `/account/docs/${demoDocId}/${targetUserId}`;
+    return null;
+  } catch (error: any) {
+    console.error('Failed to create new document:', error);
+    alert(error?.response?.data?.error || 'Failed to create new document. Please try again.');
+    return null;
+  }
 };

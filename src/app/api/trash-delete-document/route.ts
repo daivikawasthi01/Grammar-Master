@@ -3,33 +3,51 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
-import mongoose from "mongoose";
+import { requireUser } from "@/lib/api-auth";
+import { z } from "zod";
 
-interface RequestBodyType {
-  _id: string;
-  documentId: string;
-}
+const trashDeleteSchema = z.object({
+  documentId: z.string().min(1, "Document ID required"),
+});
 
 export async function POST(req: Request) {
   try {
-    const { _id, documentId }: RequestBodyType = await req.json();
-
-    if (
-      _id === "demo123" ||
-      !mongoose.Types.ObjectId.isValid(_id) ||
-      !mongoose.Types.ObjectId.isValid(documentId)
-    ) {
-      return NextResponse.json({ status: "deleted" });
+    const auth = await requireUser(req);
+    if ("response" in auth) {
+      return auth.response;
     }
 
+    const body = await req.json().catch(() => null);
+    const parsed = trashDeleteSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message || "Invalid parameters" },
+        { status: 400 }
+      );
+    }
+
+    const { documentId } = parsed.data;
+
     await dbConnect();
-    await User.findOneAndUpdate(
-      { _id: _id },
-      { $pull: { trashs: { _id: documentId } } }
+    const result = await User.findOneAndUpdate(
+      { _id: auth.user.id },
+      { $pull: { trashs: { _id: documentId } } },
+      { new: true }
     );
-    return NextResponse.json({ status: "deleted" });
+
+    if (!result) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ status: "deleted", documentId });
   } catch (err) {
     console.error("Trash delete error:", err);
-    return NextResponse.json({ status: "deleted" });
+    return NextResponse.json(
+      { error: "Failed to delete document from trash" },
+      { status: 500 }
+    );
   }
 }

@@ -4,8 +4,10 @@ import User from '@/app/db/schema';
 import dbConnect from './mongodb';
 import bcrypt from 'bcryptjs';
 
+import { env } from './env';
+
 export const authOptions: AuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || 'writ-ai-build-secret-key-fallback',
+  secret: env.NEXTAUTH_SECRET || env.JWT_SECRET,
   providers: [
     CredentialsProvider({
       name: 'Credentials',

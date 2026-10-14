@@ -1,1 +1,3 @@
-export const JWT_SECRET = process.env.JWT_SECRET || "Hehe";
+import { env } from "@/lib/env";
+
+export const JWT_SECRET = env.JWT_SECRET;
