@@ -7,6 +7,7 @@ import dbConnect from "@/lib/mongodb";
 import mammoth from "mammoth";
 import { requireUser } from "@/lib/api-auth";
 
+import { logger } from "@/lib/logger";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
 export async function POST(req: NextRequest) {
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
         const result = await mammoth.extractRawText({ buffer });
         textContent = result.value || "";
       } catch (err) {
-        console.error("Mammoth extractRawText failed:", err);
+        logger.error({ err: err }, "Mammoth extractRawText failed");
         return NextResponse.json(
           { error: "Failed to extract text from Word document. The file may be corrupted." },
           { status: 422 }
@@ -119,7 +120,7 @@ export async function POST(req: NextRequest) {
       text: newDoc.text,
     });
   } catch (error: any) {
-    console.error("Upload route error:", error);
+    logger.error({ err: error }, "Upload route error");
     return NextResponse.json(
       { error: "Failed to process upload" },
       { status: 500 }

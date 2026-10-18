@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
+import { logger } from "@/lib/logger";
 
 interface DocumentParamsType {
   params: Promise<{
@@ -46,7 +47,7 @@ export async function POST(req: Request, props: DocumentParamsType) {
       filteredDocument,
     });
   } catch (error) {
-    console.error("Search document error:", error);
+    logger.error({ err: error }, "Search document error");
     return NextResponse.json(
       { error: "Failed to search documents" },
       { status: 500 }

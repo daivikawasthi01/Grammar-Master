@@ -9,6 +9,7 @@ import { upsertVectors } from "@/lib/vector-store";
 import { requireAuthOrDemo } from "@/lib/api-auth";
 import crypto from "crypto";
 
+import { logger } from "@/lib/logger";
 interface StyleGuideUploadRequest {
   name?: string;
   content: string;
@@ -105,7 +106,7 @@ export async function POST(req: Request) {
       },
     });
   } catch (error: any) {
-    console.error("Style guide upload error:", error);
+    logger.error({ err: error }, "Style guide upload error");
     return NextResponse.json(
       { error: error?.message || "Failed to process style guide" },
       { status: 500 }

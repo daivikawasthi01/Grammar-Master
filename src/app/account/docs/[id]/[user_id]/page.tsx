@@ -3,8 +3,8 @@
 import React, { useState, use } from "react";
 import useDocument from "@/app/hooks/useDocument";
 import useAuth from "@/app/hooks/useAuth";
-import { GrammarlyHeader } from "./components/GrammarlyHeader";
-import { GrammarlyInspector } from "./components/GrammarlyInspector";
+import { EditorHeader } from "./components/EditorHeader";
+import { EditorInspector } from "./components/EditorInspector";
 import { AIAssistantDrawer } from "./components/AIAssistantDrawer";
 import { SuggestionItem, ToneItem } from "@/app/api/analyze-document/route";
 import { TipTapEditor } from "@/components/editor/TipTapEditor";
@@ -148,7 +148,7 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
   return (
     <div className="bg-background text-on-surface h-screen overflow-hidden flex flex-col font-body-md selection:bg-primary-container selection:text-on-primary-container relative">
       {/* TopAppBar */}
-      <GrammarlyHeader
+      <EditorHeader
         title={title}
         onTitleChange={setTitle}
         isSaving={false}
@@ -176,7 +176,7 @@ const Doc: React.FC<DocsProps> = ({ params }) => {
         </section>
 
         {/* Right Inspector Panel */}
-        <GrammarlyInspector
+        <EditorInspector
           overallScore={overallScore}
           suggestions={suggestions}
           metrics={metrics}

@@ -5,6 +5,7 @@ import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
 import { GROQ_MODELS, getGroqClient } from "@/lib/ai-config";
 import { requireAuthOrDemo } from "@/lib/api-auth";
+import { logger } from "@/lib/logger";
 import {
   normalizePlan,
   getPromptLimit,
@@ -103,7 +104,7 @@ export async function POST(req: Request) {
     promptCache.set(cacheKey, payload);
     return NextResponse.json(payload);
   } catch (error: any) {
-    console.error("Synonyms check error:", error);
+    logger.error({ err: error }, "Synonyms check error");
     return NextResponse.json(
       { error: error?.message || "Failed to find synonyms" },
       { status: 500 }

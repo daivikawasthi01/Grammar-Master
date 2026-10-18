@@ -4,6 +4,7 @@ import "@/lib/polyfill";
 import { NextResponse } from "next/server";
 import { GROQ_MODELS, getGroqClient } from "@/lib/ai-config";
 import { requireAuthOrDemo } from "@/lib/api-auth";
+import { logger } from "@/lib/logger";
 import {
   getLexicalStyleRules,
   buildStyleRAGPrompt,
@@ -314,7 +315,7 @@ Only propose edits where original is the exact substring to replace.`;
           }
         }
       } catch (aiErr) {
-        console.warn("Groq AI check unavailable, falling back to rule-based engine:", aiErr);
+        logger.warn({ err: aiErr }, "Groq AI check unavailable, falling back to rule-based engine");
         aiStatus = "unavailable";
       }
     }
@@ -350,7 +351,7 @@ Only propose edits where original is the exact substring to replace.`;
       aiStatus,
     });
   } catch (error) {
-    console.error("Analyze document top-level error:", error);
+    logger.error({ err: error }, "Analyze document top-level error");
     return NextResponse.json(
       { error: "Failed to analyze document" },
       { status: 500 }

@@ -6,6 +6,7 @@ import dbConnect from "@/lib/mongodb";
 import { GROQ_MODELS, getGroqClient } from "@/lib/ai-config";
 import { requireAuthOrDemo } from "@/lib/api-auth";
 import { retrieveRelevantRules, buildStyleRAGPrompt } from "@/lib/rag-style";
+import { getLogger, getRequestId } from "@/lib/logger";
 import {
   normalizePlan,
   getPromptLimit,
@@ -18,6 +19,9 @@ import {
 const limiter = getRouteLimiter(20, 60 * 1000);
 const promptCache = new PromptCache<any>(60 * 1000);
 
+// Bump when the grammar prompt below changes; eval reports record it.
+const GRAMMAR_PROMPT_VERSION = "grammar-check-v1";
+
 interface GrammarCheckRequests {
   text: string;
   language?: string;
@@ -25,6 +29,7 @@ interface GrammarCheckRequests {
 }
 
 export async function POST(req: Request) {
+  const log = getLogger(req, "grammar-check");
   try {
     const body: GrammarCheckRequests = await req.json().catch(() => ({ text: "" }));
     const { text, language = "English", _id } = body;
@@ -41,15 +46,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No content" }, { status: 400 });
     }
 
-    const cacheKey = buildCacheKey("grammar-check", userId, language, text);
-    const cached = promptCache.get(cacheKey);
-    if (cached) {
-      return NextResponse.json(cached);
-    }
-
+    // Eval requests (dev only) must measure the real pipeline: no cache reads or writes.
     const isEvalRunner =
       process.env.NODE_ENV !== "production" &&
       req.headers.get("x-eval-runner") === "true";
+
+    const cacheKey = buildCacheKey("grammar-check", userId, language, text);
+    if (!isEvalRunner) {
+      const cached = promptCache.get(cacheKey);
+      if (cached) {
+        return NextResponse.json({
+          ...cached,
+          meta: { ...(cached.meta || {}), cached: true },
+        });
+      }
+    }
 
     if (!isEvalRunner) {
       const rate = await enforceRateLimit(limiter, `grammar:${userId}`);
@@ -112,17 +123,28 @@ export async function POST(req: Request) {
     }
 
     const response = completion.choices[0]?.message?.content || text;
+    const meta = {
+      model: GROQ_MODELS.PRIMARY,
+      promptVersion: GRAMMAR_PROMPT_VERSION,
+      cached: false,
+      usage: {
+        promptTokens: completion.usage?.prompt_tokens ?? null,
+        completionTokens: completion.usage?.completion_tokens ?? null,
+      },
+    };
     const payload =
       response === text
-        ? { success: { correct: true, text: response, appliedRules: relevantRules } }
-        : { success: { correct: false, text: response, appliedRules: relevantRules } };
+        ? { success: { correct: true, text: response, appliedRules: relevantRules }, meta }
+        : { success: { correct: false, text: response, appliedRules: relevantRules }, meta };
 
-    promptCache.set(cacheKey, payload);
+    if (!isEvalRunner) {
+      promptCache.set(cacheKey, payload);
+    }
     return NextResponse.json(payload);
   } catch (error: any) {
-    console.error("Grammar check error:", error);
+    log.error({ err: error }, "grammar check failed");
     return NextResponse.json(
-      { error: error?.message || "Failed to process grammar check" },
+      { error: "Failed to process grammar check", requestId: getRequestId(req) },
       { status: 500 }
     );
   }

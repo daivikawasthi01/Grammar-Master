@@ -6,6 +6,7 @@ import dbConnect from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 import { z } from "zod";
 
+import { logger } from "@/lib/logger";
 const trashRestoreSchema = z.object({
   documentId: z.string().min(1, "Document ID required"),
 });
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ status: "restored", documentId });
   } catch (err) {
-    console.error("Trash restore error:", err);
+    logger.error({ err: err }, "Trash restore error");
     return NextResponse.json(
       { error: "Failed to restore document" },
       { status: 500 }

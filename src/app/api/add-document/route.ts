@@ -6,6 +6,7 @@ import dbConnect from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 import { z } from "zod";
 
+import { logger } from "@/lib/logger";
 const addDocSchema = z.object({
   title: z.string().optional().default("Untitled Document"),
   text: z.string().optional().default(""),
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
       title: newDoc.title,
     });
   } catch (error: any) {
-    console.error("Error in add-document route:", error);
+    logger.error({ err: error }, "Error in add-document route");
     return NextResponse.json(
       { error: "Failed to create document" },
       { status: 500 }

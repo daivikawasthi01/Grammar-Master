@@ -1,4 +1,5 @@
 import { cosineSimilarity } from "./embeddings";
+import { logger } from "@/lib/logger";
 
 export interface VectorMetadata {
   userId: string;
@@ -82,7 +83,7 @@ function getUpstashIndex() {
       const { Index } = require("@upstash/vector");
       upstashIndexInstance = new Index({ url, token });
     } catch (e) {
-      console.warn("Failed to initialize Upstash Vector client:", e);
+      logger.warn({ err: e }, "Failed to initialize Upstash Vector client");
       return null;
     }
   }
@@ -99,7 +100,7 @@ export async function upsertVectors(records: VectorRecord[]): Promise<void> {
       await upstash.upsert(records);
       return;
     } catch (err) {
-      console.error("Upstash Vector upsert failed, falling back to memory store:", err);
+      logger.error({ err: err }, "Upstash Vector upsert failed, falling back to memory store");
     }
   }
 
@@ -128,7 +129,7 @@ export async function queryVectors(
         metadata: r.metadata as VectorMetadata,
       }));
     } catch (err) {
-      console.error("Upstash Vector query failed, falling back to memory store:", err);
+      logger.error({ err: err }, "Upstash Vector query failed, falling back to memory store");
     }
   }
 
@@ -143,7 +144,7 @@ export async function deleteVectors(ids: string[]): Promise<void> {
     try {
       await upstash.delete(ids);
     } catch (err) {
-      console.error("Upstash Vector delete failed:", err);
+      logger.error({ err: err }, "Upstash Vector delete failed");
     }
   }
 

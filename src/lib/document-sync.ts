@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import User from "@/app/db/schema";
 import DocumentModel from "@/models/Document";
+import { logger } from "@/lib/logger";
 
 /**
  * Idempotently migrates any legacy embedded documents in User.documents and User.trashs
@@ -76,6 +77,6 @@ export async function syncLegacyUserDocuments(userId: string): Promise<void> {
       }
     }
   } catch (err) {
-    console.error("Document sync error:", err);
+    logger.error({ err: err }, "Document sync error");
   }
 }

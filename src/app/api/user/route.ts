@@ -6,6 +6,7 @@ import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 
+import { logger } from "@/lib/logger";
 export async function GET(req: Request) {
   try {
     const auth = await requireUser(req);
@@ -30,7 +31,7 @@ export async function GET(req: Request) {
       trashs: user.trashs || [],
     });
   } catch (error) {
-    console.error("User fetch error:", error);
+    logger.error({ err: error }, "User fetch error");
     return NextResponse.json(
       { error: "Failed to fetch user data" },
       { status: 500 }

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { SuggestionItem, ToneItem } from "@/app/api/analyze-document/route";
 
-interface GrammarlyInspectorProps {
+interface EditorInspectorProps {
   overallScore: number;
   suggestions: SuggestionItem[];
   metrics: {
@@ -26,7 +26,7 @@ interface GrammarlyInspectorProps {
   onDismissSuggestion: (id: string) => void;
 }
 
-export const GrammarlyInspector: React.FC<GrammarlyInspectorProps> = ({
+export const EditorInspector: React.FC<EditorInspectorProps> = ({
   overallScore,
   suggestions,
   metrics,

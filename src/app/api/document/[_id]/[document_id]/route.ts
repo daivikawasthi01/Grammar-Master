@@ -6,6 +6,7 @@ import dbConnect from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 import mongoose from "mongoose";
 
+import { logger } from "@/lib/logger";
 interface DocumentParamsType {
   params: Promise<{
     _id: string;
@@ -47,7 +48,7 @@ export async function GET(req: Request, props: DocumentParamsType) {
 
     return NextResponse.json(user.documents[0]);
   } catch (error) {
-    console.error("Error fetching document:", error);
+    logger.error({ err: error }, "Error fetching document");
     return NextResponse.json(
       { error: "Failed to fetch document" },
       { status: 500 }

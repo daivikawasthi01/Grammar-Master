@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import { requireUser } from "@/lib/api-auth";
 import { z } from "zod";
 
+import { logger } from "@/lib/logger";
 const deleteDocSchema = z.object({
   documentId: z.string().min(1, "Document ID is required"),
 });
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ status: "deleted", documentId });
   } catch (error) {
-    console.error("Delete document error:", error);
+    logger.error({ err: error }, "Delete document error");
     return NextResponse.json(
       { error: "Failed to delete document" },
       { status: 500 }

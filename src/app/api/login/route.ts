@@ -10,6 +10,7 @@ import { JWT_SECRET } from "@/app/config/auth";
 import { cookies } from "next/headers";
 import { z } from "zod";
 
+import { logger } from "@/lib/logger";
 const loginSchema = z.object({
   email: z.string().email("Invalid email format").toLowerCase().trim(),
   password: z.string().min(1, "Password is required"),
@@ -76,7 +77,7 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
-    console.error("Login route error:", error);
+    logger.error({ err: error }, "Login route error");
     return NextResponse.json(
       { error: "An unexpected error occurred during login." },
       { status: 500 }

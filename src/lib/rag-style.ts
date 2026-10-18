@@ -3,6 +3,7 @@ import { generateEmbedding } from "./embeddings";
 import { queryVectors, upsertVectors } from "./vector-store";
 import dbConnect from "./mongodb";
 import { StyleGuideChunk } from "@/models/StyleGuide";
+import { logger } from "@/lib/logger";
 
 export const DEFAULT_STYLE_RULES = [
   "Use 'eBPF', never 'Ebpf' or 'ebpf'.",
@@ -152,7 +153,7 @@ export async function retrieveRelevantRules(
 
     return matched.length > 0 ? matched : (isDemo ? DEFAULT_STYLE_RULES : []);
   } catch (err) {
-    console.error("Error retrieving style guide rules:", err);
+    logger.error({ err: err }, "Error retrieving style guide rules");
     const isDemo =
       !userId ||
       userId === "demo_user" ||

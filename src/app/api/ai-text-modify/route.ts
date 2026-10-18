@@ -9,6 +9,7 @@ import { requireAuthOrDemo } from "@/lib/api-auth";
 import { normalizePlan, getPromptLimit } from "@/lib/free-plan";
 import { retrieveRelevantRules, buildStyleRAGPrompt } from "@/lib/rag-style";
 
+import { logger } from "@/lib/logger";
 interface TextModifyRequest {
   text: string;
   action: string;
@@ -115,7 +116,7 @@ export async function POST(req: Request) {
 
         modifiedText = completion.choices[0]?.message?.content?.trim() || text;
       } catch (err) {
-        console.error("Groq AI API error in text modify:", err);
+        logger.error({ err: err }, "Groq AI API error in text modify");
       }
     } else {
       // Fallback heuristics when API key is missing
@@ -142,7 +143,7 @@ export async function POST(req: Request) {
       },
     });
   } catch (error: any) {
-    console.error("AI text modification error:", error);
+    logger.error({ err: error }, "AI text modification error");
     return NextResponse.json({ error: "Failed to modify text" }, { status: 500 });
   }
 }
