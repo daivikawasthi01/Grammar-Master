@@ -118,12 +118,12 @@ function UserMenu({ user }: { user: { name: string; email: string } }) {
 
 function SidebarBody({ user, onNavigate }: { user: { name: string; email: string }; onNavigate?: () => void }) {
   return (
-    <div className="flex h-full flex-col gap-6 p-3">
+    <div className="flex h-full min-w-0 flex-col gap-6 p-3">
       <div className="flex items-center justify-between px-1.5 pt-1">
         <Logo href="/app" />
       </div>
       <NavLinks onNavigate={onNavigate} />
-      <div className="mt-auto grid gap-3">
+      <div className="mt-auto grid grid-cols-[minmax(0,1fr)] gap-3">
         <UsageMeter />
         <div className="flex items-center gap-1">
           <div className="min-w-0 flex-1">

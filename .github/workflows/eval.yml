@@ -6,13 +6,20 @@ on:
       min_f05:
         description: Fail if mean F0.5 is below this value
         default: "0.25"
+      limit:
+        description: Number of sentences (the pinned set has 250)
+        default: "250"
 
 jobs:
   eval:
     runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:8
+        ports: ["27017:27017"]
     env:
-      MONGODB_URI: ${{ secrets.MONGODB_URI }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      MONGODB_URI: mongodb://127.0.0.1:27017/gm_eval
+      JWT_SECRET: eval-only-secret-eval-only-secret-eval-only
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
     steps:
       - uses: actions/checkout@v4
@@ -27,10 +34,16 @@ jobs:
           cache-dependency-path: evals/requirements.txt
       - run: npm ci
       - run: pip install -r evals/requirements.txt && python -m spacy download en_core_web_sm
-      # Eval requests are only accepted outside production, so run the dev server.
+      # Eval requests (x-eval-runner) are only honoured outside production, so run the dev server.
       - run: npm run dev &
-      - run: npx --yes wait-on http://localhost:3000/api/health --timeout 120000
-      - run: python evals/run_eval.py --min-f05 ${{ inputs.min_f05 }}
+      - run: npx --yes wait-on@8 http://localhost:3000/api/health --timeout 180000
+      - name: Sign in an eval user
+        run: |
+          curl -sf -c cookies.txt -H 'content-type: application/json' \
+            -d '{"name":"Eval","email":"eval@example.test","password":"eval-password-123"}' \
+            http://localhost:3000/api/auth/register > /dev/null
+          echo "EVAL_AUTH_COOKIE=gm_session=$(awk '$6=="gm_session"{print $7}' cookies.txt)" >> "$GITHUB_ENV"
+      - run: python evals/run_eval.py --limit ${{ inputs.limit }} --min-f05 ${{ inputs.min_f05 }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:

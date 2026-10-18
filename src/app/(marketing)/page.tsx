@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, BookMarked, FileDown, Gauge, History, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { HeroVisual } from "@/components/marketing/hero-visual";
+import { HeroSculpture } from "@/components/marketing/hero-sculpture";
 import { LiveDemo } from "@/components/marketing/live-demo";
 import { Reveal } from "@/components/marketing/reveal";
-import { HeroCopy } from "@/components/marketing/hero-copy";
 
 const FEATURES = [
   {
@@ -24,13 +23,7 @@ const FEATURES = [
 export default function Home() {
   return (
     <>
-      <section className="relative overflow-hidden">
-        <div aria-hidden className="pointer-events-none absolute inset-0 [background-image:radial-gradient(var(--border)_1px,transparent_1px)] [background-size:28px_28px] [mask-image:radial-gradient(ellipse_70%_60%_at_60%_40%,black,transparent)]" />
-        <div className="relative mx-auto grid max-w-6xl items-center gap-6 px-4 pt-10 sm:px-8 lg:grid-cols-[1.05fr_1fr] lg:pt-16">
-          <HeroCopy />
-          <HeroVisual />
-        </div>
-      </section>
+      <HeroSculpture />
 
       <section id="demo" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-8">
         <Reveal className="mx-auto max-w-2xl text-center">

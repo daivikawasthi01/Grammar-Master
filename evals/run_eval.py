@@ -6,8 +6,12 @@ Measures grammatical correction accuracy (GLEU, ERRANT F0.5), semantic preservat
 latency percentiles (p50/p95), and token cost on the CoNLL-2014 benchmark.
 
 Supports two evaluation modes:
-1. [Primary]: Live Next.js HTTP API endpoint (/api/grammar-check) - Headline benchmark.
-2. [Diagnostic]: Direct Groq LLM inference (GROQ_MODELS.PRIMARY from src/lib/ai-config.ts) - Pipeline vs model ablation.
+1. [Primary]: Live Next.js HTTP API endpoint (/api/check) - Headline benchmark. The route returns
+   minimal edits; they are applied to the source sentence to get the hypothesis.
+2. [Diagnostic]: Direct Groq LLM inference (model ablation, bypassing the app).
+
+The live route needs a session: sign in to the dev server and export its cookie as
+EVAL_AUTH_COOKIE='gm_session=...'. Eval requests skip the cache and the quota (dev only).
 """
 
 import os
@@ -82,13 +86,33 @@ def calculate_percentile(values: List[float], p: float) -> float:
     d = k - f
     return sorted_vals[f] + d * (sorted_vals[c] - sorted_vals[f])
 
+def apply_edits(text: str, edits: List[Dict[str, Any]]) -> str:
+    """Applies {original, replacement, occurrence} edits to text, right to left so offsets stay valid."""
+    spans = []
+    for e in edits:
+        original, replacement = e.get("original") or "", e.get("replacement") or ""
+        occurrence = int(e.get("occurrence") or 0)
+        idx = -1
+        for _ in range(occurrence + 1):
+            idx = text.find(original, idx + 1)
+            if idx == -1:
+                break
+        if idx == -1:
+            continue
+        spans.append((idx, idx + len(original), replacement))
+    spans.sort(key=lambda s: s[0], reverse=True)
+    last_start = len(text) + 1
+    for start, end, replacement in spans:
+        if end > last_start:  # overlapping edit: keep the later one only
+            continue
+        text = text[:start] + replacement + text[end:]
+        last_start = start
+    return text
+
+
 def call_live_api(url: str, text: str, timeout: float = 30.0, max_retries: int = 3) -> Tuple[str, float, int, int, Dict[str, Any]]:
-    """Sends text to live Next.js /api/grammar-check endpoint with automatic retries."""
-    payload = {
-        "text": text,
-        "language": "English",
-        "_id": "demo123",
-    }
+    """Sends one sentence to the live /api/check route (with retries) and applies the returned edits."""
+    payload = {"text": text, "language": "en-US"}
     headers = {"x-eval-runner": "true"}
     cookie = os.environ.get("EVAL_AUTH_COOKIE")
     if cookie:
@@ -101,9 +125,7 @@ def call_live_api(url: str, text: str, timeout: float = 30.0, max_retries: int =
 
         if resp.status_code == 200:
             data = resp.json()
-            corrected = text
-            if "success" in data and isinstance(data["success"], dict):
-                corrected = data["success"].get("text", text)
+            corrected = apply_edits(text, data.get("edits") or [])
 
             meta = data.get("meta") or {}
             usage = meta.get("usage") or {}
@@ -119,7 +141,9 @@ def call_live_api(url: str, text: str, timeout: float = 30.0, max_retries: int =
 
             return corrected, latency_ms, prompt_tokens, completion_tokens, meta
 
-        if resp.status_code == 429 and attempt < max_retries - 1:
+        if resp.status_code == 401:
+            raise RuntimeError("HTTP 401: set EVAL_AUTH_COOKIE to a signed-in session cookie (gm_session=...)")
+        if resp.status_code in (429, 502) and attempt < max_retries - 1:
             time.sleep(2.0 * (attempt + 1))
             continue
 
@@ -149,7 +173,7 @@ def run_evaluation(
     dataset_path: str,
     limit: Optional[int] = None,
     direct_groq: bool = False,
-    api_url: str = "http://localhost:3000/api/grammar-check",
+    api_url: str = "http://localhost:3000/api/check",
     model_name: Optional[str] = None
 ) -> Dict[str, Any]:
     """Executes evaluation across dataset rows and aggregates metrics."""
@@ -432,7 +456,7 @@ def main():
     parser.add_argument("--dataset", type=str, default="evals/datasets/conll2014_eval_250.jsonl", help="Dataset JSONL path (default: 250 pinned CoNLL-2014 sentences)")
     parser.add_argument("--limit", type=int, default=None, help="Max number of sentences to evaluate (e.g. 25, 100)")
     parser.add_argument("--direct-groq", action="store_true", help="Diagnostic baseline: invoke Groq model directly")
-    parser.add_argument("--target", type=str, default="http://localhost:3000/api/grammar-check", help="Live API target URL")
+    parser.add_argument("--target", type=str, default="http://localhost:3000/api/check", help="Live API target URL")
     parser.add_argument("--model", type=str, default=CONFIGURED_PRIMARY_MODEL, help=f"Groq model ID (default: {CONFIGURED_PRIMARY_MODEL} from src/lib/ai-config.ts)")
     parser.add_argument("--output", type=str, default="evals/reports/benchmark_latest.md", help="Output report markdown path (JSON is written beside it)")
     parser.add_argument("--min-f05", type=float, default=None, help="CI gate: exit 1 if mean F0.5 is below this value")
