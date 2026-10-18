@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Placeholders so env validation passes at build time; nothing external is called.
+  MONGODB_URI: mongodb://127.0.0.1:27017/ci
+  JWT_SECRET: ci-only-secret-ci-only-secret-ci-only-secret
+  GROQ_API_KEY: ci-placeholder
+
+jobs:
+  check:
+    name: Types, lint, tests, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint:ci
+      # Route tests run against an in-memory MongoDB (mongodb-memory-server downloads the binary).
+      - run: npm run test:ci
+      - run: npm run build
+
+  e2e:
+    name: End-to-end (Playwright)
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:8
+        ports: ["27017:27017"]
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      E2E_MONGODB_URI: mongodb://127.0.0.1:27017/gm_e2e
+      E2E_OUTPUT_DIR: ${{ github.workspace }}/../e2e-output
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright
+          path: ${{ github.workspace }}/../e2e-output

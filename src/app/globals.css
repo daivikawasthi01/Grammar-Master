@@ -1,0 +1,282 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Palette: the original violet/indigo tokens, as solid surfaces with 1px borders.
+ * Light is the default; `.dark` on <html> switches (set before paint by the theme script).
+ */
+:root {
+  --radius: 0.625rem;
+  --background: oklch(0.99 0.003 286);
+  --foreground: oklch(0.21 0.02 280);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.02 280);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0.02 280);
+  --primary: oklch(0.52 0.22 290);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.96 0.01 286);
+  --secondary-foreground: oklch(0.27 0.03 280);
+  --muted: oklch(0.965 0.006 286);
+  --muted-foreground: oklch(0.5 0.02 280);
+  --accent: oklch(0.95 0.025 290);
+  --accent-foreground: oklch(0.3 0.08 290);
+  --destructive: oklch(0.58 0.22 27);
+  --border: oklch(0.91 0.008 286);
+  --input: oklch(0.91 0.008 286);
+  --ring: oklch(0.6 0.2 290);
+  --chart-1: oklch(0.52 0.22 290);
+  --chart-2: oklch(0.6 0.15 250);
+  --chart-3: oklch(0.7 0.14 170);
+  --chart-4: oklch(0.75 0.15 80);
+  --chart-5: oklch(0.62 0.2 20);
+  --sidebar: oklch(0.985 0.004 286);
+  --sidebar-foreground: oklch(0.21 0.02 280);
+  --sidebar-primary: oklch(0.52 0.22 290);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.95 0.02 290);
+  --sidebar-accent-foreground: oklch(0.3 0.08 290);
+  --sidebar-border: oklch(0.92 0.008 286);
+  --sidebar-ring: oklch(0.6 0.2 290);
+
+  /* Suggestion categories */
+  --sg-correctness: oklch(0.6 0.22 25);
+  --sg-clarity: oklch(0.58 0.17 250);
+  --sg-style: oklch(0.55 0.2 300);
+  --sg-engagement: oklch(0.62 0.15 160);
+}
+
+.dark {
+  --background: oklch(0.17 0.03 270);
+  --foreground: oklch(0.92 0.03 275);
+  --card: oklch(0.21 0.035 270);
+  --card-foreground: oklch(0.92 0.03 275);
+  --popover: oklch(0.22 0.035 270);
+  --popover-foreground: oklch(0.92 0.03 275);
+  --primary: oklch(0.82 0.1 295);
+  --primary-foreground: oklch(0.22 0.12 290);
+  --secondary: oklch(0.26 0.035 270);
+  --secondary-foreground: oklch(0.92 0.03 275);
+  --muted: oklch(0.25 0.03 270);
+  --muted-foreground: oklch(0.72 0.03 280);
+  --accent: oklch(0.29 0.05 285);
+  --accent-foreground: oklch(0.92 0.04 290);
+  --destructive: oklch(0.7 0.17 22);
+  --border: oklch(0.3 0.03 275);
+  --input: oklch(0.32 0.03 275);
+  --ring: oklch(0.7 0.14 295);
+  --sidebar: oklch(0.19 0.032 270);
+  --sidebar-foreground: oklch(0.92 0.03 275);
+  --sidebar-primary: oklch(0.82 0.1 295);
+  --sidebar-primary-foreground: oklch(0.22 0.12 290);
+  --sidebar-accent: oklch(0.27 0.045 285);
+  --sidebar-accent-foreground: oklch(0.92 0.04 290);
+  --sidebar-border: oklch(0.29 0.03 275);
+  --sidebar-ring: oklch(0.7 0.14 295);
+
+  --sg-correctness: oklch(0.72 0.17 25);
+  --sg-clarity: oklch(0.74 0.12 250);
+  --sg-style: oklch(0.78 0.13 300);
+  --sg-engagement: oklch(0.76 0.12 160);
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-serif);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sg-correctness: var(--sg-correctness);
+  --color-sg-clarity: var(--sg-clarity);
+  --color-sg-style: var(--sg-style);
+  --color-sg-engagement: var(--sg-engagement);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+  ::selection {
+    background: color-mix(in oklch, var(--primary) 25%, transparent);
+  }
+}
+
+/* ---------- Editor ---------- */
+
+.prose-editor {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1.125rem;
+  line-height: 1.75;
+  outline: none;
+  min-height: 60vh;
+}
+.prose-editor:focus-visible {
+  outline: none;
+}
+.prose-editor > * + * {
+  margin-top: 0.85em;
+}
+.prose-editor h1 {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 1.875rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+.prose-editor h2 {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 1.4rem;
+  font-weight: 620;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+.prose-editor h3 {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.prose-editor ul {
+  list-style: disc;
+  padding-left: 1.4em;
+}
+.prose-editor ol {
+  list-style: decimal;
+  padding-left: 1.4em;
+}
+.prose-editor blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 1em;
+  color: var(--muted-foreground);
+}
+.prose-editor code {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.9em;
+  background: var(--muted);
+  border-radius: 4px;
+  padding: 0.1em 0.3em;
+}
+.prose-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--muted-foreground);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Suggestion underlines (decorations from the suggestions extension) */
+.sg {
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+  text-decoration-skip-ink: none;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background-color 120ms ease;
+}
+.sg:hover,
+.sg[data-active="true"] {
+  background: color-mix(in oklch, currentColor 8%, transparent);
+}
+.sg-correctness {
+  text-decoration-color: var(--sg-correctness);
+}
+.sg-clarity {
+  text-decoration-color: var(--sg-clarity);
+}
+.sg-style {
+  text-decoration-color: var(--sg-style);
+}
+.sg-engagement,
+.sg-delivery {
+  text-decoration-color: var(--sg-engagement);
+}
+.sg-spelling {
+  text-decoration-color: var(--sg-correctness);
+  text-decoration-style: dotted;
+  text-decoration-thickness: 2px;
+}
+
+/* Print: only the document */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+  }
+  .sg {
+    text-decoration: none;
+    background: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Landing hero: hide the sculpture until the client knows the theme */
+.sh-pending .sh-stage { visibility: hidden; }
+
+/* Landing hero backdrop: the original dotted grid with a soft violet glow, behind the sculpture */
+.hero-sculpture::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 45% at 50% 38%, color-mix(in oklch, var(--primary) 14%, transparent), transparent 70%),
+    radial-gradient(var(--border) 1px, transparent 1px) 0 0 / 28px 28px;
+  mask-image: radial-gradient(ellipse 75% 70% at 55% 40%, #000 35%, transparent 85%);
+}

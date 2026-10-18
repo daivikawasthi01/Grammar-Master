@@ -6,8 +6,12 @@ Measures grammatical correction accuracy (GLEU, ERRANT F0.5), semantic preservat
 latency percentiles (p50/p95), and token cost on the CoNLL-2014 benchmark.
 
 Supports two evaluation modes:
-1. [Primary]: Live Next.js HTTP API endpoint (/api/grammar-check) - Headline benchmark.
-2. [Diagnostic]: Direct Groq LLM inference (GROQ_MODELS.PRIMARY from src/lib/ai-config.ts) - Pipeline vs model ablation.
+1. [Primary]: Live Next.js HTTP API endpoint (/api/check) - Headline benchmark. The route returns
+   minimal edits; they are applied to the source sentence to get the hypothesis.
+2. [Diagnostic]: Direct Groq LLM inference (model ablation, bypassing the app).
+
+The live route needs a session: sign in to the dev server and export its cookie as
+EVAL_AUTH_COOKIE='gm_session=...'. Eval requests skip the cache and the quota (dev only).
 """
 
 import os
@@ -15,9 +19,10 @@ import sys
 import json
 import time
 import argparse
+import hashlib
 import datetime
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 
 # Add project root to sys.path so evals package imports cleanly
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -67,6 +72,9 @@ SYSTEM_PROMPT_GRAMMAR = """You are a professional grammar and writing expert. Re
 5. If no corrections are needed, return the exact same text
 6. Focus only on grammar, spelling, and punctuation - do not change the writing style or tone"""
 
+PROMPT_SHA = hashlib.sha256(SYSTEM_PROMPT_GRAMMAR.encode("utf-8")).hexdigest()[:12]
+HEADLINE_MIN_N = 200  # below this a score is too noisy to quote as a headline number
+
 def calculate_percentile(values: List[float], p: float) -> float:
     """Calculates the p-th percentile of a list of floats."""
     if not values:
@@ -78,14 +86,37 @@ def calculate_percentile(values: List[float], p: float) -> float:
     d = k - f
     return sorted_vals[f] + d * (sorted_vals[c] - sorted_vals[f])
 
-def call_live_api(url: str, text: str, timeout: float = 30.0, max_retries: int = 3) -> Tuple[str, float, int, int]:
-    """Sends text to live Next.js /api/grammar-check endpoint with automatic retries."""
-    payload = {
-        "text": text,
-        "language": "English",
-        "_id": "demo123",
-    }
+def apply_edits(text: str, edits: List[Dict[str, Any]]) -> str:
+    """Applies {original, replacement, occurrence} edits to text, right to left so offsets stay valid."""
+    spans = []
+    for e in edits:
+        original, replacement = e.get("original") or "", e.get("replacement") or ""
+        occurrence = int(e.get("occurrence") or 0)
+        idx = -1
+        for _ in range(occurrence + 1):
+            idx = text.find(original, idx + 1)
+            if idx == -1:
+                break
+        if idx == -1:
+            continue
+        spans.append((idx, idx + len(original), replacement))
+    spans.sort(key=lambda s: s[0], reverse=True)
+    last_start = len(text) + 1
+    for start, end, replacement in spans:
+        if end > last_start:  # overlapping edit: keep the later one only
+            continue
+        text = text[:start] + replacement + text[end:]
+        last_start = start
+    return text
+
+
+def call_live_api(url: str, text: str, timeout: float = 30.0, max_retries: int = 3) -> Tuple[str, float, int, int, Dict[str, Any]]:
+    """Sends one sentence to the live /api/check route (with retries) and applies the returned edits."""
+    payload = {"text": text, "language": "en-US"}
     headers = {"x-eval-runner": "true"}
+    cookie = os.environ.get("EVAL_AUTH_COOKIE")
+    if cookie:
+        headers["Cookie"] = cookie
 
     for attempt in range(max_retries):
         start = time.perf_counter()
@@ -94,17 +125,25 @@ def call_live_api(url: str, text: str, timeout: float = 30.0, max_retries: int =
 
         if resp.status_code == 200:
             data = resp.json()
-            corrected = text
-            if "success" in data and isinstance(data["success"], dict):
-                corrected = data["success"].get("text", text)
+            corrected = apply_edits(text, data.get("edits") or [])
 
-            # Estimate tokens: ~1 token per 4 characters + system prompt tokens (~80 tokens)
-            prompt_tokens = len(SYSTEM_PROMPT_GRAMMAR.split()) + len(text.split()) + 20
-            completion_tokens = len(corrected.split()) + 5
+            meta = data.get("meta") or {}
+            usage = meta.get("usage") or {}
+            if usage.get("promptTokens") is not None:
+                prompt_tokens = int(usage["promptTokens"])
+                completion_tokens = int(usage.get("completionTokens") or 0)
+                meta["tokens_estimated"] = False
+            else:
+                # Server did not report usage: fall back to a word-count estimate.
+                prompt_tokens = len(SYSTEM_PROMPT_GRAMMAR.split()) + len(text.split()) + 20
+                completion_tokens = len(corrected.split()) + 5
+                meta["tokens_estimated"] = True
 
-            return corrected, latency_ms, prompt_tokens, completion_tokens
+            return corrected, latency_ms, prompt_tokens, completion_tokens, meta
 
-        if resp.status_code == 429 and attempt < max_retries - 1:
+        if resp.status_code == 401:
+            raise RuntimeError("HTTP 401: set EVAL_AUTH_COOKIE to a signed-in session cookie (gm_session=...)")
+        if resp.status_code in (429, 502) and attempt < max_retries - 1:
             time.sleep(2.0 * (attempt + 1))
             continue
 
@@ -134,7 +173,7 @@ def run_evaluation(
     dataset_path: str,
     limit: Optional[int] = None,
     direct_groq: bool = False,
-    api_url: str = "http://localhost:3000/api/grammar-check",
+    api_url: str = "http://localhost:3000/api/check",
     model_name: Optional[str] = None
 ) -> Dict[str, Any]:
     """Executes evaluation across dataset rows and aggregates metrics."""
@@ -160,7 +199,9 @@ def run_evaluation(
         samples = samples[:limit]
 
     # Load manifest if available
-    manifest_path = Path(dataset_path).parent / "manifest.json"
+    stem = Path(dataset_path).stem
+    manifest_name = "manifest.json" if stem == "conll2014_subset" else f"manifest_{stem}.json"
+    manifest_path = Path(dataset_path).parent / manifest_name
     manifest = {}
     if manifest_path.exists():
         with open(manifest_path, "r", encoding="utf-8") as mf:
@@ -189,28 +230,46 @@ def run_evaluation(
 
     total_prompt_tokens = 0
     total_completion_tokens = 0
+    failures = 0
+    cache_hits = 0
+    tokens_estimated = False
+    server_meta: Dict[str, Any] = {}
 
     for idx, sample in enumerate(samples, start=1):
         source = sample["source"]
         references = sample["references"]
 
+        failed = False
         try:
             if direct_groq:
                 hyp, lat_ms, p_tok, c_tok = call_direct_groq(groq_client, model_name, source)
+                meta = {"model": model_name, "promptVersion": f"eval-{PROMPT_SHA}", "cached": False}
             else:
-                hyp, lat_ms, p_tok, c_tok = call_live_api(api_url, source)
+                hyp, lat_ms, p_tok, c_tok, meta = call_live_api(api_url, source)
         except Exception as err:
             print(f"  [{idx}/{len(samples)}] Failed: {err}")
+            failed = True
+            failures += 1
             hyp = source
-            lat_ms = 0.0
+            lat_ms = None  # a failed call has no latency; never count it as 0 ms
             p_tok, c_tok = 0, 0
+            meta = {}
+
+        if meta.get("cached"):
+            cache_hits += 1
+        if meta.get("tokens_estimated"):
+            tokens_estimated = True
+        for key in ("model", "promptVersion"):
+            if meta.get(key) and key not in server_meta:
+                server_meta[key] = meta[key]
 
         # Score with multi-annotator max policy
         gleu = compute_gleu(source, hyp, references, max_over_references=True)
         sim = compute_semantic_similarity(hyp, references, max_over_references=True)
         errant_res = score_with_errant(source, hyp, references, max_over_references=True)
 
-        latencies.append(lat_ms)
+        if lat_ms is not None and not meta.get("cached"):
+            latencies.append(lat_ms)
         gleu_scores.append(gleu)
         sim_scores.append(sim)
         f05_scores.append(errant_res["f0_5"])
@@ -231,6 +290,8 @@ def run_evaluation(
             "precision": errant_res["precision"],
             "recall": errant_res["recall"],
             "latency_ms": lat_ms,
+            "failed": failed,
+            "cached": bool(meta.get("cached")),
             "prompt_tokens": p_tok,
             "completion_tokens": c_tok,
         })
@@ -238,7 +299,7 @@ def run_evaluation(
         if idx % 5 == 0 or idx == len(samples):
             avg_g = sum(gleu_scores) / len(gleu_scores)
             avg_s = sum(sim_scores) / len(sim_scores)
-            print(f"  Processed [{idx:3d}/{len(samples)}] -> Mean GLEU: {avg_g:.3f} | Sim: {avg_s:.3f} | Latency: {lat_ms:.0f}ms", flush=True)
+            print(f"  Processed [{idx:3d}/{len(samples)}] -> Mean GLEU: {avg_g:.3f} | Sim: {avg_s:.3f} | Latency: {(lat_ms or 0):.0f}ms", flush=True)
 
     # Aggregate Statistics
     mean_gleu = sum(gleu_scores) / len(gleu_scores) if gleu_scores else 0.0
@@ -266,6 +327,14 @@ def run_evaluation(
         "dataset": Path(dataset_path).name,
         "sample_count": len(samples),
         "random_seed": manifest.get("random_seed", 42),
+        "run": {
+            "model": server_meta.get("model") or model_name,
+            "prompt_version": server_meta.get("promptVersion") or f"eval-{PROMPT_SHA}",
+            "failed_requests": failures,
+            "cache_hits": cache_hits,
+            "tokens_estimated": tokens_estimated,
+            "below_headline_n": len(samples) < HEADLINE_MIN_N,
+        },
         "metrics": {
             "gleu": round(mean_gleu, 4),
             "semantic_similarity": round(mean_sim, 4),
@@ -304,12 +373,24 @@ def generate_markdown_report(summary: Dict[str, Any], output_path: str):
     results = summary["results"]
 
     qualitative_samples = results[:5]
+    run = summary["run"]
+    caveats = []
+    if run["below_headline_n"]:
+        caveats.append(f"N={summary['sample_count']} is below {HEADLINE_MIN_N}: treat scores as indicative, not a headline claim.")
+    if run["failed_requests"]:
+        caveats.append(f"{run['failed_requests']} request(s) failed and are scored as 'no edit'; they are excluded from latency.")
+    if run["cache_hits"]:
+        caveats.append(f"{run['cache_hits']} response(s) came from cache and are excluded from latency.")
+    tok_note = " (estimated)" if run["tokens_estimated"] else ""
+    caveat = ("  \n**Caveats**: " + " ".join(caveats)) if caveats else ""
 
     md = f"""# Grammar-Master Benchmark Report
 
 **Mode**: `{summary['mode']}`  
 **Evaluated on**: N={summary['sample_count']} sentences, seed={summary['random_seed']}, from CoNLL-2014 test set (`{summary['dataset']}`)  
-**Generated**: {summary['timestamp']}
+**Model**: `{summary['run']['model']}` | **Prompt version**: `{summary['run']['prompt_version']}`  
+**Generated**: {summary['timestamp']}  
+**Failed requests**: {summary['run']['failed_requests']} | **Cache hits**: {summary['run']['cache_hits']}{caveat}
 
 ---
 
@@ -340,11 +421,11 @@ def generate_markdown_report(summary: Dict[str, Any], output_path: str):
 
 | Resource | Count / Cost |
 | :--- | :--- |
-| **Total Prompt Tokens** | {t['prompt_tokens']:,} |
-| **Total Completion Tokens** | {t['completion_tokens']:,} |
-| **Total Tokens** | {t['total_tokens']:,} |
-| **Estimated Evaluation Cost** | ${e['total_cost_usd']:.5f} |
-| **Estimated Cost / 1,000 Sentences** | **${e['cost_per_1k_sentences_usd']:.4f}** |
+| **Total Prompt Tokens** | {t['prompt_tokens']:,}{tok_note} |
+| **Total Completion Tokens** | {t['completion_tokens']:,}{tok_note} |
+| **Total Tokens** | {t['total_tokens']:,}{tok_note} |
+| **Evaluation Cost** | ${e['total_cost_usd']:.5f}{tok_note} |
+| **Cost / 1,000 Sentences** | **${e['cost_per_1k_sentences_usd']:.4f}**{tok_note} |
 
 ---
 
@@ -352,17 +433,18 @@ def generate_markdown_report(summary: Dict[str, Any], output_path: str):
 
 """
     for i, s in enumerate(qualitative_samples, start=1):
+        lat_txt = "n/a" if s["latency_ms"] is None else f"{s['latency_ms']:.0f}ms"
         md += f"### Example {i} (ID: {s['id']})\n"
         md += f"- **Source (Input)**: `{s['source']}`\n"
         md += f"- **Hypothesis (Output)**: `{s['hypothesis']}`\n"
         md += f"- **Reference(s)**: `{s['references'][0]}`\n"
-        md += f"- **Metrics**: GLEU: `{s['gleu']:.3f}` | Sim: `{s['semantic_similarity']:.3f}` | $F_{{0.5}}$: `{s['f0_5']:.3f}` | Latency: `{s['latency_ms']:.0f}ms`\n\n"
+        md += f"- **Metrics**: GLEU: `{s['gleu']:.3f}` | Sim: `{s['semantic_similarity']:.3f}` | $F_{{0.5}}$: `{s['f0_5']:.3f}` | Latency: `{lat_txt}`\n\n"
 
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(md)
 
     # Also persist latest.json
-    json_path = os.path.join(os.path.dirname(output_path), "benchmark_latest.json")
+    json_path = os.path.splitext(output_path)[0] + ".json"
     with open(json_path, "w", encoding="utf-8") as jf:
         json.dump(summary, jf, indent=2)
 
@@ -371,12 +453,16 @@ def generate_markdown_report(summary: Dict[str, Any], output_path: str):
 
 def main():
     parser = argparse.ArgumentParser(description="Grammar-Master GEC Benchmark Runner")
-    parser.add_argument("--dataset", type=str, default="evals/datasets/conll2014_subset.jsonl", help="Dataset JSONL path")
+    parser.add_argument("--dataset", type=str, default="evals/datasets/conll2014_eval_250.jsonl", help="Dataset JSONL path (default: 250 pinned CoNLL-2014 sentences)")
     parser.add_argument("--limit", type=int, default=None, help="Max number of sentences to evaluate (e.g. 25, 100)")
     parser.add_argument("--direct-groq", action="store_true", help="Diagnostic baseline: invoke Groq model directly")
-    parser.add_argument("--target", type=str, default="http://localhost:3000/api/grammar-check", help="Live API target URL")
+    parser.add_argument("--target", type=str, default="http://localhost:3000/api/check", help="Live API target URL")
     parser.add_argument("--model", type=str, default=CONFIGURED_PRIMARY_MODEL, help=f"Groq model ID (default: {CONFIGURED_PRIMARY_MODEL} from src/lib/ai-config.ts)")
-    parser.add_argument("--output", type=str, default="evals/reports/benchmark_latest.md", help="Output report markdown path")
+    parser.add_argument("--output", type=str, default="evals/reports/benchmark_latest.md", help="Output report markdown path (JSON is written beside it)")
+    parser.add_argument("--min-f05", type=float, default=None, help="CI gate: exit 1 if mean F0.5 is below this value")
+    parser.add_argument("--max-failures", type=int, default=0, help="CI gate: exit 1 if more than this many requests failed")
+    parser.add_argument("--baseline", type=str, default=None, help="Optional previous report JSON; with --max-drop, fail if F0.5 fell by more than that")
+    parser.add_argument("--max-drop", type=float, default=0.03, help="Allowed F0.5 drop versus --baseline (default 0.03)")
 
     args = parser.parse_args()
 
@@ -389,6 +475,33 @@ def main():
     )
 
     generate_markdown_report(summary, args.output)
+
+    # ---- CI gate -------------------------------------------------------
+    problems = []
+    f05 = summary["metrics"]["f0_5"]
+    run = summary["run"]
+    if run["failed_requests"] > args.max_failures:
+        problems.append(f"{run['failed_requests']} failed request(s) (allowed {args.max_failures})")
+    if run["cache_hits"]:
+        problems.append(f"{run['cache_hits']} cache hit(s): eval requests must bypass the cache")
+    if args.min_f05 is not None and f05 < args.min_f05:
+        problems.append(f"F0.5 {f05:.4f} is below the minimum {args.min_f05:.4f}")
+    if args.baseline:
+        try:
+            with open(args.baseline, "r", encoding="utf-8") as bf:
+                base_f05 = json.load(bf)["metrics"]["f0_5"]
+            if base_f05 - f05 > args.max_drop:
+                problems.append(f"F0.5 dropped {base_f05 - f05:.4f} from baseline {base_f05:.4f} (allowed {args.max_drop})")
+        except (OSError, KeyError, ValueError) as err:
+            problems.append(f"could not read baseline {args.baseline}: {err}")
+
+    if problems:
+        print("\nEVAL GATE FAILED:")
+        for item in problems:
+            print(f"  - {item}")
+        sys.exit(1)
+    if args.min_f05 is not None or args.baseline:
+        print("\nEval gate passed.")
 
 if __name__ == "__main__":
     main()

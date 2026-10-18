@@ -13,6 +13,7 @@ import os
 import re
 import json
 import random
+import argparse
 from typing import List, Dict, Any, Tuple
 
 RANDOM_SEED = 42
@@ -147,6 +148,12 @@ def build_benchmark_subset(
     return combined, manifest
 
 def main():
+    parser = argparse.ArgumentParser(description="Build a pinned CoNLL-2014 benchmark subset")
+    parser.add_argument("--size", type=int, default=DEFAULT_SUBSET_SIZE, help="Number of sentences (use >= 200 for headline claims)")
+    parser.add_argument("--seed", type=int, default=RANDOM_SEED)
+    parser.add_argument("--name", type=str, default="conll2014_subset", help="Output stem inside evals/datasets/")
+    args = parser.parse_args()
+
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     m2_path = os.path.join(base_dir, "conll14st-test-data", "noalt", "official-2014.combined.m2")
     datasets_dir = os.path.join(base_dir, "datasets")
@@ -160,15 +167,16 @@ def main():
     records = parse_m2_file(m2_path)
     print(f"Parsed {len(records)} total sentences ({sum(1 for r in records if r['has_errors'])} with errors).")
 
-    subset, manifest = build_benchmark_subset(records, subset_size=DEFAULT_SUBSET_SIZE, seed=RANDOM_SEED)
+    subset, manifest = build_benchmark_subset(records, subset_size=args.size, seed=args.seed)
 
-    out_jsonl = os.path.join(datasets_dir, "conll2014_subset.jsonl")
+    out_jsonl = os.path.join(datasets_dir, f"{args.name}.jsonl")
     with open(out_jsonl, "w", encoding="utf-8") as f:
         for item in subset:
             f.write(json.dumps(item) + "\n")
     print(f"Wrote {len(subset)} pinned benchmark sentences to: {out_jsonl}")
 
-    out_manifest = os.path.join(datasets_dir, "manifest.json")
+    manifest_name = "manifest.json" if args.name == "conll2014_subset" else f"manifest_{args.name}.json"
+    out_manifest = os.path.join(datasets_dir, manifest_name)
     with open(out_manifest, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
     print(f"Saved benchmark manifest to: {out_manifest}")

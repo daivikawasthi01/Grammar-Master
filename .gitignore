@@ -44,3 +44,7 @@ scratch/
 full-stack_chatApp/
 
 
+backups/
+.claude/launch.json
+/playwright-report/
+/test-results/
