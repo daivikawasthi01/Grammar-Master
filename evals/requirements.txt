@@ -1,4 +1,4 @@
-errant>=3.0.0
+errant>=3.0.2
 spacy>=3.7.0
 sentence-transformers>=3.0.0
 requests>=2.31.0
