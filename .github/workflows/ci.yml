@@ -19,7 +19,7 @@ jobs:
     name: Types, lint, tests, build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -45,7 +45,7 @@ jobs:
       E2E_MONGODB_URI: mongodb://127.0.0.1:27017/gm_e2e
       E2E_OUTPUT_DIR: ${{ github.workspace }}/../e2e-output
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: 22
