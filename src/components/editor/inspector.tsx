@@ -150,7 +150,7 @@ function AiStatusRow({ status, pending, onCheckAll }: { status: AiStatus; pendin
           ? `You've used this month's AI checks. They reset ${status.resetAt ? new Date(status.resetAt).toLocaleDateString(undefined, { month: "long", day: "numeric" }) : "next month"}. Instant checks keep working.`
           : status.code === "RATE_LIMITED"
             ? "AI checks are paused for a minute. Instant checks keep working."
-            : `AI suggestions are unavailable right now (${status.message}). Instant checks keep working.`}
+            : "AI suggestions are unavailable right now. Instant checks keep working."}
       </div>
     );
   if (pending > 0)
