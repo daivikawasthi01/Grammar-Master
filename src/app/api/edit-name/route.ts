@@ -6,6 +6,7 @@ import dbConnect from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 import { z } from "zod";
 
+import { logger } from "@/lib/logger";
 const editNameSchema = z.object({
   newName: z.string().trim().min(1, "Name cannot be empty").max(100, "Name too long"),
 });
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ status: "Name changed", name: updated.name });
   } catch (error) {
-    console.error("Edit name error:", error);
+    logger.error({ err: error }, "Edit name error");
     return NextResponse.json({ error: "Failed to update name" }, { status: 500 });
   }
 }

@@ -7,6 +7,7 @@ import { requireUser } from "@/lib/api-auth";
 import mongoose from "mongoose";
 import { z } from "zod";
 
+import { logger, getRequestId } from "@/lib/logger";
 interface RouteProps {
   params: Promise<{
     id: string;
@@ -56,7 +57,7 @@ export async function GET(req: NextRequest, props: RouteProps) {
       updatedAt: doc.updatedAt,
     });
   } catch (error) {
-    console.error("GET /api/documents/:id error:", error);
+    logger.error({ err: error, requestId: getRequestId(req) }, "GET /api/documents/:id error");
     return NextResponse.json(
       { error: "Failed to fetch document" },
       { status: 500 }
@@ -133,7 +134,7 @@ export async function PATCH(req: NextRequest, props: RouteProps) {
       updatedAt: updated.updatedAt,
     });
   } catch (error) {
-    console.error("PATCH /api/documents/:id error:", error);
+    logger.error({ err: error, requestId: getRequestId(req) }, "PATCH /api/documents/:id error");
     return NextResponse.json(
       { error: "Failed to update document" },
       { status: 500 }
@@ -181,7 +182,7 @@ export async function DELETE(req: NextRequest, props: RouteProps) {
 
     return NextResponse.json({ status: "trashed", id });
   } catch (error) {
-    console.error("DELETE /api/documents/:id error:", error);
+    logger.error({ err: error, requestId: getRequestId(req) }, "DELETE /api/documents/:id error");
     return NextResponse.json(
       { error: "Failed to delete document" },
       { status: 500 }

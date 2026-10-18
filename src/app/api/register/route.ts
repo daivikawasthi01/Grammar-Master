@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/mongodb";
 import { z } from "zod";
 
+import { logger } from "@/lib/logger";
 const registerSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name too long"),
   email: z.string().email("Invalid email address").toLowerCase().trim(),
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Registration error:", error);
+    logger.error({ err: error }, "Registration error");
     return NextResponse.json(
       { error: "Registration failed. Please try again later." },
       { status: 500 }

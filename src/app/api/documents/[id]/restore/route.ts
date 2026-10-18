@@ -6,6 +6,7 @@ import DocumentModel from "@/models/Document";
 import { requireUser } from "@/lib/api-auth";
 import mongoose from "mongoose";
 
+import { logger, getRequestId } from "@/lib/logger";
 interface RouteProps {
   params: Promise<{
     id: string;
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest, props: RouteProps) {
 
     return NextResponse.json({ status: "restored", id });
   } catch (error) {
-    console.error("Restore document error:", error);
+    logger.error({ err: error, requestId: getRequestId(req) }, "Restore document error");
     return NextResponse.json(
       { error: "Failed to restore document" },
       { status: 500 }

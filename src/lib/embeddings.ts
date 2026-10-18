@@ -1,3 +1,5 @@
+import { logger } from "@/lib/logger";
+
 let extractorPromise: Promise<any> | null = null;
 
 async function getExtractor() {
@@ -11,10 +13,10 @@ async function getExtractor() {
         return await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
       } catch (err: any) {
         if (process.env.NODE_ENV === "test") {
-          console.warn("[Embeddings] Test runner detected: using fallback test embedding generator.");
+          logger.warn("test runner detected: using fallback embedding generator");
           return null;
         }
-        console.error("❌ [Embeddings Critical] Failed to initialize @xenova/transformers:", err);
+        logger.error({ err }, "failed to initialize @xenova/transformers");
         throw new Error(`Failed to initialize transformer embedding model: ${err?.message || err}`);
       }
     })();

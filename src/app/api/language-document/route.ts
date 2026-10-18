@@ -6,6 +6,7 @@ import dbConnect from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 import { z } from "zod";
 
+import { logger } from "@/lib/logger";
 const languageSchema = z.object({
   documentId: z.string().min(1, "Document ID required"),
   language: z.string().min(1, "Language required"),
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ status: "saved", language });
   } catch (error) {
-    console.error("Language document error:", error);
+    logger.error({ err: error }, "Language document error");
     return NextResponse.json(
       { error: "Failed to update document language" },
       { status: 500 }

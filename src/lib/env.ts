@@ -10,6 +10,8 @@ const envSchema = z.object({
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
   UPSTASH_VECTOR_REST_URL: z.string().optional(),
   UPSTASH_VECTOR_REST_TOKEN: z.string().optional(),
+  SENTRY_DSN: z.string().optional(),
+  LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).optional(),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 });
 
@@ -26,6 +28,8 @@ function validateEnv() {
       UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
       UPSTASH_VECTOR_REST_URL: process.env.UPSTASH_VECTOR_REST_URL,
       UPSTASH_VECTOR_REST_TOKEN: process.env.UPSTASH_VECTOR_REST_TOKEN,
+      SENTRY_DSN: process.env.SENTRY_DSN,
+      LOG_LEVEL: undefined,
       NODE_ENV: "test" as const,
     };
   }

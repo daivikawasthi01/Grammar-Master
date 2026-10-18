@@ -6,6 +6,7 @@ import dbConnect from "@/lib/mongodb";
 import { requireUser } from "@/lib/api-auth";
 import { z } from "zod";
 
+import { logger } from "@/lib/logger";
 const saveDocSchema = z.object({
   documentId: z.string().min(1, "Document ID required"),
   title: z.string().optional(),
@@ -70,7 +71,7 @@ export async function POST(req: Request) {
       version: updateFields["documents.$.version"],
     });
   } catch (error: any) {
-    console.error("Save document error:", error);
+    logger.error({ err: error }, "Save document error");
     return NextResponse.json(
       { error: "Failed to save document to database" },
       { status: 500 }

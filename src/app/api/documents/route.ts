@@ -8,6 +8,7 @@ import { syncLegacyUserDocuments } from "@/lib/document-sync";
 import mammoth from "mammoth";
 import { z } from "zod";
 
+import { logger, getRequestId } from "@/lib/logger";
 const createDocSchema = z.object({
   title: z.string().trim().optional().default("Untitled Document"),
   content: z.record(z.string(), z.any()).optional(),
@@ -61,7 +62,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ documents: formatted });
   } catch (error) {
-    console.error("GET /api/documents error:", error);
+    logger.error({ err: error, requestId: getRequestId(req) }, "GET /api/documents error");
     return NextResponse.json(
       { error: "Failed to fetch documents" },
       { status: 500 }
@@ -207,7 +208,7 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("POST /api/documents error:", error);
+    logger.error({ err: error, requestId: getRequestId(req) }, "POST /api/documents error");
     return NextResponse.json(
       { error: "Failed to create document" },
       { status: 500 }

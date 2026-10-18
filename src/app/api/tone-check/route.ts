@@ -5,6 +5,7 @@ import User from "@/app/db/schema";
 import dbConnect from "@/lib/mongodb";
 import { GROQ_MODELS, getGroqClient } from "@/lib/ai-config";
 import { requireAuthOrDemo } from "@/lib/api-auth";
+import { logger } from "@/lib/logger";
 import {
   normalizePlan,
   getPromptLimit,
@@ -96,7 +97,7 @@ export async function POST(req: Request) {
     promptCache.set(cacheKey, payload);
     return NextResponse.json(payload);
   } catch (error: any) {
-    console.error("Tone check error:", error);
+    logger.error({ err: error }, "Tone check error");
     return NextResponse.json(
       { error: error?.message || "Failed to adjust tone" },
       { status: 500 }

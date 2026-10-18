@@ -10,6 +10,7 @@ import { JWT_SECRET } from "@/app/config/auth";
 import { requireUser } from "@/lib/api-auth";
 import { z } from "zod";
 
+import { logger } from "@/lib/logger";
 const editEmailSchema = z.object({
   password: z.string().min(1, "Password is required"),
   newEmail: z.string().email("Invalid email format").toLowerCase().trim(),
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
       email: user.email,
     });
   } catch (error) {
-    console.error("Email update error:", error);
+    logger.error({ err: error }, "Email update error");
     return NextResponse.json(
       { error: "Failed to update email" },
       { status: 500 }

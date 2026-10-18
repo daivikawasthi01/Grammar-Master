@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/api-auth";
 import { GROQ_MODELS, getGroqClient } from "@/lib/ai-config";
 import { z } from "zod";
 
+import { logger, getRequestId } from "@/lib/logger";
 const rewriteSchema = z.object({
   text: z.string().min(1, "Text selection required").max(10000, "Selection too long"),
   action: z.enum([
@@ -91,7 +92,7 @@ Return ONLY the rewritten text without markdown fences, quotes, or meta commenta
             }
           }
         } catch (err) {
-          console.error("Stream error:", err);
+          logger.error({ err: err }, "Stream error");
           controller.error(err);
         } finally {
           controller.close();
@@ -107,7 +108,7 @@ Return ONLY the rewritten text without markdown fences, quotes, or meta commenta
       },
     });
   } catch (error) {
-    console.error("Rewrite error:", error);
+    logger.error({ err: error, requestId: getRequestId(req) }, "Rewrite error");
     return NextResponse.json(
       { error: "Failed to generate rewrite" },
       { status: 500 }

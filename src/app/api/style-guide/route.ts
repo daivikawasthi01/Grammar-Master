@@ -9,6 +9,7 @@ import { splitIntoAtomicRules } from "@/lib/rag-style";
 import { requireAuthOrDemo } from "@/lib/api-auth";
 import crypto from "crypto";
 
+import { logger } from "@/lib/logger";
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -69,7 +70,7 @@ export async function GET(req: Request) {
       styleGuides: guidesWithRules,
     });
   } catch (error: any) {
-    console.error("Style guide fetch error:", error);
+    logger.error({ err: error }, "Style guide fetch error");
     return NextResponse.json(
       { error: error?.message || "Failed to fetch style guides" },
       { status: 500 }
@@ -169,7 +170,7 @@ export async function PATCH(req: Request) {
       },
     });
   } catch (error: any) {
-    console.error("Style guide update error:", error);
+    logger.error({ err: error }, "Style guide update error");
     return NextResponse.json(
       { error: error?.message || "Failed to update style guide" },
       { status: 500 }
@@ -221,7 +222,7 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ success: true, message: "Style guide deleted successfully" });
   } catch (error: any) {
-    console.error("Style guide delete error:", error);
+    logger.error({ err: error }, "Style guide delete error");
     return NextResponse.json(
       { error: error?.message || "Failed to delete style guide" },
       { status: 500 }

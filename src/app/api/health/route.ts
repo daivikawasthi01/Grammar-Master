@@ -1,38 +1,55 @@
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
-import dbConnect from "@/lib/mongodb";
 import mongoose from "mongoose";
+import dbConnect from "@/lib/mongodb";
+import { getLogger } from "@/lib/logger";
 
-export async function GET() {
-  const startTime = Date.now();
-  let dbStatus = "disconnected";
+const PING_TIMEOUT_MS = 2000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("timeout")), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
+/**
+ * Liveness + database check. No auth, and no internals in the body: the database
+ * is actually pinged (a connected socket alone does not prove the server answers).
+ */
+export async function GET(req: Request) {
+  const log = getLogger(req, "health");
+  const started = Date.now();
+  let database: "ok" | "down" = "down";
 
   try {
-    await dbConnect();
-    const readyState = mongoose.connection.readyState;
-    if (readyState === 1) {
-      dbStatus = "connected";
-    } else if (readyState === 2) {
-      dbStatus = "connecting";
-    }
+    await withTimeout(dbConnect(), PING_TIMEOUT_MS);
+    const db = mongoose.connection.db;
+    if (!db) throw new Error("no database handle");
+    await withTimeout(db.admin().ping(), PING_TIMEOUT_MS);
+    database = "ok";
   } catch (err) {
-    dbStatus = "error";
+    log.error({ err }, "health check: database ping failed");
   }
 
-  const isHealthy = dbStatus === "connected";
-  const latency = Date.now() - startTime;
-
+  const healthy = database === "ok";
   return NextResponse.json(
     {
-      status: isHealthy ? "ok" : "degraded",
-      uptime: process.uptime(),
+      status: healthy ? "ok" : "degraded",
+      database,
+      latencyMs: Date.now() - started,
       timestamp: new Date().toISOString(),
-      database: {
-        status: dbStatus,
-        latencyMs: latency,
-      },
     },
-    { status: isHealthy ? 200 : 503 }
+    { status: healthy ? 200 : 503, headers: { "Cache-Control": "no-store" } }
   );
 }

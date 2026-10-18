@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import { requireUser } from "@/lib/api-auth";
 import { z } from "zod";
 
+import { logger } from "@/lib/logger";
 const editPasswordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
   newPassword: z.string().min(6, "New password must be at least 6 characters"),
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ status: "Password changed successfully" });
   } catch (error) {
-    console.error("Password update error:", error);
+    logger.error({ err: error }, "Password update error");
     return NextResponse.json(
       { error: "Failed to update password" },
       { status: 500 }

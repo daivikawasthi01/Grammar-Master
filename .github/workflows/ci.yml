@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      # Placeholders so env validation passes at build time; nothing is called.
+      MONGODB_URI: mongodb://127.0.0.1:27017/ci
+      JWT_SECRET: ci-only-not-a-real-secret-ci-only-not-a-real-secret
+      GROQ_API_KEY: ci-placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint:ci
+      - run: npm run test:ci
+      - run: npm run build
