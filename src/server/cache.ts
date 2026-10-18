@@ -3,6 +3,7 @@ import { createHash } from "crypto";
 import { LRUCache } from "lru-cache";
 import { Redis } from "@upstash/redis";
 import { env, hasUpstash } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 /**
  * Response cache for AI checks. Keys are a sha256 of everything that affects the
@@ -19,14 +20,21 @@ export function cacheKey(...parts: string[]): string {
 }
 
 export async function cacheGet<T>(key: string): Promise<T | null> {
-  if (redis) return (await redis.get<T>(key)) ?? null;
+  if (redis) {
+    try {
+      return (await redis.get<T>(key)) ?? null;
+    } catch (err) {
+      logger.warn({ err }, "cache read failed; treating as a miss");
+      return null;
+    }
+  }
   const hit = memory.get(key);
   return hit ? (JSON.parse(hit) as T) : null;
 }
 
 export async function cacheSet<T>(key: string, value: T): Promise<void> {
   if (redis) {
-    await redis.set(key, value, { ex: TTL_SECONDS });
+    await redis.set(key, value, { ex: TTL_SECONDS }).catch((err) => logger.warn({ err }, "cache write failed"));
     return;
   }
   memory.set(key, JSON.stringify(value));

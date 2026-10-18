@@ -3,6 +3,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { env, hasUpstash } from "@/lib/env";
 import { AppError } from "@/server/errors";
+import { logger } from "@/lib/logger";
 
 type Policy = { limit: number; windowSeconds: number };
 
@@ -63,7 +64,15 @@ function limiterFor(name: PolicyName): Limiter {
 }
 
 export async function enforceRateLimit(name: PolicyName, key: string): Promise<void> {
-  const { success, reset } = await limiterFor(name).limit(key);
+  let result: { success: boolean; reset: number };
+  try {
+    result = await limiterFor(name).limit(key);
+  } catch (err) {
+    // A limiter outage must not lock every user out: fail open, loudly.
+    logger.warn({ err, policy: name }, "rate limiter unavailable; allowing request");
+    return;
+  }
+  const { success, reset } = result;
   if (!success) {
     throw new AppError("RATE_LIMITED", "Too many requests. Try again shortly.", { resetAt: new Date(reset).toISOString() });
   }

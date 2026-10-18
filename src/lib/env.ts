@@ -21,7 +21,9 @@ const envSchema = z.object({
 export type Env = z.infer<typeof envSchema>;
 
 function validateEnv(): Env {
-  const result = envSchema.safeParse(process.env);
+  // Blank lines in .env files ("KEY=") mean "not set", not "set to an empty string".
+  const raw = Object.fromEntries(Object.entries(process.env).filter(([, v]) => v !== undefined && v.trim() !== ""));
+  const result = envSchema.safeParse(raw);
   if (!result.success) {
     const fields = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`);
     throw new Error(`Invalid environment configuration:\n  ${fields.join("\n  ")}`);

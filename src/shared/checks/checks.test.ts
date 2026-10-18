@@ -41,3 +41,16 @@ describe("readability", () => {
     expect(textStats(dense).fleschKincaidGrade!).toBeGreaterThan(14);
   });
 });
+
+import { rankSuggestions } from "./spelling-rank";
+
+describe("rankSuggestions", () => {
+  it("puts the transposition fix first and keeps the writer's capitalisation", () => {
+    expect(rankSuggestions("Teh", ["Ten", "Tea", "The", "Tech"])[0]).toBe("The");
+    expect(rankSuggestions("recieve", ["relieve", "receive"])[0]).toBe("receive");
+  });
+
+  it("orders unknown words by edit distance", () => {
+    expect(rankSuggestions("speling", ["sapling", "spilling", "spelling"])[0]).toBe("spelling");
+  });
+});
