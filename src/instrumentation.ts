@@ -18,7 +18,16 @@ export async function register() {
   Sentry.init({
     dsn,
     environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV,
-    sendDefaultPii: false,
+    // Documents are private user text: collect no bodies, cookies, headers, user info or AI inputs.
+    dataCollection: {
+      userInfo: false,
+      cookies: false,
+      httpHeaders: false,
+      httpBodies: [],
+      urlQueryParams: false,
+      genAI: { inputs: false, outputs: false },
+      databaseQueryData: false,
+    },
     tracesSampleRate: 0,
     beforeSend(event) {
       if (event.request) {
