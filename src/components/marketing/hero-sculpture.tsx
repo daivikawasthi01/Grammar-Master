@@ -29,8 +29,8 @@ export function HeroSculpture() {
       themeToggle={false}
       loadFonts={false}
       height="calc(100svh - 4rem)"
-      background="#FBFAFF"
-      darkBackground="#141629"
+      background="#F6F6F4"
+      darkBackground="#0B0B0B"
       headingFont="var(--font-geist-sans), system-ui, sans-serif"
       bodyFont="var(--font-geist-sans), system-ui, sans-serif"
       accentFont="var(--font-serif), Georgia, serif"

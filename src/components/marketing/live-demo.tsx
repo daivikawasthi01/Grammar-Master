@@ -95,7 +95,7 @@ export function LiveDemo() {
         </span>
         <span className="ml-2">Try it, it is the real checker</span>
         <span className="ml-auto inline-flex items-center gap-1 tabular-nums">
-          <Zap className="size-3.5 text-emerald-500" /> {ms === null ? "loading dictionary…" : `${Math.max(1, Math.round(ms))} ms · no network`}
+          <Zap className="size-3.5 text-primary" /> {ms === null ? "loading dictionary…" : `${Math.max(1, Math.round(ms))} ms · no network`}
         </span>
       </div>
       <div className="grid md:grid-cols-[1fr_280px]">
@@ -144,7 +144,7 @@ export function LiveDemo() {
           </ul>
           {!hits.length && ms !== null && (
             <div className="grid place-items-center py-6 text-center text-sm text-muted-foreground">
-              <Check className="mb-2 size-6 text-emerald-500" />
+              <Check className="mb-2 size-6 text-primary" />
               Nothing to fix. Try typing a mistake.
             </div>
           )}

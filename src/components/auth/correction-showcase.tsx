@@ -65,7 +65,7 @@ export function CorrectionShowcase() {
             className="mt-4 flex items-center gap-2 text-sm"
             animate={{ opacity: fixed ? 1 : 0.35 }}
           >
-            <span className={`grid size-5 place-items-center rounded-full transition-colors ${fixed ? "bg-emerald-500 text-white" : "bg-muted"}`}>
+            <span className={`grid size-5 place-items-center rounded-full transition-colors ${fixed ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
               <Check className="size-3" />
             </span>
             <span className="text-muted-foreground">{fixed ? "Accepted · Ctrl+Z to undo" : "Suggestion ready"}</span>
