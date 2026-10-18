@@ -30,7 +30,7 @@ export function StatusBar({ words, chars, instantMs, spellingReady }: { words: n
       <Tooltip>
         <TooltipTrigger asChild>
           <span className="ml-auto inline-flex items-center gap-1">
-            <Zap className={`size-3.5 ${spellingReady ? "text-emerald-500" : ""}`} />
+            <Zap className={`size-3.5 ${spellingReady ? "text-primary" : ""}`} />
             {spellingReady ? (instantMs !== null ? `${Math.max(1, Math.round(instantMs))} ms` : "Instant checks on") : "Loading dictionary…"}
           </span>
         </TooltipTrigger>

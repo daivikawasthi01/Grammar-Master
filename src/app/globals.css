@@ -4,82 +4,88 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Palette: the original violet/indigo tokens, as solid surfaces with 1px borders.
- * Light is the default; `.dark` on <html> switches (set before paint by the theme script).
+ * Palette: "Sage Garden". Neutral near-black surfaces with 1px borders, a muted sage
+ * primary, a deep green accent and a red destructive. Light is the default; `.dark`
+ * on <html> switches (set before paint by the theme script).
  */
 :root {
   --radius: 0.625rem;
-  --background: oklch(0.99 0.003 286);
-  --foreground: oklch(0.21 0.02 280);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.02 280);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.02 280);
-  --primary: oklch(0.52 0.22 290);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.01 286);
-  --secondary-foreground: oklch(0.27 0.03 280);
-  --muted: oklch(0.965 0.006 286);
-  --muted-foreground: oklch(0.5 0.02 280);
-  --accent: oklch(0.95 0.025 290);
-  --accent-foreground: oklch(0.3 0.08 290);
-  --destructive: oklch(0.58 0.22 27);
-  --border: oklch(0.91 0.008 286);
-  --input: oklch(0.91 0.008 286);
-  --ring: oklch(0.6 0.2 290);
-  --chart-1: oklch(0.52 0.22 290);
-  --chart-2: oklch(0.6 0.15 250);
-  --chart-3: oklch(0.7 0.14 170);
-  --chart-4: oklch(0.75 0.15 80);
-  --chart-5: oklch(0.62 0.2 20);
-  --sidebar: oklch(0.985 0.004 286);
-  --sidebar-foreground: oklch(0.21 0.02 280);
-  --sidebar-primary: oklch(0.52 0.22 290);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.95 0.02 290);
-  --sidebar-accent-foreground: oklch(0.3 0.08 290);
-  --sidebar-border: oklch(0.92 0.008 286);
-  --sidebar-ring: oklch(0.6 0.2 290);
+  --background: #f6f6f4;
+  --foreground: #161716;
+  --card: #ffffff;
+  --card-foreground: #161716;
+  --popover: #ffffff;
+  --popover-foreground: #161716;
+  --primary: #5c7566;
+  --primary-foreground: #f7faf8;
+  --secondary: #ececea;
+  --secondary-foreground: #1d1f1e;
+  --muted: #efefec;
+  --muted-foreground: #66696a;
+  --accent: #e2eae4;
+  --accent-foreground: #2c4434;
+  --destructive: #dc3c3c;
+  --border: #e2e2de;
+  --input: #dcdcd8;
+  --ring: #7e9485;
+  --chart-1: #7e9485;
+  --chart-2: #5c7566;
+  --chart-3: #a9b9ad;
+  --chart-4: #3e5246;
+  --chart-5: #c8d3cb;
+  --sidebar: #f0f0ed;
+  --sidebar-foreground: #161716;
+  --sidebar-primary: #5c7566;
+  --sidebar-primary-foreground: #f7faf8;
+  --sidebar-accent: #e2e7e3;
+  --sidebar-accent-foreground: #2c4434;
+  --sidebar-border: #e2e2de;
+  --sidebar-ring: #7e9485;
 
   /* Suggestion categories */
-  --sg-correctness: oklch(0.6 0.22 25);
-  --sg-clarity: oklch(0.58 0.17 250);
-  --sg-style: oklch(0.55 0.2 300);
-  --sg-engagement: oklch(0.62 0.15 160);
+  --sg-correctness: #d64545;
+  --sg-clarity: #3f74c4;
+  --sg-style: #5c7566;
+  --sg-engagement: #b7791f;
 }
 
 .dark {
-  --background: oklch(0.17 0.03 270);
-  --foreground: oklch(0.92 0.03 275);
-  --card: oklch(0.21 0.035 270);
-  --card-foreground: oklch(0.92 0.03 275);
-  --popover: oklch(0.22 0.035 270);
-  --popover-foreground: oklch(0.92 0.03 275);
-  --primary: oklch(0.82 0.1 295);
-  --primary-foreground: oklch(0.22 0.12 290);
-  --secondary: oklch(0.26 0.035 270);
-  --secondary-foreground: oklch(0.92 0.03 275);
-  --muted: oklch(0.25 0.03 270);
-  --muted-foreground: oklch(0.72 0.03 280);
-  --accent: oklch(0.29 0.05 285);
-  --accent-foreground: oklch(0.92 0.04 290);
-  --destructive: oklch(0.7 0.17 22);
-  --border: oklch(0.3 0.03 275);
-  --input: oklch(0.32 0.03 275);
-  --ring: oklch(0.7 0.14 295);
-  --sidebar: oklch(0.19 0.032 270);
-  --sidebar-foreground: oklch(0.92 0.03 275);
-  --sidebar-primary: oklch(0.82 0.1 295);
-  --sidebar-primary-foreground: oklch(0.22 0.12 290);
-  --sidebar-accent: oklch(0.27 0.045 285);
-  --sidebar-accent-foreground: oklch(0.92 0.04 290);
-  --sidebar-border: oklch(0.29 0.03 275);
-  --sidebar-ring: oklch(0.7 0.14 295);
+  --background: #0b0b0b;
+  --foreground: #ededec;
+  --card: #141414;
+  --card-foreground: #ededec;
+  --popover: #171717;
+  --popover-foreground: #ededec;
+  --primary: #7e9485;
+  --primary-foreground: #0f1612;
+  --secondary: #1f1f1f;
+  --secondary-foreground: #ededec;
+  --muted: #1b1b1b;
+  --muted-foreground: #a3a3a1;
+  --accent: #2c3a31;
+  --accent-foreground: #dfe8e2;
+  --destructive: #ef4444;
+  --border: #2a2a2a;
+  --input: #2a2a2a;
+  --ring: #7e9485;
+  --chart-1: #7e9485;
+  --chart-2: #a9b9ad;
+  --chart-3: #5c7566;
+  --chart-4: #c8d3cb;
+  --chart-5: #3e5246;
+  --sidebar: #101010;
+  --sidebar-foreground: #ededec;
+  --sidebar-primary: #7e9485;
+  --sidebar-primary-foreground: #0f1612;
+  --sidebar-accent: #1f2621;
+  --sidebar-accent-foreground: #dfe8e2;
+  --sidebar-border: #232323;
+  --sidebar-ring: #7e9485;
 
-  --sg-correctness: oklch(0.72 0.17 25);
-  --sg-clarity: oklch(0.74 0.12 250);
-  --sg-style: oklch(0.78 0.13 300);
-  --sg-engagement: oklch(0.76 0.12 160);
+  --sg-correctness: #f26b6b;
+  --sg-clarity: #79a3e8;
+  --sg-style: #9db3a4;
+  --sg-engagement: #e0a84a;
 }
 
 @theme inline {
@@ -268,7 +274,7 @@
 /* Landing hero: hide the sculpture until the client knows the theme */
 .sh-pending .sh-stage { visibility: hidden; }
 
-/* Landing hero backdrop: the original dotted grid with a soft violet glow, behind the sculpture */
+/* Landing hero backdrop: the original dotted grid with a soft sage glow, behind the sculpture */
 .hero-sculpture::before {
   content: "";
   position: absolute;
@@ -280,3 +286,4 @@
     radial-gradient(var(--border) 1px, transparent 1px) 0 0 / 28px 28px;
   mask-image: radial-gradient(ellipse 75% 70% at 55% 40%, #000 35%, transparent 85%);
 }
+.hero-sculpture .sh-btn { background: var(--primary); color: var(--primary-foreground); }

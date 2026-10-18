@@ -101,7 +101,7 @@ function SuggestionsTab(p: Props) {
 
         {visible.length === 0 ? (
           <div className="py-10 text-center">
-            <div className="mx-auto grid size-12 place-items-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <div className="mx-auto grid size-12 place-items-center rounded-full bg-primary/15 text-primary">
               <CheckCheck className="size-5" />
             </div>
             <p className="mt-3 text-sm font-medium">{filter ? "Nothing in this category" : "No suggestions right now"}</p>
