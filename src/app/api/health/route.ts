@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
-import dbConnect from "@/lib/mongodb";
+import { connectDb } from "@/server/db";
 import { getLogger } from "@/lib/logger";
 
 const PING_TIMEOUT_MS = 2000;
@@ -33,7 +33,7 @@ export async function GET(req: Request) {
   let database: "ok" | "down" = "down";
 
   try {
-    await withTimeout(dbConnect(), PING_TIMEOUT_MS);
+    await withTimeout(connectDb(), PING_TIMEOUT_MS);
     const db = mongoose.connection.db;
     if (!db) throw new Error("no database handle");
     await withTimeout(db.admin().ping(), PING_TIMEOUT_MS);
