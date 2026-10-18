@@ -44,7 +44,7 @@ jobs:
             http://localhost:3000/api/auth/register > /dev/null
           echo "EVAL_AUTH_COOKIE=gm_session=$(awk '$6=="gm_session"{print $7}' cookies.txt)" >> "$GITHUB_ENV"
       - run: python evals/run_eval.py --limit ${{ inputs.limit }} --min-f05 ${{ inputs.min_f05 }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: eval-reports
