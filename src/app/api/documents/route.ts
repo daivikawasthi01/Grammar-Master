@@ -1,5 +1,5 @@
 import { authed, json, parseJson, parseQuery } from "@/server/http";
-import { createDocumentSchema, listDocumentsSchema, MAX_UPLOAD_BYTES } from "@/shared/schemas";
+import { createDocumentSchema, listDocumentsSchema, MAX_UPLOAD_BYTES, type Language } from "@/shared/schemas";
 import { createDocument, importFile, listDocuments } from "@/server/services/documents";
 import { AppError } from "@/server/errors";
 import type { PMNode } from "@/shared/tiptap-text";
@@ -20,8 +20,8 @@ export const POST = authed(async ({ req, user }) => {
     const file = form.get("file");
     if (!(file instanceof File)) throw new AppError("BAD_REQUEST", "Attach a file in the “file” field.");
     const { title, content } = await importFile(file);
-    return json({ document: await createDocument(user.id, { title, content }) }, 201);
+    return json({ document: await createDocument(user.id, { title, content, language: user.language as Language }) }, 201);
   }
   const input = await parseJson(req, createDocumentSchema);
-  return json({ document: await createDocument(user.id, { ...input, content: input.content as PMNode | undefined }) }, 201);
+  return json({ document: await createDocument(user.id, { ...input, language: input.language ?? (user.language as Language), content: input.content as PMNode | undefined }) }, 201);
 });
