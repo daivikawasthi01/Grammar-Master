@@ -70,7 +70,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const submitting = form.formState.isSubmitting;
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: "easeOut" }}>
+    <div className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-500">
       <h1 className="text-2xl font-semibold tracking-tight">{isRegister ? "Create your account" : "Welcome back"}</h1>
       <p className="mt-1.5 text-sm text-muted-foreground">
         {isRegister ? "Start writing with instant feedback. No card needed." : "Sign in to pick up where you left off."}
@@ -139,6 +139,6 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           {isRegister ? "Sign in" : "Create an account"}
         </Link>
       </p>
-    </motion.div>
+    </div>
   );
 }
