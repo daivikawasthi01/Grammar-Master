@@ -4,4 +4,4 @@ sentence-transformers>=3.0.0
 requests>=2.31.0
 rich>=13.7.0
 numpy>=1.24.0
-groq>=1.0.0
+groq>=1.7.0
