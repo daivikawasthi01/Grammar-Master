@@ -1,26 +1,8 @@
 import type { Metadata } from "next";
 import { Reveal } from "@/components/marketing/reveal";
-import { ArchitectureDiagram } from "@/components/marketing/architecture-diagram";
+import { JourneyMap } from "@/components/marketing/journey-map";
 
-export const metadata: Metadata = { title: "How it works", description: "Architecture, the three tiers of checks, and how the grammar checker is evaluated." };
-
-const TIERS = [
-  {
-    n: "01",
-    title: "Instant checks, on your device",
-    body: "A Web Worker runs a Hunspell dictionary (nspell), the phrase rules and your compiled style-guide matcher on every pause. Results arrive in milliseconds and never leave the browser.",
-  },
-  {
-    n: "02",
-    title: "Paragraph checks, cached",
-    body: "When a paragraph settles, only that paragraph is sent to /api/check. A fast model returns minimal edits in a strict JSON schema; each edit is verified against the text before it is shown. Identical paragraphs are served from cache.",
-  },
-  {
-    n: "03",
-    title: "Rewrites, on request",
-    body: "Select text and choose a rewrite. The larger model streams a preview; accepting replaces only the selection, as one undoable step.",
-  },
-];
+export const metadata: Metadata = { title: "How it works", description: "Where your text goes, and when: follow a keystroke, a pause, a rewrite and a save, and see how the checker is scored." };
 
 const EVALS = [
   { date: "2026-09-08", mode: "Live route", n: 150, gleu: "0.765", f05: "0.516", p: "0.518", r: "0.567", p50: "2811 ms" },
@@ -32,31 +14,19 @@ export default function HowItWorks() {
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-8">
       <Reveal className="max-w-2xl">
         <p className="text-sm font-medium text-primary">How it works</p>
-        <h1 className="mt-2 font-serif text-4xl tracking-tight sm:text-5xl">Fast where it can be, careful where it counts</h1>
-        <p className="mt-4 text-lg text-muted-foreground">Most feedback never needs a server. The AI only sees the paragraph you just changed, and every suggestion is checked against your text before it is underlined.</p>
+        <h1 className="mt-2 font-serif text-4xl tracking-tight sm:text-5xl">Where your text goes, and when</h1>
+        <p className="mt-4 text-lg text-muted-foreground">Pick a moment below. The parts it touches light up, in order, with exactly what each one is sent.</p>
       </Reveal>
 
       <Reveal delay={0.1} className="mt-12">
-        <ArchitectureDiagram />
+        <JourneyMap />
       </Reveal>
-
-      <section className="mt-20 grid gap-4 md:grid-cols-3">
-        {TIERS.map((t, i) => (
-          <Reveal key={t.n} delay={i * 0.08}>
-            <div className="h-full rounded-2xl border bg-card p-6">
-              <span className="font-mono text-xs text-primary">{t.n}</span>
-              <h2 className="mt-3 font-medium">{t.title}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t.body}</p>
-            </div>
-          </Reveal>
-        ))}
-      </section>
 
       <section className="mt-20">
         <Reveal>
           <h2 className="font-serif text-3xl tracking-tight">Evaluation</h2>
           <p className="mt-2 max-w-2xl text-muted-foreground">
-            The checker is scored on CoNLL-2014 sentences with multiple human references, using GLEU and ERRANT F0.5 (precision weighted, because a wrong edit costs a writer more than a missed one).
+            The checker is scored on CoNLL-2014 sentences with multiple human references, using GLEU and ERRANT F0.5 (precision weighted, because a wrong edit costs a writer more than a missed one). In short: both measure how closely the suggested edits match human editors, and higher is better.
           </p>
         </Reveal>
         <Reveal delay={0.08} className="mt-6 overflow-x-auto rounded-xl border">

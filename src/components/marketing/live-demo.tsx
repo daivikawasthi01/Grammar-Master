@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import { Check, Zap } from "lucide-react";
 import type { InstantHit, WorkerRequest, WorkerResponse } from "@/workers/checks-protocol";
 import type { StyleRule } from "@/shared/schemas";
 
@@ -84,23 +82,16 @@ export function LiveDemo() {
     setText(text.slice(0, a) + (h.replacements[0] ?? "") + text.slice(b));
   }
 
-  const font = "font-serif text-lg leading-[1.8] sm:text-xl";
+  const font = "font-serif text-[19px] leading-[1.75]";
   return (
-    <div className="overflow-hidden rounded-2xl border bg-card shadow-2xl shadow-primary/5">
-      <div className="flex items-center gap-2 border-b px-4 py-2.5 text-xs text-muted-foreground">
-        <span className="flex gap-1.5">
-          <span className="size-2.5 rounded-full bg-border" />
-          <span className="size-2.5 rounded-full bg-border" />
-          <span className="size-2.5 rounded-full bg-border" />
-        </span>
-        <span className="ml-2">Try it, it is the real checker</span>
-        <span className="ml-auto inline-flex items-center gap-1 tabular-nums">
-          <Zap className="size-3.5 text-primary" /> {ms === null ? "loading dictionary…" : `${Math.max(1, Math.round(ms))} ms · no network`}
-        </span>
+    <div className="rounded-md border bg-card">
+      <div className="flex items-center justify-between gap-4 border-b px-5 py-2.5 text-[13px] text-muted-foreground">
+        <span>Try it: edit the text. These are the editor’s own checks, running in your browser.</span>
+        <span className="shrink-0 tabular-nums">{ms === null ? "Loading dictionary…" : `${Math.max(1, Math.round(ms))} ms`}</span>
       </div>
-      <div className="grid md:grid-cols-[1fr_280px]">
-        <div className="relative p-5 sm:p-6">
-          <div ref={overlay} aria-hidden className={`pointer-events-none absolute inset-5 overflow-hidden break-words whitespace-pre-wrap text-transparent sm:inset-6 ${font}`}>
+      <div className="grid md:grid-cols-[1fr_17rem]">
+        <div className="relative px-5 py-5 sm:px-6">
+          <div ref={overlay} aria-hidden className={`pointer-events-none absolute inset-x-5 inset-y-5 overflow-hidden break-words whitespace-pre-wrap text-transparent sm:inset-x-6 ${font}`}>
             {segments.map((s, i) =>
               s.hit ? (
                 <span key={i} className={`sg sg-${s.hit.category}`}>
@@ -120,36 +111,42 @@ export function LiveDemo() {
             spellCheck={false}
             aria-label="Demo text"
             rows={5}
-            className={`relative block w-full resize-none bg-transparent caret-primary outline-none ${font}`}
+            className={`relative block w-full resize-none bg-transparent caret-foreground outline-none ${font}`}
           />
         </div>
-        <div className="border-t bg-muted/30 p-4 md:border-t-0 md:border-l">
-          <p className="mb-3 text-xs font-medium text-muted-foreground">{hits.length ? `${hits.length} suggestion${hits.length === 1 ? "" : "s"}` : "All clear"}</p>
-          <ul className="space-y-2" aria-live="polite">
-            <AnimatePresence initial={false} mode="popLayout">
-              {hits.slice(0, 6).map((h) => (
-                <motion.li key={`${h.line}:${h.from}:${h.original}`} layout initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, scale: 0.95 }}>
-                  <button onClick={() => apply(h)} className="group w-full rounded-lg border bg-background p-2.5 text-left text-sm transition-colors hover:border-primary/40">
-                    <span className="block text-[11px] text-muted-foreground">{h.title}</span>
-                    <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
-                      <span className="text-muted-foreground line-through">{h.original}</span>
-                      <span className="text-muted-foreground">→</span>
-                      <span className="font-medium text-primary">{h.replacements[0] || "remove"}</span>
-                      <Check className="ml-auto size-3.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+        <div className="border-t md:border-t-0 md:border-l">
+          <p className="border-b px-4 py-2.5 text-[13px] text-muted-foreground">
+            {hits.length ? `${hits.length} suggestion${hits.length === 1 ? "" : "s"}` : ms === null ? "Checking…" : "No suggestions"}
+          </p>
+          <ul aria-live="polite" className="divide-y">
+            {hits.slice(0, 6).map((h) => (
+              <li key={`${h.line}:${h.from}:${h.original}`}>
+                <button onClick={() => apply(h)} className="group flex w-full items-start gap-3 px-4 py-3 text-left text-sm hover:bg-muted/60">
+                  <span aria-hidden className={`mt-[7px] size-1.5 shrink-0 rounded-full ${MARK[h.category] ?? "bg-sg-correctness"}`} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[13px] text-muted-foreground">{h.title}</span>
+                    <span className="mt-0.5 block">
+                      <span className="text-muted-foreground line-through decoration-1">{h.original}</span>
+                      <span className="text-muted-foreground"> → </span>
+                      <span className="font-medium">{h.replacements[0] || "remove"}</span>
                     </span>
-                  </button>
-                </motion.li>
-              ))}
-            </AnimatePresence>
+                  </span>
+                  <span className="mt-[18px] text-[13px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">Apply</span>
+                </button>
+              </li>
+            ))}
           </ul>
-          {!hits.length && ms !== null && (
-            <div className="grid place-items-center py-6 text-center text-sm text-muted-foreground">
-              <Check className="mb-2 size-6 text-primary" />
-              Nothing to fix. Try typing a mistake.
-            </div>
-          )}
         </div>
       </div>
     </div>
   );
 }
+
+const MARK: Record<string, string> = {
+  correctness: "bg-sg-correctness",
+  spelling: "bg-sg-correctness",
+  clarity: "bg-sg-clarity",
+  style: "bg-sg-style",
+  engagement: "bg-sg-engagement",
+  delivery: "bg-sg-engagement",
+};
