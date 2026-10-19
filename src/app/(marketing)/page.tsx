@@ -1,81 +1,76 @@
 import Link from "next/link";
-import { ArrowRight, BookMarked, FileDown, Gauge, History, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { HeroSculpture } from "@/components/marketing/hero-sculpture";
 import { LiveDemo } from "@/components/marketing/live-demo";
-import { Reveal } from "@/components/marketing/reveal";
+import { AnnotatedEditor } from "@/components/marketing/annotated-editor";
 
-const FEATURES = [
-  {
-    icon: Zap,
-    title: "Instant, in your browser",
-    body: "Spelling, phrasing and your style guide are checked in a Web Worker as you type. Milliseconds, no network, no limit.",
-    className: "lg:col-span-2",
-  },
-  { icon: Sparkles, title: "AI that edits, not rewrites", body: "Only the paragraph you changed is sent, and only minimal, verifiable edits come back." },
-  { icon: BookMarked, title: "Your terms, enforced", body: "“PostgreSQL, never Postgres.” Paste your guide; rules apply everywhere, instantly." },
-  { icon: History, title: "Undo just works", body: "Accepting a fix is one step. Ctrl+Z puts your word back. Underlines follow your text while you type.", className: "sm:col-span-2" },
-  { icon: ShieldCheck, title: "Never loses your work", body: "Versioned autosave: a stale tab gets a conflict notice instead of overwriting newer text." },
-  { icon: Gauge, title: "Honest numbers", body: "Real Flesch–Kincaid readability. No inflated scores, and tone is labelled as an estimate." },
-  { icon: FileDown, title: "Real Word export", body: "Export a proper .docx with headings and lists, or Markdown, text or PDF." },
-];
+/*
+ * Type on this page, deliberately few roles:
+ *   display  serif 40/56px  (h1)
+ *   title    serif 26px     (section headings)
+ *   body     sans 15px      (everything else; 17px for the one lead paragraph)
+ *   small    sans 13px      (labels, numbers)
+ */
+
+/** A proofreader's correction: the wrong word struck through in red, the right one written above it. */
+function Correction({ wrong, right }: { wrong: string; right: string }) {
+  return (
+    <span className="relative inline-block">
+      <span className="text-muted-foreground line-through decoration-sg-correctness decoration-[0.06em]">{wrong}</span>
+      <span className="absolute -top-[0.72em] left-1/2 -translate-x-1/2 font-serif text-[0.5em] leading-none whitespace-nowrap text-sg-correctness italic">
+        {right}
+      </span>
+    </span>
+  );
+}
 
 export default function Home() {
   return (
-    <>
-      <HeroSculpture />
-
-      <section id="demo" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-8">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-medium text-primary">Live demo</p>
-          <h2 className="mt-2 font-serif text-3xl tracking-tight sm:text-4xl">Mistakes, caught before you finish the sentence</h2>
-          <p className="mt-3 text-muted-foreground">This box runs the exact checker the editor uses, with two sample style rules. Edit it.</p>
-        </Reveal>
-        <Reveal delay={0.1} className="mt-10">
-          <LiveDemo />
-        </Reveal>
-      </section>
-
-      <section id="features" className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-24 sm:px-8">
-        <Reveal className="max-w-2xl">
-          <p className="text-sm font-medium text-primary">Why it feels fast</p>
-          <h2 className="mt-2 font-serif text-3xl tracking-tight sm:text-4xl">Three tiers of help, each where it belongs</h2>
-        </Reveal>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((f, i) => (
-            <Reveal key={f.title} delay={(i % 3) * 0.06} className={f.className}>
-              <div className="group h-full rounded-2xl border bg-card p-6 transition-colors hover:border-primary/40">
-                <div className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-110 group-hover:-rotate-6">
-                  <f.icon className="size-5" />
-                </div>
-                <h3 className="mt-5 font-medium">{f.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{f.body}</p>
-              </div>
-            </Reveal>
-          ))}
+    <div className="mx-auto max-w-5xl px-5 sm:px-8">
+      <section className="pt-20 pb-14 sm:pt-28">
+        <h1
+          aria-label="Catch every typo, clumsy phrase and off-brand word while you write."
+          className="max-w-[22ch] font-serif text-[40px] leading-[1.18] font-normal tracking-[-0.02em] text-balance sm:text-[56px]"
+        >
+          <span aria-hidden>
+            Catch every <Correction wrong="tpyo" right="typo" />, clumsy phrase and off‑brand word while you write.
+          </span>
+        </h1>
+        <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-muted-foreground">
+          Grammar Master is a document editor. Corrections are underlined in place as you type and accepted with one click.
+        </p>
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <Button asChild size="lg">
+            <Link href="/register">Start writing</Link>
+          </Button>
+          <Button asChild size="lg" variant="ghost">
+            <Link href="#demo">Try it</Link>
+          </Button>
         </div>
       </section>
 
-      <section className="border-t bg-muted/30">
-        <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 py-20 sm:px-8 md:flex-row md:items-center">
-          <Reveal className="max-w-xl">
-            <h2 className="font-serif text-3xl tracking-tight">Measured, not guessed</h2>
-            <p className="mt-2 text-muted-foreground">
-              The grammar checker is benchmarked on CoNLL-2014 with GLEU and ERRANT F0.5, and every report records the model and prompt version it measured.
-            </p>
-          </Reveal>
-          <div className="flex gap-3 md:ml-auto">
-            <Button asChild variant="outline">
-              <Link href="/how-it-works">How it works</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/register">
-                Start writing <ArrowRight />
-              </Link>
-            </Button>
-          </div>
+      <section id="demo" aria-label="Try the checker" className="pb-20">
+        <LiveDemo />
+        <p className="mt-3 text-[13px] text-muted-foreground">
+          Spelling and style checks run in your browser. Only the paragraph you just edited is sent for grammar checking.
+        </p>
+      </section>
+
+      <section id="features" className="scroll-mt-8 border-t py-16">
+        <h2 className="font-serif text-[26px] leading-tight tracking-tight">What it does</h2>
+        <p className="mt-2 mb-10 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
+          The checks above run as you type. Here is the rest of the editor, with each part numbered.
+        </p>
+        <AnnotatedEditor />
+      </section>
+
+      <section className="border-t py-16">
+        <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+          <p className="max-w-lg font-serif text-[26px] leading-snug tracking-tight">Create an account and start a document.</p>
+          <Button asChild size="lg">
+            <Link href="/register">Start writing</Link>
+          </Button>
         </div>
       </section>
-    </>
+    </div>
   );
 }
