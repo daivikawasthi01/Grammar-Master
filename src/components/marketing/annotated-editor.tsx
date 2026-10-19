@@ -21,8 +21,8 @@ function Pin({ n }: { n: number }) {
 /** A picture of the editor, built from theme tokens so it follows light and dark. Static: the live demo above covers instant checks. */
 export function AnnotatedEditor() {
   return (
-    <figure className="grid gap-8 lg:grid-cols-[1fr_17rem] lg:gap-10">
-      <div role="img" aria-label="The editor, with numbered marks pointing at grammar suggestions, a rewrite preview, a style-guide rule, readability, autosave and export." className="min-w-0 self-start rounded-md border bg-card">
+    <figure className="space-y-10">
+      <div role="img" aria-label="The editor, with numbered marks pointing at grammar suggestions, a rewrite preview, a style-guide rule, readability, autosave and export." className="min-w-0 rounded-md border bg-card">
         <div className="flex items-center gap-3 border-b px-4 py-2.5 text-[13px] text-muted-foreground sm:px-5">
           <span className="min-w-0 flex-1 truncate font-medium text-foreground">Launch announcement</span>
           <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
@@ -96,7 +96,7 @@ export function AnnotatedEditor() {
       </div>
 
       <figcaption>
-        <ol className="space-y-5">
+        <ol className="grid gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
           {NOTES.map((n, i) => (
             <li key={n.title} className="grid grid-cols-[1.75rem_1fr] gap-x-2">
               <span aria-hidden className="grid size-5 translate-y-0.5 place-items-center rounded-full bg-primary font-serif text-[11px] leading-none text-primary-foreground">

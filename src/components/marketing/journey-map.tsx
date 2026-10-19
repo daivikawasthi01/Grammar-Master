@@ -7,23 +7,23 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 type NodeId = "editor" | "checker" | "autosave" | "limits" | "grammar" | "rewrite" | "documents" | "model" | "database" | "memory";
 type Layer = "browser" | "server" | "outside";
 
-const LAYERS: Array<{ id: Layer; label: string; note: string }> = [
-  { id: "browser", label: "Your browser", note: "Runs on your device" },
-  { id: "server", label: "Our server", note: "Checks every request" },
-  { id: "outside", label: "Outside services", note: "Only ever see what they are handed" },
+const LAYERS: Array<{ id: Layer; label: string }> = [
+  { id: "browser", label: "Your browser" },
+  { id: "server", label: "Our server" },
+  { id: "outside", label: "Outside services" },
 ];
 
-const NODES: Array<{ id: NodeId; layer: Layer; title: string; body: string }> = [
-  { id: "editor", layer: "browser", title: "Editor", body: "Your document lives here while you write." },
-  { id: "checker", layer: "browser", title: "Instant checker", body: "A dictionary, phrasing rules and your style guide, running on your device. Nothing is sent." },
-  { id: "autosave", layer: "browser", title: "Autosave", body: "Sends your changes a moment after you stop typing." },
-  { id: "limits", layer: "server", title: "Sign-in and limits", body: "Confirms it is you, and that requests stay within fair use." },
-  { id: "grammar", layer: "server", title: "Grammar check", body: "Takes one paragraph, asks for specific edits, and throws away any edit that does not match your text." },
-  { id: "rewrite", layer: "server", title: "Rewrite", body: "Takes only the passage you selected and streams the new version back." },
-  { id: "documents", layer: "server", title: "Documents", body: "Saves versions, and refuses to overwrite a newer copy." },
-  { id: "model", layer: "outside", title: "Language model", body: "Reads the paragraph or selection it is handed, and nothing else." },
-  { id: "memory", layer: "outside", title: "Short-term memory", body: "Remembers recent answers for an hour, so a repeated paragraph is instant. It stores a fingerprint, not your text." },
-  { id: "database", layer: "outside", title: "Database", body: "Your account and your documents." },
+const NODES: Array<{ id: NodeId; layer: Layer; title: string }> = [
+  { id: "editor", layer: "browser", title: "Editor" },
+  { id: "checker", layer: "browser", title: "Instant checker" },
+  { id: "autosave", layer: "browser", title: "Autosave" },
+  { id: "limits", layer: "server", title: "Sign-in and limits" },
+  { id: "grammar", layer: "server", title: "Grammar check" },
+  { id: "rewrite", layer: "server", title: "Rewrite" },
+  { id: "documents", layer: "server", title: "Documents" },
+  { id: "model", layer: "outside", title: "Language model" },
+  { id: "memory", layer: "outside", title: "Short-term memory" },
+  { id: "database", layer: "outside", title: "Database" },
 ];
 
 type Step = { node: NodeId; what: string; payload: string };
@@ -37,7 +37,7 @@ const JOURNEYS: Journey[] = [
     never: "Nothing you type here leaves your device.",
     steps: [
       { node: "editor", what: "You type a word.", payload: "stays in the page" },
-      { node: "checker", what: "It is checked against the dictionary, phrasing rules and your style guide. A wavy underline appears if something is off.", payload: "the words, in your browser only" },
+      { node: "checker", what: "Your browser checks it against a dictionary, some phrasing rules and your style guide. If something is off, it gets a wavy underline.", payload: "the words, in your browser only" },
     ],
   },
   {
@@ -46,13 +46,13 @@ const JOURNEYS: Journey[] = [
     when: "About 1 second after you stop typing",
     never: "The whole document is never sent for checking.",
     steps: [
-      { node: "editor", what: "You stop typing. The paragraph you were in is picked out.", payload: "one paragraph" },
-      { node: "limits", what: "The server confirms your session and counts the request.", payload: "your session cookie" },
-      { node: "memory", what: "Has this exact paragraph been checked recently? If so, the saved answer comes straight back.", payload: "a fingerprint of the paragraph" },
-      { node: "grammar", what: "If not, the paragraph and your style rules are prepared for the model.", payload: "this paragraph + your style rules" },
-      { node: "model", what: "The model suggests small edits.", payload: "the same paragraph" },
-      { node: "grammar", what: "Each edit is checked against your text. Any that do not match exactly are dropped.", payload: "edits only" },
-      { node: "editor", what: "The surviving edits appear as underlines. You accept or dismiss each one.", payload: "suggestions" },
+      { node: "editor", what: "You stop typing for a moment. We pick out the paragraph you were just in.", payload: "one paragraph" },
+      { node: "limits", what: "Our server makes sure it is really you, and that nobody is sending requests too fast.", payload: "your session cookie" },
+      { node: "memory", what: "Have we checked this exact paragraph recently? If so, the saved answer comes straight back and nothing else happens.", payload: "a fingerprint of the paragraph" },
+      { node: "grammar", what: "If not, we get the paragraph ready, along with your style rules.", payload: "this paragraph + your style rules" },
+      { node: "model", what: "The language model suggests a few small edits.", payload: "the same paragraph" },
+      { node: "grammar", what: "We check every edit against your actual text, and throw away any that do not fit.", payload: "edits only" },
+      { node: "editor", what: "What is left shows up as underlines. You accept or dismiss each one.", payload: "suggestions" },
     ],
   },
   {
@@ -62,10 +62,10 @@ const JOURNEYS: Journey[] = [
     never: "Text you did not select is never part of a rewrite.",
     steps: [
       { node: "editor", what: "You select a sentence and choose Shorter, Simpler, Formal or Friendlier.", payload: "your selection" },
-      { node: "limits", what: "Your session and fair-use limits are checked.", payload: "your session cookie" },
-      { node: "rewrite", what: "The selected passage is handed on.", payload: "the selection only" },
-      { node: "model", what: "A larger model writes the new version, word by word.", payload: "streamed back" },
-      { node: "editor", what: "The new version appears beside the old one. Accept replaces only the selection, as one undoable step.", payload: "preview" },
+      { node: "limits", what: "Same quick check that it is you, and that things are not going too fast.", payload: "your session cookie" },
+      { node: "rewrite", what: "Only the passage you selected is passed along.", payload: "the selection only" },
+      { node: "model", what: "A larger model writes the new version, one word at a time.", payload: "the new version, streamed back" },
+      { node: "editor", what: "The new version appears next to the old one. Accept swaps in just that selection, and Undo brings it back.", payload: "nothing, this is the preview" },
     ],
   },
   {
@@ -74,10 +74,10 @@ const JOURNEYS: Journey[] = [
     when: "A moment after you stop typing",
     never: "A save never silently overwrites a newer copy.",
     steps: [
-      { node: "autosave", what: "Your document and the version it was based on are sent.", payload: "the document + its version number" },
-      { node: "limits", what: "Your session is checked, and the document must belong to you.", payload: "your session cookie" },
-      { node: "documents", what: "If the stored version still matches yours, the save goes through. If another tab saved first, you are asked which version to keep.", payload: "version check" },
-      { node: "database", what: "The document is written.", payload: "the document" },
+      { node: "autosave", what: "Your browser sends the document, along with the version number it started from.", payload: "the document + its version number" },
+      { node: "limits", what: "We check it is you, and that the document is yours.", payload: "your session cookie" },
+      { node: "documents", what: "If the saved copy still matches the one you started from, the save goes through. If another tab got there first, we ask you which version to keep.", payload: "version check" },
+      { node: "database", what: "The document is written to storage.", payload: "the document" },
     ],
   },
 ];
@@ -85,9 +85,8 @@ const JOURNEYS: Journey[] = [
 export function JourneyMap() {
   const [id, setId] = useState("pausing");
   const journey = JOURNEYS.find((j) => j.id === id)!;
-
-  const badges = new Map<NodeId, number[]>();
-  journey.steps.forEach((s, i) => badges.set(s.node, [...(badges.get(s.node) ?? []), i + 1]));
+  const touched = new Set(journey.steps.map((s) => s.node));
+  const layerOf = (n: NodeId) => LAYERS.find((l) => l.id === NODES.find((x) => x.id === n)!.layer)!;
 
   return (
     <div>
@@ -98,61 +97,49 @@ export function JourneyMap() {
           </ToggleGroupItem>
         ))}
       </ToggleGroup>
-      <p className="mt-3 text-sm text-muted-foreground">{journey.when}</p>
+      <p className="mt-4 text-[15px] text-muted-foreground">{journey.when}</p>
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_20rem]">
-        <div className="space-y-3">
-          {LAYERS.map((layer) => (
-            <section key={layer.id} aria-label={layer.label} className="rounded-md border bg-card p-4">
-              <header className="mb-3 flex flex-wrap items-baseline gap-x-3">
-                <h3 className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">{layer.label}</h3>
-                <span className="text-xs text-muted-foreground/80">{layer.note}</span>
-              </header>
-              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                {NODES.filter((n) => n.layer === layer.id).map((n) => {
-                  const nums = badges.get(n.id);
-                  const active = Boolean(nums);
-                  return (
-                    <motion.div
-                      key={n.id}
-                      animate={{ opacity: active ? 1 : 0.45 }}
-                      transition={{ duration: 0.25 }}
-                      className={`relative rounded-md border p-3 pr-10 ${active ? "border-primary bg-background" : "bg-background/50"}`}
-                    >
-                      <p className="text-[14px] font-medium">{n.title}</p>
-                      <p className="mt-1 text-[13px] leading-snug text-muted-foreground">{n.body}</p>
-                      {nums && (
-                        <span aria-hidden className="absolute top-2 right-2 inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 py-0.5 font-serif text-[11px] leading-none text-primary-foreground">
-                          {nums.join("·")}
-                        </span>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </section>
-          ))}
-        </div>
-
-        <div>
-          <ol aria-live="polite" className="space-y-4">
-            {journey.steps.map((s, i) => (
-              <li key={`${journey.id}-${i}`} className="grid grid-cols-[1.75rem_1fr] gap-x-2">
-                <span aria-hidden className="grid size-5 translate-y-0.5 place-items-center rounded-full bg-primary font-serif text-[11px] leading-none text-primary-foreground">
-                  {i + 1}
-                </span>
-                <div>
-                  <p className="text-[14px] leading-relaxed">
-                    <span className="font-medium">{NODES.find((n) => n.id === s.node)!.title}.</span> {s.what}
-                  </p>
-                  <p className="mt-1 font-mono text-xs text-muted-foreground">sends: {s.payload}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-          <p className="mt-6 border-t pt-4 text-[14px] font-medium">{journey.never}</p>
-        </div>
+      <div className="mt-10 space-y-6">
+        {LAYERS.map((layer) => (
+          <div key={layer.id} className="sm:grid sm:grid-cols-[9.5rem_1fr] sm:items-baseline sm:gap-6">
+            <p className="text-[13px] text-muted-foreground">{layer.label}</p>
+            <ul className="mt-2 flex flex-wrap gap-2 sm:mt-0">
+              {NODES.filter((n) => n.layer === layer.id).map((n) => (
+                <motion.li
+                  key={n.id}
+                  animate={{ opacity: touched.has(n.id) ? 1 : 0.4 }}
+                  transition={{ duration: 0.25 }}
+                  className={`rounded-full border px-3 py-1 text-[14px] ${touched.has(n.id) ? "border-primary bg-card" : ""}`}
+                >
+                  {n.title}
+                </motion.li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
+
+      <ol aria-live="polite" className="mt-14 space-y-9 border-t pt-12">
+        {journey.steps.map((s, i) => {
+          const node = NODES.find((n) => n.id === s.node)!;
+          return (
+            <li key={`${journey.id}-${i}`} className="grid grid-cols-[2rem_1fr] gap-x-3">
+              <span aria-hidden className="pt-1 font-serif text-xl leading-none text-muted-foreground">
+                {i + 1}
+              </span>
+              <div>
+                <p className="text-[13px] text-muted-foreground">
+                  {node.title} · {layerOf(s.node).label.toLowerCase()}
+                </p>
+                <p className="mt-1.5 text-[17px] leading-relaxed">{s.what}</p>
+                <p className="mt-2 text-[14px] text-muted-foreground">Sent: {s.payload}</p>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+
+      <p className="mt-14 font-serif text-2xl leading-snug tracking-tight text-balance">{journey.never}</p>
     </div>
   );
 }
