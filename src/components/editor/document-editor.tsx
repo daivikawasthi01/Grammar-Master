@@ -16,7 +16,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ErrorState } from "@/components/app/error-state";
-import { keys, useDocument, useStyleGuide } from "@/hooks/queries";
+import { keys, useDocument, useProtectWord, useStyleGuide } from "@/hooks/queries";
 import { isApiError } from "@/lib/api";
 import type { DocumentDetail } from "@/lib/types";
 import { LANGUAGES, type Language } from "@/shared/schemas";
@@ -34,7 +34,7 @@ import {
   type Suggestion,
 } from "./extensions/suggestions";
 import { useAutosave } from "./hooks/use-autosave";
-import { useInstantChecks } from "./hooks/use-instant-checks";
+import { clearLegacyDictionary, readLegacyDictionary, useInstantChecks } from "./hooks/use-instant-checks";
 import { useAiCheck } from "./hooks/use-ai-check";
 import { useRewrite } from "./hooks/use-rewrite";
 import { BubbleToolbar } from "./bubble-toolbar";
@@ -159,10 +159,19 @@ function LoadedEditor({ initial }: { initial: DocumentDetail }) {
   }, [editor]);
 
   const styleGuide = useStyleGuide();
+  const protectWord = useProtectWord();
   const rules = useMemo(() => styleGuide.data?.rules ?? [], [styleGuide.data]);
   const instant = useInstantChecks(editor, rules);
+  // One-time: words from the old browser-only dictionary move into the style guide's protect rule.
+  const migrated = useRef(false);
+  useEffect(() => {
+    if (!styleGuide.data || migrated.current) return;
+    migrated.current = true;
+    const legacy = readLegacyDictionary();
+    if (legacy.length) protectWord.mutate(legacy, { onSuccess: clearLegacyDictionary });
+  }, [styleGuide.data, protectWord]);
   const ai = useAiCheck(editor, { documentId: initial.id, language, enabled: save.state !== "conflict" });
-  const rewrite = useRewrite(editor, language);
+  const rewrite = useRewrite(editor, language, rules);
 
   const { suggestions, activeId } = useEditorState({
     editor,
@@ -263,7 +272,7 @@ function LoadedEditor({ initial }: { initial: DocumentDetail }) {
       onAccept={accept}
       onDismiss={dismiss}
       onAddWord={(s) => {
-        instant.addToDictionary(s.original);
+        protectWord.mutate(s.original);
         dismiss(s);
       }}
       onAcceptAll={(list) => {
@@ -404,7 +413,7 @@ function LoadedEditor({ initial }: { initial: DocumentDetail }) {
                   onDismiss={() => active && dismiss(active)}
                   onAddWord={() => {
                     if (!active) return;
-                    instant.addToDictionary(active.original);
+                    protectWord.mutate(active.original);
                     dismiss(active);
                   }}
                 />

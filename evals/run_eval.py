@@ -44,33 +44,29 @@ def load_local_env():
 load_local_env()
 
 import requests
-from evals.metrics.gleu import compute_gleu
+from evals.metrics.gleu import compute_gleu, compute_corpus_gleu
 from evals.metrics.semantic_similarity import compute_semantic_similarity
-from evals.metrics.errant_scorer import score_with_errant
+from evals.metrics.errant_scorer import score_with_errant, corpus_f_score
 
-def load_shared_ai_models() -> Dict[str, str]:
-    """Loads shared model configuration from src/config/ai-models.json as single source of truth."""
-    models_path = PROJECT_ROOT / "src" / "config" / "ai-models.json"
-    if models_path.exists():
-        with open(models_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {"PRIMARY": "openai/gpt-oss-120b", "FAST": "openai/gpt-oss-20b"}
+# The live route reports the model it used (meta.model); --model only labels diagnostic direct-Groq runs.
+DEFAULT_DIRECT_MODEL = "openai/gpt-oss-120b"
 
-SHARED_AI_MODELS = load_shared_ai_models()
-CONFIGURED_PRIMARY_MODEL = SHARED_AI_MODELS.get("PRIMARY", "openai/gpt-oss-120b")
-
+# USD per million tokens. Prices change: set EVAL_PROMPT_USD_PER_M / EVAL_COMPLETION_USD_PER_M
+# to the current Groq price for the model under test before quoting a cost.
 GROQ_PRICING = {
-    "prompt_per_million": 0.59,
-    "completion_per_million": 0.79,
+    "prompt_per_million": float(os.environ.get("EVAL_PROMPT_USD_PER_M", "0.59")),
+    "completion_per_million": float(os.environ.get("EVAL_COMPLETION_USD_PER_M", "0.79")),
 }
 
+# Used ONLY by --direct-groq, a diagnostic that bypasses the app to measure the raw model.
+# It is deliberately not the production prompt (src/server/ai/prompts.ts) and its output
+# must never be quoted as the app's accuracy.
 SYSTEM_PROMPT_GRAMMAR = """You are a professional grammar and writing expert. Review the following text in English and:
 1. Fix any grammatical errors
 2. Correct spelling mistakes
 3. Improve punctuation where needed
-4. Preserve all HTML formatting exactly as is
-5. If no corrections are needed, return the exact same text
-6. Focus only on grammar, spelling, and punctuation - do not change the writing style or tone"""
+4. If no corrections are needed, return the exact same text
+5. Focus only on grammar, spelling, and punctuation - do not change the writing style or tone"""
 
 PROMPT_SHA = hashlib.sha256(SYSTEM_PROMPT_GRAMMAR.encode("utf-8")).hexdigest()[:12]
 HEADLINE_MIN_N = 200  # below this a score is too noisy to quote as a headline number
@@ -178,7 +174,7 @@ def run_evaluation(
 ) -> Dict[str, Any]:
     """Executes evaluation across dataset rows and aggregates metrics."""
     if not model_name:
-        model_name = CONFIGURED_PRIMARY_MODEL
+        model_name = DEFAULT_DIRECT_MODEL
 
     groq_client = None
     if direct_groq:
@@ -228,6 +224,11 @@ def run_evaluation(
     precisions = []
     recalls = []
 
+    noop_rows: List[Dict[str, Any]] = []
+    noop_hyps: List[str] = []
+    errant_rows: List[Dict[str, Any]] = []
+    hyps: List[str] = []
+
     total_prompt_tokens = 0
     total_completion_tokens = 0
     failures = 0
@@ -268,6 +269,13 @@ def run_evaluation(
         sim = compute_semantic_similarity(hyp, references, max_over_references=True)
         errant_res = score_with_errant(source, hyp, references, max_over_references=True)
 
+        # No-op baseline: submit the source unchanged. Any score must be read against this.
+        noop_errant = score_with_errant(source, source, references, max_over_references=True)
+        noop_rows.append(noop_errant)
+        noop_hyps.append(source)
+        errant_rows.append(errant_res)
+        hyps.append(hyp)
+
         if lat_ms is not None and not meta.get("cached"):
             latencies.append(lat_ms)
         gleu_scores.append(gleu)
@@ -302,6 +310,13 @@ def run_evaluation(
             print(f"  Processed [{idx:3d}/{len(samples)}] -> Mean GLEU: {avg_g:.3f} | Sim: {avg_s:.3f} | Latency: {(lat_ms or 0):.0f}ms", flush=True)
 
     # Aggregate Statistics
+    sources = [r["source"] for r in results]
+    refs_all = [r["references"] for r in results]
+    corpus = corpus_f_score(errant_rows)
+    noop_corpus = corpus_f_score(noop_rows)
+    corpus_gleu = compute_corpus_gleu(sources, hyps, refs_all)
+    noop_corpus_gleu = compute_corpus_gleu(sources, noop_hyps, refs_all)
+    noop_sent_f05 = sum(r["f0_5"] for r in noop_rows) / len(noop_rows) if noop_rows else 0.0
     mean_gleu = sum(gleu_scores) / len(gleu_scores) if gleu_scores else 0.0
     mean_sim = sum(sim_scores) / len(sim_scores) if sim_scores else 0.0
     mean_f05 = sum(f05_scores) / len(f05_scores) if f05_scores else 0.0
@@ -328,7 +343,7 @@ def run_evaluation(
         "sample_count": len(samples),
         "random_seed": manifest.get("random_seed", 42),
         "run": {
-            "model": server_meta.get("model") or model_name,
+            "model": server_meta.get("model") or (model_name if direct_groq else "unknown (server did not report)"),
             "prompt_version": server_meta.get("promptVersion") or f"eval-{PROMPT_SHA}",
             "failed_requests": failures,
             "cache_hits": cache_hits,
@@ -341,6 +356,17 @@ def run_evaluation(
             "f0_5": round(mean_f05, 4),
             "precision": round(mean_p, 4),
             "recall": round(mean_r, 4),
+            "corpus_f0_5": round(corpus["f_score"], 4),
+            "corpus_precision": round(corpus["precision"], 4),
+            "corpus_recall": round(corpus["recall"], 4),
+            "corpus_gleu": round(corpus_gleu, 4),
+        },
+        "noop_baseline": {
+            "note": "Source returned unchanged. A system must beat this to show it corrects anything.",
+            "corpus_f0_5": round(noop_corpus["f_score"], 4),
+            "sentence_mean_f0_5": round(noop_sent_f05, 4),
+            "corpus_gleu": round(noop_corpus_gleu, 4),
+            "sentence_mean_gleu": round(sum(compute_gleu(s_, s_, r_) for s_, r_ in zip(sources, refs_all)) / len(sources), 4) if sources else 0.0,
         },
         "latency_ms": {
             "min": round(lat_min, 1),
@@ -372,6 +398,7 @@ def generate_markdown_report(summary: Dict[str, Any], output_path: str):
     e = summary["economics"]
     results = summary["results"]
 
+    nb = summary["noop_baseline"]
     qualitative_samples = results[:5]
     run = summary["run"]
     caveats = []
@@ -398,9 +425,11 @@ def generate_markdown_report(summary: Dict[str, Any], output_path: str):
 
 | Metric | Score | Industry Benchmark Context |
 | :--- | :--- | :--- |
-| **GLEU** | **{m['gleu']:.4f}** | *Official CoNLL-2014 n-gram precision/recall metric (max over references)* |
+| **Corpus $F_{0.5}$** (headline) | **{m['corpus_f0_5']:.4f}** | *Edits summed over the corpus, then scored once (CoNLL/BEA convention). No-op baseline: {nb['corpus_f0_5']:.4f}* |
+| **Corpus GLEU** (re-implemented) | **{m['corpus_gleu']:.4f}** | *Re-implementation after Napoles et al. 2015, not the official script. No-op baseline: {nb['corpus_gleu']:.4f}* |
+| Mean per-sentence GLEU | {m['gleu']:.4f} | *No-op baseline: {nb['sentence_mean_gleu']:.4f}. An unchanged copy scores high here, so read it against the baseline.* |
 | **Semantic Similarity** | **{m['semantic_similarity']:.4f}** | *Cosine embedding similarity (`all-MiniLM-L6-v2`) measuring meaning preservation* |
-| **$F_{0.5}$ Score** | **{m['f0_5']:.4f}** | *Precision-weighted edit F-score (ERRANT methodology)* |
+| Mean per-sentence $F_{0.5}$ | {m['f0_5']:.4f} | *Averaging per sentence rewards leaving clean sentences alone; no-op baseline: {nb['sentence_mean_f0_5']:.4f}* |
 | **Precision** | **{m['precision']:.4f}** | *Ratio of proposed edits that were legitimate corrections* |
 | **Recall** | **{m['recall']:.4f}** | *Ratio of reference errors successfully identified and fixed* |
 
@@ -457,7 +486,7 @@ def main():
     parser.add_argument("--limit", type=int, default=None, help="Max number of sentences to evaluate (e.g. 25, 100)")
     parser.add_argument("--direct-groq", action="store_true", help="Diagnostic baseline: invoke Groq model directly")
     parser.add_argument("--target", type=str, default="http://localhost:3000/api/check", help="Live API target URL")
-    parser.add_argument("--model", type=str, default=CONFIGURED_PRIMARY_MODEL, help=f"Groq model ID (default: {CONFIGURED_PRIMARY_MODEL} from src/lib/ai-config.ts)")
+    parser.add_argument("--model", type=str, default=DEFAULT_DIRECT_MODEL, help=f"Label/model for --direct-groq runs (default: {DEFAULT_DIRECT_MODEL}); live runs report the server model")
     parser.add_argument("--output", type=str, default="evals/reports/benchmark_latest.md", help="Output report markdown path (JSON is written beside it)")
     parser.add_argument("--min-f05", type=float, default=None, help="CI gate: exit 1 if mean F0.5 is below this value")
     parser.add_argument("--max-failures", type=int, default=0, help="CI gate: exit 1 if more than this many requests failed")
@@ -484,6 +513,9 @@ def main():
         problems.append(f"{run['failed_requests']} failed request(s) (allowed {args.max_failures})")
     if run["cache_hits"]:
         problems.append(f"{run['cache_hits']} cache hit(s): eval requests must bypass the cache")
+    noop_f05 = summary["noop_baseline"]["corpus_f0_5"]
+    if summary["metrics"]["corpus_f0_5"] <= noop_f05:
+        problems.append(f"corpus F0.5 {summary['metrics']['corpus_f0_5']:.4f} does not beat the no-op baseline {noop_f05:.4f}")
     if args.min_f05 is not None and f05 < args.min_f05:
         problems.append(f"F0.5 {f05:.4f} is below the minimum {args.min_f05:.4f}")
     if args.baseline:

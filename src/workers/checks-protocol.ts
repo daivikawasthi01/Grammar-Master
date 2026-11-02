@@ -15,7 +15,7 @@ export type InstantHit = {
 export type CheckBlockResult = { index: number; text: string; hits: InstantHit[] };
 
 export type WorkerRequest =
-  | { type: "config"; rules: StyleRule[]; ignoredWords: string[]; dictionaryBase: string }
+  | { type: "config"; rules: StyleRule[]; dictionaryBase: string }
   | { type: "check"; requestId: number; blocks: { index: number; text: string }[] };
 
 export type WorkerResponse = { type: "ready"; spelling: boolean } | { type: "result"; requestId: number; blocks: CheckBlockResult[]; ms: number };

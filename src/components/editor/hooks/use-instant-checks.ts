@@ -6,21 +6,23 @@ import { replaceSource, textBlocks, type Suggestion } from "../extensions/sugges
 import type { WorkerRequest, WorkerResponse } from "@/workers/checks-protocol";
 import type { StyleRule } from "@/shared/schemas";
 
-const IGNORE_KEY = "gm:dictionary";
+const LEGACY_DICTIONARY_KEY = "gm:dictionary";
 
-export function readIgnoredWords(): string[] {
+/** Words from the old browser-only dictionary. Call `clearLegacyDictionary` once they are saved to the style guide. */
+export function readLegacyDictionary(): string[] {
   try {
-    return JSON.parse(localStorage.getItem(IGNORE_KEY) ?? "[]");
+    const words: unknown = JSON.parse(localStorage.getItem(LEGACY_DICTIONARY_KEY) ?? "[]");
+    return Array.isArray(words) ? words.filter((w): w is string => typeof w === "string") : [];
   } catch {
     return [];
   }
 }
 
-function writeIgnoredWords(words: string[]) {
+export function clearLegacyDictionary() {
   try {
-    localStorage.setItem(IGNORE_KEY, JSON.stringify([...new Set(words)].slice(-2000)));
+    localStorage.removeItem(LEGACY_DICTIONARY_KEY);
   } catch {
-    /* storage unavailable: the word is ignored for this session only */
+    /* storage unavailable: nothing to clear */
   }
 }
 
@@ -31,8 +33,6 @@ export function useInstantChecks(editor: Editor | null, rules: StyleRule[]) {
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [ready, setReady] = useState(false);
   const [lastMs, setLastMs] = useState<number | null>(null);
-  // The editor only mounts client-side (after the document loads), so reading storage here is safe.
-  const [ignored, setIgnored] = useState<string[]>(() => (typeof window === "undefined" ? [] : readIgnoredWords()));
 
   const run = useCallback(() => {
     if (!editor || !worker.current || editor.isDestroyed) return;
@@ -83,9 +83,9 @@ export function useInstantChecks(editor: Editor | null, rules: StyleRule[]) {
   }, [editor]);
 
   useEffect(() => {
-    worker.current?.postMessage({ type: "config", rules, ignoredWords: ignored, dictionaryBase: "/dictionaries" } satisfies WorkerRequest);
+    worker.current?.postMessage({ type: "config", rules, dictionaryBase: "/dictionaries" } satisfies WorkerRequest);
     run();
-  }, [rules, ignored, run, ready]);
+  }, [rules, run, ready]);
 
   useEffect(() => {
     if (!editor) return;
@@ -101,11 +101,5 @@ export function useInstantChecks(editor: Editor | null, rules: StyleRule[]) {
     };
   }, [editor, run]);
 
-  const addToDictionary = useCallback((word: string) => {
-    const next = [...readIgnoredWords(), word];
-    writeIgnoredWords(next);
-    setIgnored(next);
-  }, []);
-
-  return { ready, lastMs, addToDictionary };
+  return { ready, lastMs };
 }

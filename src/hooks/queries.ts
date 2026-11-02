@@ -153,10 +153,42 @@ export function useStyleGuide() {
 export function useSaveStyleGuide() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { name?: string; rules: StyleRule[] }) => api<{ styleGuide: StyleGuide }>("/api/style-guide", { method: "PUT", body: input }).then((r) => r.styleGuide),
+    mutationFn: (input: { name?: string; rules: StyleRule[]; guidanceNotes: string[] }) =>
+      api<{ styleGuide: StyleGuide }>("/api/style-guide", { method: "PUT", body: input }).then((r) => r.styleGuide),
     onSuccess: (guide) => {
       qc.setQueryData(keys.styleGuide, guide);
       toast.success("Style guide saved");
+    },
+    onError: (err) => toast.error(errorMessage(err)),
+  });
+}
+
+/**
+ * "Add to dictionary": the word becomes a protect rule in the style guide, so the browser stops
+ * underlining it, the AI is told to leave it alone, and the server drops any AI edit to it.
+ * Joins an existing protect rule while it has room, so the guide doesn't fill with one-word rules.
+ */
+export function useProtectWord() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: string | string[]) => {
+      const cached = qc.getQueryData<StyleGuide>(keys.styleGuide);
+      const current: StyleGuide = cached ?? (await api<{ styleGuide: StyleGuide }>("/api/style-guide")).styleGuide;
+      const known = new Set(current.rules.flatMap((r) => (r.kind === "protect" ? [r.preferred, ...r.forbidden] : [])).map((t) => t.toLowerCase()));
+      const terms = (Array.isArray(input) ? input : [input]).map((w) => w.trim().slice(0, 100)).filter((t) => t && !known.has(t.toLowerCase()) && known.add(t.toLowerCase()));
+      if (!terms.length) return current;
+      let rules = current.rules;
+      for (const term of terms) {
+        const home = rules.find((r) => r.kind === "protect" && r.forbidden.length < 19);
+        rules = home
+          ? rules.map((r) => (r === home ? { ...r, forbidden: [...r.forbidden, term] } : r))
+          : [{ id: `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, kind: "protect" as const, preferred: term, forbidden: [], caseSensitive: false }, ...rules];
+      }
+      return api<{ styleGuide: StyleGuide }>("/api/style-guide", { method: "PUT", body: { name: current.name, rules, guidanceNotes: current.guidanceNotes } }).then((r) => r.styleGuide);
+    },
+    onSuccess: (guide, input) => {
+      qc.setQueryData(keys.styleGuide, guide);
+      toast.success(Array.isArray(input) ? "Your saved dictionary moved into your style guide." : "Word protected. It won't be flagged or changed.");
     },
     onError: (err) => toast.error(errorMessage(err)),
   });

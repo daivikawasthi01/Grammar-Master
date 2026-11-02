@@ -49,7 +49,7 @@ export function LiveDemo() {
       });
       setHits(msg.blocks.flatMap((b) => b.hits.map((h) => ({ ...h, line: b.index, lineStart: starts[b.index] ?? 0 }))));
     };
-    w.postMessage({ type: "config", rules: DEMO_RULES, ignoredWords: [], dictionaryBase: "/dictionaries" } satisfies WorkerRequest);
+    w.postMessage({ type: "config", rules: DEMO_RULES, dictionaryBase: "/dictionaries" } satisfies WorkerRequest);
     return () => w.terminate();
   }, []);
 

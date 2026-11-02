@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Kbd } from "@/components/ui/kbd";
 import type { RewriteAction } from "@/shared/schemas";
 
-export const REWRITE_LABELS: Record<RewriteAction, { label: string; hint: string }> = {
+export const REWRITE_LABELS: Record<Exclude<RewriteAction, "translate">, { label: string; hint: string }> = {
   improve: { label: "Improve writing", hint: "Clearer, same voice" },
   concise: { label: "Make concise", hint: "Shorter and direct" },
   simplify: { label: "Simplify", hint: "Plain language" },
@@ -41,7 +41,7 @@ function Mark({ editor, mark, icon: Icon, label, shortcut }: { editor: Editor; m
   );
 }
 
-export function BubbleToolbar({ editor, onRewrite, aiDisabled }: { editor: Editor; onRewrite: (a: RewriteAction) => void; aiDisabled?: string }) {
+export function BubbleToolbar({ editor, onRewrite, aiDisabled }: { editor: Editor; onRewrite: (a: Exclude<RewriteAction, "translate">) => void; aiDisabled?: string }) {
   const block = useEditorState({
     editor,
     selector: ({ editor: e }) => ({
@@ -67,7 +67,7 @@ export function BubbleToolbar({ editor, onRewrite, aiDisabled }: { editor: Edito
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56">
           <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Rewrite the selection</DropdownMenuLabel>
-          {(Object.keys(REWRITE_LABELS) as RewriteAction[]).map((a) => (
+          {(Object.keys(REWRITE_LABELS) as Exclude<RewriteAction, "translate">[]).map((a) => (
             <DropdownMenuItem key={a} onSelect={() => onRewrite(a)} className="flex-col items-start gap-0">
               <span>{REWRITE_LABELS[a].label}</span>
               <span className="text-xs text-muted-foreground">{REWRITE_LABELS[a].hint}</span>

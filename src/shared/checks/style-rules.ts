@@ -37,6 +37,7 @@ export function compileRules(rules: StyleRule[]): CompiledRules {
     byLower.set(key, [...(byLower.get(key) ?? []), v]);
   };
   for (const r of rules) {
+    if (r.kind === "protect") continue;
     for (const f of r.forbidden) if (f.trim()) add({ term: f.trim(), ruleId: r.id, isPreferred: false });
     // The preferred term itself is matched too, to catch wrong casing ("EBPF" for "eBPF").
     if (r.caseSensitive) add({ term: r.preferred, ruleId: r.id, isPreferred: true });
@@ -49,6 +50,18 @@ export function compileRules(rules: StyleRule[]): CompiledRules {
     rules: new Map(rules.map((r) => [r.id, r])),
   };
 }
+
+export type Span = { from: number; to: number; term: string };
+
+/** Where the writer's protected vocabulary occurs in the text. A protect rule keeps several terms together (`preferred` plus `forbidden`). Always case-insensitive. */
+export function protectedSpans(rules: StyleRule[], text: string): Span[] {
+  const terms = [...new Set(rules.filter((r) => r.kind === "protect").flatMap((r) => [r.preferred, ...r.forbidden]).map((t) => t.trim()).filter(Boolean))].sort((a, b) => b.length - a.length);
+  if (!terms.length) return [];
+  const re = new RegExp(terms.map(bounded).join("|"), "giu");
+  return [...text.matchAll(re)].map((m) => ({ from: m.index!, to: m.index! + m[0].length, term: m[0] }));
+}
+
+export const overlapsSpan = (spans: Span[], from: number, to: number) => spans.some((s) => from < s.to && to > s.from);
 
 export function matchRules(compiled: CompiledRules, text: string): RuleHit[] {
   if (!compiled.regex) return [];
@@ -73,62 +86,22 @@ export function matchRules(compiled: CompiledRules, text: string): RuleHit[] {
   return hits;
 }
 
-// ---------------------------------------------------------------------------
-// Parsing free-text guides into structured rules (done once, at save time).
-// ---------------------------------------------------------------------------
-
-const QUOTED = /['"“‘]([^'"”’]+)['"”’]/g;
-const quoted = (s: string) => [...s.matchAll(QUOTED)].map((m) => m[1].trim()).filter(Boolean);
-const bare = (s: string) =>
-  s
-    .split(/\s*(?:,|\bor\b|\band\b)\s*/i)
-    .map((w) => w.replace(/^[\s'"“‘]+|[\s'"”’.;!]+$/g, "").trim())
-    .filter(Boolean);
-const listOf = (s: string) => (quoted(s).length ? quoted(s) : bare(s));
-
-let counter = 0;
-const newId = () => `r${Date.now().toString(36)}${(counter++).toString(36)}`;
-
-export function parseRuleLine(line: string): Omit<StyleRule, "id"> | null {
-  const text = line.trim().replace(/\.$/, "");
-  const patterns: Array<[RegExp, (m: RegExpMatchArray) => [string, string[]]]> = [
-    // 'old' -> 'new'   /   old => new
-    [/^(.+?)\s*(?:->|=>|→)\s*(.+)$/, (m) => [listOf(m[2])[0], listOf(m[1])]],
-    // Use 'X', never 'Y' or 'Z'
-    [/^(?:always\s+)?use\s+(['"“‘][^'"”’]+['"”’])\s*,?\s*(?:never|not)\s+(.+)$/i, (m) => [quoted(m[1])[0], listOf(m[2])]],
-    // (Always) write/use 'X' instead of 'Y'
-    [/^(?:always\s+)?(?:write|use|say)\s+(['"“‘][^'"”’]+['"”’])\s+instead\s+of\s+(.+)$/i, (m) => [quoted(m[1])[0], listOf(m[2])]],
-    // Prefer 'X' over 'Y'
-    [/^prefer\s+(['"“‘][^'"”’]+['"”’])\s+(?:over|to)\s+(.+)$/i, (m) => [quoted(m[1])[0], listOf(m[2])]],
-    // Write 'X' as a single word, never 'Y'   /   Capitalize 'Q3' ..., never 'q3'
-    [/^(?:write|capitali[sz]e|spell)\s+(['"“‘][^'"”’]+['"”’]).*?,?\s*never\s+(.+)$/i, (m) => [quoted(m[1])[0], listOf(m[2])]],
-    // Always refer to <thing> as 'X'
-    [/^(?:always\s+)?refer\s+to\s+(.+?)\s+as\s+(['"“‘][^'"”’]+['"”’])$/i, (m) => [quoted(m[2])[0], [m[1].replace(/^(?:our|the)\s+/i, (p) => p).trim()]]],
-  ];
-  for (const [re, pick] of patterns) {
-    const m = text.match(re);
-    if (!m) continue;
-    const [preferred, forbidden] = pick(m);
-    if (!preferred) continue;
-    const cleaned = [...new Set(forbidden.filter((f) => f && f !== preferred))];
-    return { preferred, forbidden: cleaned, caseSensitive: true };
+/** Applies every replace rule to `text` (leaving protected words alone), so a rewrite can't reintroduce a forbidden spelling. */
+export function applyRules(rules: StyleRule[], text: string): string {
+  const spans = protectedSpans(rules, text);
+  const hits = matchRules(compileRules(rules), text).filter((h) => !overlapsSpan(spans, h.from, h.to));
+  let out = "";
+  let at = 0;
+  for (const h of hits.sort((a, b) => a.from - b.from)) {
+    if (h.from < at) continue;
+    out += text.slice(at, h.from) + h.replacement;
+    at = h.to;
   }
-  return null;
+  return out + text.slice(at);
 }
 
-export function parseStyleGuideText(input: string): { rules: StyleRule[]; skipped: string[] } {
-  const rules: StyleRule[] = [];
-  const skipped: string[] = [];
-  for (const raw of input.split(/\r?\n/)) {
-    const line = raw
-      .trim()
-      .replace(/^[-*•]\s+/, "")
-      .replace(/^\d+[.)]\s+/, "")
-      .trim();
-    if (!line || /^#{1,6}\s/.test(line) || /^[-*_]{3,}$/.test(line)) continue;
-    const parsed = parseRuleLine(line);
-    if (parsed) rules.push({ id: newId(), ...parsed, note: line.length <= 300 ? line : undefined });
-    else skipped.push(line);
-  }
-  return { rules, skipped };
+/** Protected words present in `original` that no longer appear in `result`. */
+export function droppedProtected(rules: StyleRule[], original: string, result: string): string[] {
+  const lower = result.toLowerCase();
+  return [...new Set(protectedSpans(rules, original).map((s) => s.term.toLowerCase()))].filter((t) => !lower.includes(t));
 }

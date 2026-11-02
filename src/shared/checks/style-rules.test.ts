@@ -1,4 +1,4 @@
-import { compileRules, matchRules, parseRuleLine, parseStyleGuideText } from "./style-rules";
+import { applyRules, droppedProtected, compileRules, matchRules, protectedSpans } from "./style-rules";
 import type { StyleRule } from "../schemas";
 
 const rule = (preferred: string, forbidden: string[], caseSensitive = true): StyleRule => ({
@@ -6,35 +6,6 @@ const rule = (preferred: string, forbidden: string[], caseSensitive = true): Sty
   preferred,
   forbidden,
   caseSensitive,
-});
-
-describe("parseRuleLine", () => {
-  it.each([
-    ["Use 'eBPF', never 'Ebpf' or 'ebpf'.", "eBPF", ["Ebpf", "ebpf"]],
-    ["Always write 'PostgreSQL' instead of 'Postgres'.", "PostgreSQL", ["Postgres"]],
-    ["Write 'microservices' as a single word, never 'micro-services'.", "microservices", ["micro-services"]],
-    ["Capitalize 'Q3' in all business communications, never 'q3'.", "Q3", ["q3"]],
-    ["Always refer to our app as 'Grammar Master'.", "Grammar Master", ["our app"]],
-    ["'e-mail' -> 'email'", "email", ["e-mail"]],
-    ["login => log in", "log in", ["login"]],
-    ["Prefer 'sign in' over 'login' and 'log-in'", "sign in", ["login", "log-in"]],
-  ])("%s", (line, preferred, forbidden) => {
-    const parsed = parseRuleLine(line);
-    expect(parsed?.preferred).toBe(preferred);
-    expect(parsed?.forbidden).toEqual(forbidden);
-  });
-
-  it("returns null for prose it cannot structure", () => {
-    expect(parseRuleLine("Be concise and friendly.")).toBeNull();
-  });
-});
-
-describe("parseStyleGuideText", () => {
-  it("parses bullets, skips headings and reports lines it could not use", () => {
-    const { rules, skipped } = parseStyleGuideText("# Terms\n- Use 'eBPF', never 'ebpf'\n- Keep it short\n\n1. 'JS' -> 'JavaScript'");
-    expect(rules.map((r) => r.preferred)).toEqual(["eBPF", "JavaScript"]);
-    expect(skipped).toEqual(["Keep it short"]);
-  });
 });
 
 describe("matchRules", () => {
@@ -69,5 +40,31 @@ describe("matchRules", () => {
     const hits = matchRules(m, "a frontend developer");
     expect(hits).toHaveLength(1);
     expect(hits[0].from).toBe(2);
+  });
+});
+
+describe("protect rules", () => {
+  const protect = (preferred: string, forbidden: string[]): StyleRule => ({ id: preferred, kind: "protect", preferred, forbidden, caseSensitive: false });
+
+  it("finds protected spans of every grouped term, case-insensitively on word boundaries", () => {
+    expect(protectedSpans([protect("wdym", ["gtg"])], "WDYM? wdymx GTG").map((s) => [s.from, s.to])).toEqual([[0, 4], [12, 15]]);
+  });
+
+  it("never turns a protect rule into a replacement hit", () => {
+    expect(matchRules(compileRules([protect("yaar", ["bhai"])]), "YAAR bhai")).toEqual([]);
+  });
+});
+
+describe("applyRules and droppedProtected", () => {
+  const rules = [
+    { id: "r", kind: "replace" as const, preferred: "PostgreSQL", forbidden: ["Postgres"], caseSensitive: true },
+    { id: "p", kind: "protect" as const, preferred: "yaar", forbidden: [], caseSensitive: false },
+  ];
+  it("fixes forbidden spellings and leaves everything else", () => {
+    expect(applyRules(rules, "We run Postgres, yaar.")).toBe("We run PostgreSQL, yaar.");
+  });
+  it("reports protected words the result lost", () => {
+    expect(droppedProtected(rules, "Hi yaar", "Hi friend")).toEqual(["yaar"]);
+    expect(droppedProtected(rules, "Hi yaar", "Hello Yaar")).toEqual([]);
   });
 });

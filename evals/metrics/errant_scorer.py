@@ -97,22 +97,11 @@ def score_with_errant(
     if not references:
         references = [source]
 
-    # Quick short-circuit: exact match to any reference
-    for ref in references:
-        if hypothesis.strip() == ref.strip():
-            return {
-                "tp": 1,
-                "fp": 0,
-                "fn": 0,
-                "precision": 1.0,
-                "recall": 1.0,
-                "f0_5": 1.0,
-                "hyp_edit_count": 0,
-                "ref_edit_count": 0,
-            }
-
     annotator = get_errant_annotator()
     if annotator is None:
+        for ref in references:
+            if hypothesis.strip() == ref.strip():
+                return {"tp": 0, "fp": 0, "fn": 0, "precision": 1.0, "recall": 1.0, "f0_5": 1.0}
         # Fallback if ERRANT not available: token-level diff approximation
         return _fallback_token_f_score(source, hypothesis, references)
 
@@ -160,3 +149,16 @@ def _fallback_token_f_score(
             }
 
     return best_res
+
+
+def corpus_f_score(results: List[Dict[str, Any]], beta: float = 0.5) -> Dict[str, float]:
+    """Corpus-level (micro-averaged) F-score: sum tp/fp/fn over sentences, then score once.
+
+    This is the standard way CoNLL/BEA report F0.5. Averaging per-sentence F0.5 (as the
+    per-row numbers do) over-rewards leaving error-free sentences alone.
+    """
+    tp = sum(r.get("tp", 0) for r in results)
+    fp = sum(r.get("fp", 0) for r in results)
+    fn = sum(r.get("fn", 0) for r in results)
+    out = calculate_f_score(tp, fp, fn, beta=beta)
+    return {"tp": tp, "fp": fp, "fn": fn, **out}

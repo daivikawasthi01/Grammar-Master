@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api";
+import { keys } from "@/hooks/queries";
+import type { DocumentDetail } from "@/lib/types";
 
 export type SaveState = "idle" | "saving" | "saved" | "offline" | "conflict" | "error";
 
@@ -15,6 +18,7 @@ const KEEPALIVE_LIMIT = 60_000; // browsers cap keepalive bodies at about 64 KB
  * overwrite newer text. Nothing is saved until the real document has loaded.
  */
 export function useAutosave(docId: string, initialVersion: number | null, getPatch: () => Patch) {
+  const qc = useQueryClient();
   const [state, setState] = useState<SaveState>("idle");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const version = useRef<number | null>(initialVersion);
@@ -56,6 +60,9 @@ export function useAutosave(docId: string, initialVersion: number | null, getPat
           }
           if (!res.ok) throw new ApiError("INTERNAL", `Save failed (${res.status})`, res.status);
           version.current = ((await res.json()) as { version: number }).version;
+          // The document query never refetches while open, so keep its cache current: reopening must show this save, not the first load.
+          const { baseVersion: _base, ...saved } = body;
+          qc.setQueryData<DocumentDetail>(keys.document(docId), (prev) => (prev ? ({ ...prev, ...saved, version: version.current! } as DocumentDetail) : prev));
           setSavedAt(new Date());
           setState(dirty.current.size ? "idle" : "saved");
         } catch {
@@ -68,12 +75,19 @@ export function useAutosave(docId: string, initialVersion: number | null, getPat
       await run;
       saving.current = null;
     },
-    [docId, getPatch, loaded],
+    [docId, getPatch, loaded, qc],
   );
 
   useEffect(() => {
     flushRef.current = flush;
   }, [flush]);
+
+  // Leaving the editor inside the app (no page unload) must not drop edits typed in the last second.
+  useEffect(() => {
+    return () => {
+      void flushRef.current({ keepalive: true }).catch(() => {});
+    };
+  }, []);
 
   const markDirty = useCallback(
     (field: keyof Patch) => {

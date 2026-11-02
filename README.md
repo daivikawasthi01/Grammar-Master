@@ -31,7 +31,7 @@ Built with Next.js 16, React 19, MongoDB and Groq (`gpt-oss` models), with a rep
 - **Paragraph-level AI checks.** When a paragraph settles, only that paragraph is sent to `/api/check`. A fast model returns minimal edits in a strict JSON schema, and each edit is verified against the text before it is underlined. Typing again cancels the request, and stale answers are ignored.
 - **Underlines that follow your text.** Suggestions are ProseMirror decorations, mapped through every edit. Accepting one is a single undo step; dismissals stick.
 - **Streamed rewrites.** Select text, pick *Improve*, *Concise*, *Formal*, *Simplify* and more; the preview streams in and replaces only the selection.
-- **Style guide.** Paste or upload your guide ("Use 'eBPF', never 'Ebpf'", "e-mail → email"). Lines are parsed once into structured rules, previewed for review, matched instantly, and only matching rules are given to the AI.
+- **Style guide.** Paste or upload your guide ("Use 'eBPF', never 'Ebpf'", "e-mail → email"). One AI call turns what you write into rules (exact swaps, protected words) and guidance notes, which you review before saving. Code enforces the rules: swaps and protected words are matched instantly in the browser, and the AI's edits to protected words are dropped. Guidance notes are passed to the AI as best-effort.
 - **Autosave that never loses work.** Every save carries the version it was based on; a stale tab gets a conflict notice (load latest / keep mine) instead of silently overwriting newer text. Save state is always visible: saving, saved, offline (retries), conflict.
 - **Documents.** Create, import `.docx` / `.txt` / `.md` (5 MB cap), rename, search, trash with undo, restore, and permanent delete. Trash is purged after 30 days.
 - **Honest stats.** Real Flesch reading ease and Flesch–Kincaid grade, issues per 100 words. Tone is an on-demand AI reading, labelled as an estimate.
@@ -166,25 +166,22 @@ With `--apply` it first writes a JSON backup of every affected user to `backups/
 
 ## Evaluation
 
-The harness (`evals/run_eval.py`) scores the live `/api/check` route on CoNLL-2014 sentences with multiple human references: GLEU, ERRANT F0.5, semantic similarity, latency percentiles and cost. The route returns minimal edits, which the harness applies to each sentence.
+Two harnesses, both run against the live dev server (eval requests are only honoured outside production and skip the cache and quota).
 
-Recorded runs (see `evals/reports/`):
+**Correction quality** (`evals/run_eval.py`) scores `/api/check` on CoNLL-2014 sentences with multiple human references. The headline number is **corpus-level ERRANT F0.5**, reported next to a **no-op baseline** (the source returned unchanged). GLEU is a re-implementation from the paper, not the official script, and an unchanged copy of the input scores about 0.67 on it, so never quote GLEU without its baseline. The run exits non-zero if F0.5 does not beat the no-op baseline.
 
-| Date | Mode | N | GLEU | F0.5 | Precision | Recall | p50 | p95 |
-|---|---|---|---|---|---|---|---|---|
-| 2026-09-08 | Live route | 150 | 0.765 | 0.516 | 0.518 | 0.567 | 2811 ms | 4012 ms |
-| 2026-09-08 | Live route | 30 | 0.703 | 0.333 | 0.329 | 0.371 | 788 ms | 1095 ms |
+**Rule obedience** (`evals/run_rule_eval.py`) installs a style guide through the app's own routes and checks diary-style entries: protected-term preservation, false-flag rate, fix recall, clean-case edit rate, tokens and latency, again against a no-op baseline. The committed golden set is 30 synthetic cases; real entries go in `evals/datasets/private/` (gitignored).
 
-These runs measured the **previous** whole-sentence prompt and model routing; the current minimal-edit check has not been benchmarked yet. Only the 150-sentence run is large enough to quote. A pinned 250-sentence set with ~15% clean control sentences is included.
-
-Run it (dev server running, eval requests are only honoured outside production and skip the cache and quota):
+**No current numbers are published here.** Everything in `evals/reports/` predates the current check route and prompt (it measured the removed `/api/grammar-check` with an older prompt and the old GLEU script), so treat those files as historical. Re-run both harnesses before quoting anything.
 
 ```bash
 pip install -r evals/requirements.txt && python -m spacy download en_core_web_sm
 ```
 
 ```bash
-EVAL_AUTH_COOKIE="gm_session=<cookie from a signed-in browser>" python evals/run_eval.py --min-f05 0.25
+export EVAL_AUTH_COOKIE="gm_session=<cookie from a signed-in browser>"
+python evals/run_eval.py --dataset evals/datasets/conll2014_eval_250.jsonl
+python evals/run_rule_eval.py --min-preservation 1.0
 ```
 
 Each report records the model and prompt version the server used, failed requests and cache hits. The manual **Eval** workflow in GitHub Actions does the same against a fresh database.

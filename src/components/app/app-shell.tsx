@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { BookMarked, FileText, LogOut, Menu, Settings } from "lucide-react";
+import { BookMarked, FileText, Languages, LogOut, Menu, Settings } from "lucide-react";
 import { motion } from "motion/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Logo } from "@/components/brand";
@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/app", label: "Documents", icon: FileText, match: (p: string) => p === "/app" || p.startsWith("/app/d/") },
   { href: "/app/style-guide", label: "Style guide", icon: BookMarked, match: (p: string) => p.startsWith("/app/style-guide") },
+  { href: "/app/translate", label: "Translate", icon: Languages, match: (p: string) => p.startsWith("/app/translate") },
   { href: "/app/settings", label: "Settings", icon: Settings, match: (p: string) => p.startsWith("/app/settings") },
 ];
 

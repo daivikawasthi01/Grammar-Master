@@ -77,8 +77,13 @@ export function RewritePanel({ editor, state, onAccept, onCancel, onRetry, conta
               </>
             )}
           </div>
+          {state.status === "done" && !!state.dropped?.length && (
+            <p className="mt-3 text-sm text-destructive">
+              This rewrite dropped your protected {state.dropped.length === 1 ? "word" : "words"}: {state.dropped.join(", ")}. Try again.
+            </p>
+          )}
           <div className="mt-4 flex items-center gap-2">
-            {state.status === "error" ? (
+            {state.status === "error" || (state.status === "done" && !!state.dropped?.length) ? (
               <Button size="sm" variant="outline" onClick={onRetry}>
                 <RotateCcw /> Try again
               </Button>

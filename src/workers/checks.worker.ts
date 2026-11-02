@@ -2,7 +2,7 @@
 import NSpell from "nspell";
 import { runPhraseRules } from "@/shared/checks/rules";
 import { rankSuggestions } from "@/shared/checks/spelling-rank";
-import { compileRules, matchRules, type CompiledRules } from "@/shared/checks/style-rules";
+import { compileRules, matchRules, overlapsSpan, protectedSpans, type CompiledRules } from "@/shared/checks/style-rules";
 import type { StyleRule } from "@/shared/schemas";
 import type { CheckBlockResult, WorkerRequest, WorkerResponse, InstantHit } from "./checks-protocol";
 
@@ -14,7 +14,6 @@ let spell: NSpell | null = null;
 let spellLoading: Promise<void> | null = null;
 let compiled: CompiledRules = compileRules([]);
 let rulesKey = "";
-let ignored = new Set<string>();
 const cache = new Map<string, InstantHit[]>();
 
 const WORD = /[\p{L}][\p{L}'’]*[\p{L}]|[\p{L}]/gu;
@@ -46,7 +45,6 @@ function spellingHits(text: string): InstantHit[] {
     const word = raw.replace(/’/g, "'");
     const index = m.index!;
     if (word.length < 2 || /^\p{Lu}+$/u.test(word)) continue; // acronyms
-    if (ignored.has(word.toLowerCase())) continue;
     const prev = text[index - 1];
     const next = text[index + raw.length];
     if (prev === "@" || prev === "#" || prev === "/" || prev === "." || next === "@" || /[\p{N}_]/u.test(next ?? "") || /[\p{N}_]/u.test(prev ?? "")) continue; // handles, paths, emails, code
@@ -82,7 +80,8 @@ function checkText(text: string): InstantHit[] {
     title: "Style guide",
     message: h.note ? `Your style guide: ${h.note}` : `Your style guide prefers “${h.replacement}”.`,
   }));
-  const rules = runPhraseRules(text).map<InstantHit>((r) => ({
+  const protectedIn = protectedSpans([...compiled.rules.values()], text);
+  const rules = runPhraseRules(text).filter((r) => !overlapsSpan(protectedIn, r.from, r.to)).map<InstantHit>((r) => ({
     kind: "rule",
     from: r.from,
     to: r.to,
@@ -94,7 +93,7 @@ function checkText(text: string): InstantHit[] {
   }));
   // Style-guide terms are correct by definition; do not flag them as misspellings.
   const preferred = new Set([...compiled.rules.values()].map((r) => r.preferred.toLowerCase()));
-  const spelling = spellingHits(text).filter((h) => !preferred.has(h.original.toLowerCase()) && !style.some((s) => h.from < s.to && s.from < h.to));
+  const spelling = spellingHits(text).filter((h) => !preferred.has(h.original.toLowerCase()) && !overlapsSpan(protectedIn, h.from, h.to) && !style.some((s) => h.from < s.to && s.from < h.to));
   const out = [...style, ...rules, ...spelling].sort((a, b) => a.from - b.from);
   if (cache.size > 2000) cache.clear();
   cache.set(text, out);
@@ -113,7 +112,6 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
   const msg = e.data;
   if (msg.type === "config") {
     setRules(msg.rules);
-    ignored = new Set(msg.ignoredWords.map((w) => w.toLowerCase()));
     cache.clear();
     await loadSpell(msg.dictionaryBase);
     (self as unknown as Worker).postMessage({ type: "ready", spelling: Boolean(spell) } satisfies WorkerResponse);

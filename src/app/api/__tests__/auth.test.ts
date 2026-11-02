@@ -10,7 +10,7 @@ import * as document from "../documents/[id]/route";
 import * as restore from "../documents/[id]/restore/route";
 import * as trash from "../documents/trash/route";
 import * as styleGuide from "../style-guide/route";
-import * as styleImport from "../style-guide/import/route";
+import * as styleImport from "../style-guide/compile/route";
 import * as check from "../check/route";
 import * as rewrite from "../rewrite/route";
 import * as tone from "../tone/route";
@@ -34,7 +34,7 @@ describe("every protected route", () => {
     ["POST /api/documents/:id/restore", restore.POST],
     ["GET /api/style-guide", styleGuide.GET],
     ["PUT /api/style-guide", styleGuide.PUT],
-    ["POST /api/style-guide/import", styleImport.POST],
+    ["POST /api/style-guide/compile", styleImport.POST],
     ["POST /api/check", check.POST],
     ["POST /api/rewrite", rewrite.POST],
     ["POST /api/tone", tone.POST],

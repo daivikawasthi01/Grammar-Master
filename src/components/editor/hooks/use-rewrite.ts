@@ -5,11 +5,14 @@ import type { Editor } from "@tiptap/core";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiStream, ApiError, errorMessage } from "@/lib/api";
 import { keys } from "@/hooks/queries";
-import type { Language, RewriteAction } from "@/shared/schemas";
+import { applyRules, droppedProtected } from "@/shared/checks/style-rules";
+import type { Language, RewriteAction as AnyAction, StyleRule } from "@/shared/schemas";
+
+type RewriteAction = Exclude<AnyAction, "translate">;
 
 export type RewriteState =
   | { status: "idle" }
-  | { status: "streaming" | "done"; action: RewriteAction; original: string; text: string; from: number; to: number }
+  | { status: "streaming" | "done"; action: RewriteAction; original: string; text: string; dropped?: string[]; from: number; to: number }
   | { status: "error"; action: RewriteAction; original: string; message: string; code?: string; from: number; to: number };
 
 /**
@@ -17,7 +20,7 @@ export type RewriteState =
  * through every edit made meanwhile, and accepting replaces only that range, in
  * one undoable step. Nothing outside the selection is touched.
  */
-export function useRewrite(editor: Editor | null, language: Language) {
+export function useRewrite(editor: Editor | null, language: Language, rules: StyleRule[] = []) {
   const qc = useQueryClient();
   const [state, setState] = useState<RewriteState>({ status: "idle" });
   const controller = useRef<AbortController | null>(null);
@@ -52,14 +55,17 @@ export function useRewrite(editor: Editor | null, language: Language) {
           text += chunk;
           setState((s) => (s.status === "streaming" ? { ...s, text } : s));
         }
-        setState((s) => (s.status === "streaming" ? { ...s, status: "done", text: text.trim() } : s));
+        // Code, not the model, keeps the writer's rules: replace rules are applied to the result, and a result that lost a protected word can't be accepted.
+        const final = applyRules(rules, text.trim());
+        const dropped = droppedProtected(rules, original, final);
+        setState((s) => (s.status === "streaming" ? { ...s, status: "done", text: final, dropped } : s));
         qc.invalidateQueries({ queryKey: keys.me });
       } catch (err) {
         if (err instanceof ApiError && err.code === "ABORTED") return;
         setState({ status: "error", action, original, message: errorMessage(err), code: err instanceof ApiError ? err.code : undefined, from, to });
       }
     },
-    [editor, language, qc],
+    [editor, language, qc, rules],
   );
 
   const cancel = useCallback(() => {
@@ -70,7 +76,7 @@ export function useRewrite(editor: Editor | null, language: Language) {
   }, [editor]);
 
   const accept = useCallback(() => {
-    if (!editor || state.status !== "done" || !range.current) return false;
+    if (!editor || state.status !== "done" || state.dropped?.length || !range.current) return false;
     const { from, to } = range.current;
     // Refuse if the selected text itself was edited while the rewrite streamed.
     if (editor.state.doc.textBetween(from, to, "\n\n", "\n") !== state.original) {

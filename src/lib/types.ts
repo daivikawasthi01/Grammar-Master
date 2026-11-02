@@ -17,4 +17,4 @@ export type DocumentSummary = {
 };
 export type DocumentDetail = DocumentSummary & { content: PMNode };
 
-export type StyleGuide = { name: string; rules: StyleRule[]; updatedAt: string | null };
+export type StyleGuide = { name: string; rules: StyleRule[]; guidanceNotes: string[]; updatedAt: string | null };
