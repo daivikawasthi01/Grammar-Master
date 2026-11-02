@@ -10,8 +10,11 @@ const cache: Cache = (globalCache.__mongoose ??= { conn: null, promise: null });
 
 export async function connectDb(): Promise<typeof mongoose> {
   if (cache.conn) return cache.conn;
+  // Keep Mongoose's default command buffering on: a model first imported while the connection is
+  // still opening runs init() immediately, and with bufferCommands:false that init fails
+  // ("reading 'createCollection'") and Mongoose caches the rejection, so every request 500s.
   cache.promise ??= mongoose
-    .connect(env.MONGODB_URI, { bufferCommands: false, serverSelectionTimeoutMS: 5000 })
+    .connect(env.MONGODB_URI, { serverSelectionTimeoutMS: 5000 })
     .then(async (m) => {
       // Unique indexes (email, usage period) are correctness, not performance: wait for them.
       await Promise.all(Object.values(m.models).map((model) => model.init()));
