@@ -4,9 +4,9 @@ Unit tests for GEC evaluation metrics (GLEU, Semantic Similarity, and ERRANT F0.
 """
 
 import unittest
-from evals.metrics.gleu import compute_gleu
+from evals.metrics.gleu import compute_gleu, compute_corpus_gleu
 from evals.metrics.semantic_similarity import compute_semantic_similarity
-from evals.metrics.errant_scorer import score_with_errant, calculate_f_score
+from evals.metrics.errant_scorer import score_with_errant, calculate_f_score, corpus_f_score
 
 class TestMetrics(unittest.TestCase):
 
@@ -66,6 +66,31 @@ class TestMetrics(unittest.TestCase):
         result = score_with_errant(source, hyp, [ref])
         self.assertEqual(result["f0_5"], 1.0)
         self.assertEqual(result["precision"], 1.0)
+
+    def test_gleu_exact_match_is_not_special_cased(self):
+        # An unchanged sentence that differs from the reference must score below a real fix.
+        source = "He go to school yesterday."
+        reference = "He went to school yesterday."
+        self.assertLess(compute_gleu(source, source, [reference]), 0.01)
+
+    def test_corpus_gleu_noop_below_oracle(self):
+        sources = ["He go home.", "She is fine."]
+        refs = [["He goes home."], ["She is fine."]]
+        noop = compute_corpus_gleu(sources, sources, refs)
+        oracle = compute_corpus_gleu(sources, [r[0] for r in refs], refs)
+        self.assertLess(noop, oracle)
+        self.assertAlmostEqual(oracle, 1.0, places=2)
+
+    def test_corpus_f_score_is_micro_averaged(self):
+        rows = [
+            {"tp": 1, "fp": 0, "fn": 0},
+            {"tp": 0, "fp": 0, "fn": 0},  # clean sentence left alone: contributes nothing
+            {"tp": 1, "fp": 1, "fn": 2},
+        ]
+        res = corpus_f_score(rows)
+        self.assertEqual((res["tp"], res["fp"], res["fn"]), (2, 1, 2))
+        self.assertAlmostEqual(res["precision"], 2 / 3, places=3)
+        self.assertAlmostEqual(res["recall"], 0.5, places=3)
 
 if __name__ == "__main__":
     unittest.main()

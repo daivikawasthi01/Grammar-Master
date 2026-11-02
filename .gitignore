@@ -44,3 +44,10 @@ scratch/
 full-stack_chatApp/
 
 
+backups/
+.claude/launch.json
+/playwright-report/
+/test-results/
+
+# Private real diary entries for the rule eval
+evals/datasets/private/

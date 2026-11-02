@@ -1,0 +1,333 @@
+{
+  "name": "Golden diary set (synthetic)",
+  "version": "0.1.0",
+  "note": "30 hand-written synthetic cases. Real diary entries belong in evals/datasets/private/ (gitignored). The target of ~150 cases is not met yet.",
+  "style_guide_text": "Never change wdym, idk, tbh, yaar, kal, nahi, bhai\nUse 'PostgreSQL', never 'Postgres'\nUse 'macOS', never 'Mac OS'",
+  "protected_terms": [
+    "wdym",
+    "idk",
+    "tbh",
+    "yaar",
+    "kal",
+    "nahi",
+    "bhai"
+  ],
+  "cases": [
+    {
+      "id": 1,
+      "input": "wdym yaar, kal gym nahi gaya becuase i was soo tired",
+      "protected_present": [
+        "wdym",
+        "yaar",
+        "kal",
+        "nahi"
+      ],
+      "expected_fixes": [
+        {
+          "original": "becuase",
+          "replacement": "because"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "input": "idk what happend at the party, tbh it was boring",
+      "protected_present": [
+        "idk",
+        "tbh"
+      ],
+      "expected_fixes": [
+        {
+          "original": "happend",
+          "replacement": "happened"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "input": "bhai, I recieved your message yesterday",
+      "protected_present": [
+        "bhai"
+      ],
+      "expected_fixes": [
+        {
+          "original": "recieved",
+          "replacement": "received"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "input": "Today I went to the market with my freind and kal we will go again",
+      "protected_present": [
+        "kal"
+      ],
+      "expected_fixes": [
+        {
+          "original": "freind",
+          "replacement": "friend"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "input": "yaar I can't beleive it rained all day",
+      "protected_present": [
+        "yaar"
+      ],
+      "expected_fixes": [
+        {
+          "original": "beleive",
+          "replacement": "believe"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "input": "tbh the movie was alright but the ending was dissapointing",
+      "protected_present": [
+        "tbh"
+      ],
+      "expected_fixes": [
+        {
+          "original": "dissapointing",
+          "replacement": "disappointing"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "input": "wdym you didnt call me",
+      "protected_present": [
+        "wdym"
+      ],
+      "expected_fixes": [
+        {
+          "original": "didnt",
+          "replacement": "didn't"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "input": "nahi nahi, I will definately be there",
+      "protected_present": [
+        "nahi"
+      ],
+      "expected_fixes": [
+        {
+          "original": "definately",
+          "replacement": "definitely"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "input": "idk why but I felt very tired thorughout the day",
+      "protected_present": [
+        "idk"
+      ],
+      "expected_fixes": [
+        {
+          "original": "thorughout",
+          "replacement": "throughout"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "input": "kal ka match was amazing and we wone",
+      "protected_present": [
+        "kal"
+      ],
+      "expected_fixes": [
+        {
+          "original": "wone",
+          "replacement": "won"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "input": "Bhai and I went to the cafe, we ordered two coffees and a sandwich.",
+      "protected_present": [
+        "Bhai"
+      ],
+      "expected_fixes": []
+    },
+    {
+      "id": 12,
+      "input": "wdym?",
+      "protected_present": [
+        "wdym"
+      ],
+      "expected_fixes": []
+    },
+    {
+      "id": 13,
+      "input": "yaar, this is fine.",
+      "protected_present": [
+        "yaar"
+      ],
+      "expected_fixes": []
+    },
+    {
+      "id": 14,
+      "input": "tbh, I liked it.",
+      "protected_present": [
+        "tbh"
+      ],
+      "expected_fixes": []
+    },
+    {
+      "id": 15,
+      "input": "idk, maybe tomorrow.",
+      "protected_present": [
+        "idk"
+      ],
+      "expected_fixes": []
+    },
+    {
+      "id": 16,
+      "input": "kal I will write more, nahi aaj.",
+      "protected_present": [
+        "kal",
+        "nahi"
+      ],
+      "expected_fixes": []
+    },
+    {
+      "id": 17,
+      "input": "We migrated the diary backend from Postgres to Mongo last week.",
+      "protected_present": [],
+      "expected_fixes": [
+        {
+          "original": "Postgres",
+          "replacement": "PostgreSQL"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "input": "I set up the project on my Mac OS laptop tonight",
+      "protected_present": [],
+      "expected_fixes": [
+        {
+          "original": "Mac OS",
+          "replacement": "macOS"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "input": "yaar, the Postgres migration failed again",
+      "protected_present": [
+        "yaar"
+      ],
+      "expected_fixes": [
+        {
+          "original": "Postgres",
+          "replacement": "PostgreSQL"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "input": "She dont like coffee, but I do.",
+      "protected_present": [],
+      "expected_fixes": [
+        {
+          "original": "dont",
+          "replacement": "don't"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "input": "I has a long day at work and then went for a walk.",
+      "protected_present": [],
+      "expected_fixes": [
+        {
+          "original": "I has",
+          "replacement": "I had"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "input": "The weather was good so we goes to the park.",
+      "protected_present": [],
+      "expected_fixes": [
+        {
+          "original": "goes",
+          "replacement": "went"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "input": "Yesterday I writed a long entry about my trip.",
+      "protected_present": [],
+      "expected_fixes": [
+        {
+          "original": "writed",
+          "replacement": "wrote"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "input": "It was a really good day and I felt happy.",
+      "protected_present": [],
+      "expected_fixes": []
+    },
+    {
+      "id": 25,
+      "input": "I woke up early, made tea, and read for an hour.",
+      "protected_present": [],
+      "expected_fixes": []
+    },
+    {
+      "id": 26,
+      "input": "Wdym by that? I never said it was bad.",
+      "protected_present": [
+        "Wdym"
+      ],
+      "expected_fixes": []
+    },
+    {
+      "id": 27,
+      "input": "BHAI that was insane, we won the game!",
+      "protected_present": [
+        "BHAI"
+      ],
+      "expected_fixes": []
+    },
+    {
+      "id": 28,
+      "input": "tbh i think yaar we should leave early",
+      "protected_present": [
+        "tbh",
+        "yaar"
+      ],
+      "expected_fixes": []
+    },
+    {
+      "id": 29,
+      "input": "The meeting went well, and idk if they will accept the proposal, nahi lagta.",
+      "protected_present": [
+        "idk",
+        "nahi"
+      ],
+      "expected_fixes": []
+    },
+    {
+      "id": 30,
+      "input": "kal kal kal, he always says tomorrow.",
+      "protected_present": [
+        "kal"
+      ],
+      "expected_fixes": []
+    }
+  ]
+}
