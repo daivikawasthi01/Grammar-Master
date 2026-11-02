@@ -33,16 +33,7 @@ jobs:
 
   e2e:
     name: End-to-end (Playwright)
-    # ubuntu-latest moved to Ubuntu 26 (kernel 6.19+), which mongo:8 refuses to start on
-    # (SERVER-121912). Pin to 24.04 until MongoDB ships a fix.
-    runs-on: ubuntu-24.04
-    services:
-      mongo:
-        image: mongo:8
-        ports: ["27017:27017"]
-        options: >-
-          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 })'"
-          --health-interval 5s --health-timeout 5s --health-retries 10
+    runs-on: ubuntu-latest
     env:
       E2E_MONGODB_URI: mongodb://127.0.0.1:27017/gm_e2e
     steps:
@@ -54,6 +45,13 @@ jobs:
       - run: npm ci
       - run: echo "E2E_OUTPUT_DIR=$RUNNER_TEMP/e2e-output" >> "$GITHUB_ENV"
       - run: npx playwright install --with-deps chromium
+      # mongo:8 service containers fail on the runners' kernel (6.19+, SERVER-121912), so run an
+      # in-memory mongod on the host instead.
+      - name: Start MongoDB
+        run: |
+          nohup node scripts/e2e-mongo.mjs > "$RUNNER_TEMP/mongo.log" 2>&1 &
+          for i in $(seq 1 60); do grep -q "mongod ready" "$RUNNER_TEMP/mongo.log" && exit 0; sleep 2; done
+          cat "$RUNNER_TEMP/mongo.log"; exit 1
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()
