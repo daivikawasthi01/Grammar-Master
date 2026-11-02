@@ -45,7 +45,6 @@ jobs:
           --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       E2E_MONGODB_URI: mongodb://127.0.0.1:27017/gm_e2e
-      E2E_OUTPUT_DIR: ${{ runner.temp }}/e2e-output
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -53,6 +52,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: echo "E2E_OUTPUT_DIR=$RUNNER_TEMP/e2e-output" >> "$GITHUB_ENV"
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
